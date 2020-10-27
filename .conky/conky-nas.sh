@@ -36,7 +36,8 @@ if [[ -f "~/.conky/MUI/"$os_language".lang" ]]; then
 else
   script_language=`echo "~/.conky/MUI/default.lang"`
 fi
-##source $script_language
+my_language=$script_language
+##source $my_language
 
 if [ -f ~/.conky/avatar.png ]; then
   echo "\${image $user_avatar -p 238,3 -s 60x60 -f 86400}"
@@ -48,17 +49,20 @@ echo "\${font}\${voffset -4}"
 echo "${font_title}SYSTEM \${hr 2}"
 echo "${font_standard}Host:$txt_align_right\$nodename"
 echo "${font_standard}Uptime:$txt_align_right\$uptime"
+echo "\${font}\${voffset -4}"
 
 echo "${font_title}CPU \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 echo "${font_standard}\${cpugraph cpu1}"
 echo "${font_standard}CPU: \${cpu cpu1}% \${cpubar cpu1}"
+echo "\${font}\${voffset -4}"
 
 echo "${font_title}MEMORY \${hr 2}"
 echo "${font_standard}RAM $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
 echo "${font_standard}\$membar"
 echo "${font_standard}SWAP $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
 echo "${font_standard}\${swapbar}"
+echo "\${font}\${voffset -4}"
 
 echo "${font_title}DISK USAGE \${hr 2}"
 drives=`ls /dev/sd*[1-9]`
@@ -75,6 +79,7 @@ for drive in $drives ; do
     echo $font_standard$mount_point "["$disk_free_human" / "$(printf "%02d" $disk_usage)"%] "\${execbar echo $disk_usage}
   fi
 done
+echo "\${font}\${voffset -4}"
 
 echo "${font_title}NETWORK \${hr 2}"
 echo "${font_standard}VPN: $txt_align_right\${execi 5 systemctl is-active openvpnauto}"
@@ -82,11 +87,13 @@ echo "${font_standard}IP (public): $txt_align_right\${execi 1000  wget -q -O- ht
 echo "${font_standard}IP (box): $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
 echo "${font_standard}Down: \${downspeed enp4s0}  ${txt_align_right}Up: \${upspeed enp4s0} "
 echo "\${color lightgray}\${downspeedgraph enp4s0 40,130 } ${txt_align_right}\${upspeedgraph enp4s0 40,130 }\$color"
+echo "\${font}\${voffset -4}"
 
 echo "${font_title}TRANSMISSION \${hr 2}"
 echo "${font_standard}State: ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
 echo "${font_standard}Queue: ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
 ##echo "${font_standard}Down: \${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }'} ${txt_align_right}Up: \${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }'}"
+echo "\${font}\${voffset -4}"
 
 echo "${font_title}PLEX \${hr 2}"
 echo "${font_standard}State: ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
