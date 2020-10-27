@@ -14,6 +14,11 @@
  transmission_port=""
  plex_ip=""
  plex_port=""
+ plex_token=""
  
  ## DONT EDIT AFTER THIS
  #######################
+ 
+ if [[ -f ~/.conky/conky-nas.conf ]]; then
+   source ~/.conky/conky-nas.conf
+ fi
