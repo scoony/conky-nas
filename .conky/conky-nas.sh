@@ -31,6 +31,7 @@ if [[ -f ~/.conky/MUI/"$os_language".lang ]]; then
 else
   script_language=`echo "~/.conky/MUI/default.lang"`
 fi
+source $script_language
 
 #### Let's start
 if [[ -f ~/conky/avatar.png ]]; then
