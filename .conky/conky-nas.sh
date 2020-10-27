@@ -26,7 +26,8 @@
 
 #### Check local language and apply MUI
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
-script_language=`echo "~/.conky/MUI/"$os_language".lang"`
-if [[ ! -f ~/.conky/MUI/"$os_language".lang ]]; then
+if [[ -f ~/.conky/MUI/"$os_language".lang ]]; then
+  script_language=`echo "~/.conky/MUI/"$os_language".lang"`
+else
   script_language=`echo "~/.conky/MUI/default.lang"`
 fi
