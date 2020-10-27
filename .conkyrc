@@ -34,5 +34,5 @@ conky.config = {
 	alignment = 'top_right',
 };
 conky.text = [[
-  ${execp ~/.conky/conky-nas.sh}
+${execp ~/.conky/conky-nas.sh} 
 ]];
