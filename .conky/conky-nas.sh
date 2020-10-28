@@ -7,7 +7,7 @@ font_standard="\${font Noto Mono:normal:size=8}"
 font_extra="\${font sans-serif:normal:size=8}"
 txt_align_right="\${alignr}"
 txt_align_center="\${alignc}"
-user_avatar="~/.conky/avatar.png"
+user_avatar=""
 transmission_login=""
 transmission_password=""
 transmission_ip=""
@@ -37,7 +37,7 @@ else
 fi
 
 
-if [ -f ~/.conky/avatar.png ]; then
+if [ -f $user_avatar ]; then
   echo "\${image $user_avatar -p 238,3 -s 60x60 -f 86400}"
 fi
 echo "\${voffset -10}\${font sans-serif:bold:size=18}\${alignc}\${time %H:%M}\${font}"
@@ -122,7 +122,9 @@ fi
 plex_state=`systemctl show -p SubState --value plexmediaserver`
 if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
   echo "${font_title}$mui_plex_title \${hr 2}"
-  echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
+  if [[ "$plex_state" != "dead" ]]; then
+    echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
+  fi
   if [[ "$plex_token" == "" ]]; then
     plex_token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
   fi
