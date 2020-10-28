@@ -114,7 +114,7 @@ echo $font_standard"Stream(s):"$txt_align_right$plex_users" "
 let num=1
   while [ $num -le $plex_users ]; do
     lestream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | cut -d'|' -f$num`
-    ##echo $lestream > /home/scoony/Conky/test$num.log
+    ##echo $lestream > ~/.conky/test$num.log
     title=`echo $lestream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
     user=`echo $lestream | grep -Po '(?<=<User id)[^>]*' | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//' | cut -d@ -f1`
     transcode=`echo $lestream | sed 's/.* videoDecision="//' | sed 's/".*//'`
