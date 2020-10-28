@@ -57,7 +57,6 @@ echo "${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 echo "${font_standard}\${cpugraph cpu}"
 echo "${font_standard}$mui_cpu_cpu \${cpu cpu}% \${cpubar cpu}"
-##echo "\${voffset -16}\${alignr -5}\$cpu%"
 echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_memory_title \${hr 2}"
@@ -154,9 +153,9 @@ if [[ "$plex_state" != "dead" ]]; then
     else
       plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
       if [[ "$plex_transcode" == "transcode" ]]; then
-        echo -e "$font_extra\u25CF $font_standard$plex_title $txt_align_right$plex_user"
+        echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right$plex_user"
       else
-        echo -e "$font_extra\u25C9 $font_standard$plex_title $txt_align_right$plex_user"
+        echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right$plex_user"
       fi
     fi
     plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
