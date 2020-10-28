@@ -1,5 +1,5 @@
 #!/bin/bash
-
+ 
 ## CONFIG
 #########
 font_title="\${font Ubuntu:bold:size=10}"
@@ -22,7 +22,6 @@ plex_token=""
 
 ## Load config (if exist)
 if [[ -f ~/.conky/conky-nas.conf ]]; then
-##  echo "ok"
   source ~/.conky/conky-nas.conf
 fi
 
@@ -106,56 +105,62 @@ echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_
 echo "\${color lightgray}\${downspeedgraph $net_adapter 40,130 } ${txt_align_right}\${upspeedgraph $net_adapter 40,130 }\$color"
 echo "\${font}\${voffset -4}"
 
-echo "${font_title}$mui_transmission_title \${hr 2}"
-echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
-echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
-transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }'`
-transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }'`
-echo "${font_standard}$mui_transmission_down $transmission_down ${txt_align_right}$mui_transmission_up $transmission_up"
-echo "\${font}\${voffset -4}"
+transmission_state=`systemctl show -p SubState --value transmission-daemon`
+if [[ "$transmission_state" != "dead" ]]; then
+  echo "${font_title}$mui_transmission_title \${hr 2}"
+  echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
+  echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
+  transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }'`
+  transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }'`
+  echo "${font_standard}$mui_transmission_down $transmission_down ${txt_align_right}$mui_transmission_up $transmission_up"
+  echo "\${font}\${voffset -4}"
+fi
 
-echo "${font_title}$mui_plex_title \${hr 2}"
-echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
-if [[ "$plex_token" == "" ]]; then
-  plex_token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
-fi
-if [[ "$plex_ip" == "" ]]; then
-  plex_ip="localhost"
-fi
-if [[ "$plex_port" == "" ]]; then
-  plex_port="32400"
-fi
-plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
-plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
-echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
-let num=1
-while [ $num -le $plex_users ]; do
-  plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | cut -d'|' -f$num`
-  plex_user=`echo $plex_stream | grep -Po '(?<=<User id)[^>]*' | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//' | cut -d@ -f1`
-  plex_transcode=`echo $plex_stream | sed 's/.* videoDecision="//' | sed 's/".*//'`
-  let plex_inprogressms=`echo $plex_stream | sed 's/.* viewOffset="//' | sed 's/".*//'`
-  plex_inprogress=`printf '%d:%02d:%02d\n' $(($plex_inprogressms/1000/3600)) $(($plex_inprogressms/1000%3600/60)) $(($plex_inprogressms/1000%60))`
-  let plex_durationms=`echo $plex_stream | sed 's/.* duration="//' | sed 's/".*//'`
-  plex_duration=`printf '%d:%02d:%02d\n' $(($plex_durationms/1000/3600)) $(($plex_durationms/1000%3600/60)) $(($plex_durationms/1000%60))`
-  plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
-  if [[ "$plex_checkepisode" != "" ]]; then
-    plex_serie=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
-    plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
-    plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
-    if [[ "$plex_transcode" == "transcode" ]]; then
-      echo -e "$font_extra\u25CF $font_standard$plex_serie ($plex_season x $plex_episode) $txt_align_right$plex_user"
-    else
-      echo -e "$font_extra\u25C9 $font_standard$plex_serie ($plex_season x $plex_episode) $txt_align_right$plex_user"
-    fi
-  else
-    plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
-    if [[ "$plex_transcode" == "transcode" ]]; then
-      echo -e "$font_extra\u25CF $font_standard$plex_title $txt_align_right$plex_user"
-    else
-      echo -e "$font_extra\u25C9 $font_standard$plex_title $txt_align_right$plex_user"
-    fi
+plex_state=`systemctl show -p SubState --value plexmediaserver`
+if [[ "$plex_state" != "dead" ]]; then
+  echo "${font_title}$mui_plex_title \${hr 2}"
+  echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
+  if [[ "$plex_token" == "" ]]; then
+    plex_token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
   fi
-  plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
-  echo $plex_inprogress" / "$plex_duration  \${execbar echo $plex_bar_progress}
-  let num=$num+1
-done
+  if [[ "$plex_ip" == "" ]]; then
+    plex_ip="localhost"
+  fi
+  if [[ "$plex_port" == "" ]]; then
+    plex_port="32400"
+  fi
+  plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
+  plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
+  echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
+  let num=1
+  while [ $num -le $plex_users ]; do
+    plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | cut -d'|' -f$num`
+    plex_user=`echo $plex_stream | grep -Po '(?<=<User id)[^>]*' | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//' | cut -d@ -f1`
+    plex_transcode=`echo $plex_stream | sed 's/.* videoDecision="//' | sed 's/".*//'`
+    let plex_inprogressms=`echo $plex_stream | sed 's/.* viewOffset="//' | sed 's/".*//'`
+    plex_inprogress=`printf '%d:%02d:%02d\n' $(($plex_inprogressms/1000/3600)) $(($plex_inprogressms/1000%3600/60)) $(($plex_inprogressms/1000%60))`
+    let plex_durationms=`echo $plex_stream | sed 's/.* duration="//' | sed 's/".*//'`
+    plex_duration=`printf '%d:%02d:%02d\n' $(($plex_durationms/1000/3600)) $(($plex_durationms/1000%3600/60)) $(($plex_durationms/1000%60))`
+    plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
+    if [[ "$plex_checkepisode" != "" ]]; then
+      plex_serie=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
+      plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
+      plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
+      if [[ "$plex_transcode" == "transcode" ]]; then
+        echo -e "$font_extra\u25CF $font_standard$plex_serie ($plex_season x $plex_episode) $txt_align_right$plex_user"
+      else
+        echo -e "$font_extra\u25C9 $font_standard$plex_serie ($plex_season x $plex_episode) $txt_align_right$plex_user"
+      fi
+    else
+      plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
+      if [[ "$plex_transcode" == "transcode" ]]; then
+        echo -e "$font_extra\u25CF $font_standard$plex_title $txt_align_right$plex_user"
+      else
+        echo -e "$font_extra\u25C9 $font_standard$plex_title $txt_align_right$plex_user"
+      fi
+    fi
+    plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
+    echo $plex_inprogress" / "$plex_duration  \${execbar echo $plex_bar_progress}
+    let num=$num+1
+  done
+fi
