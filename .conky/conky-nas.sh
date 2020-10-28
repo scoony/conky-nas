@@ -114,39 +114,46 @@ echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_plex_title \${hr 2}"
 echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
-token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
-plex_xml=`curl --silent http://localhost:32400/status/sessions?X-Plex-Token=$token`
+if [[ "$plex_token" == "" ]]; then
+  plex_token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
+fi
+if [[ "$plex_ip" == "" ]]; then
+  plex_ip="localhost"
+fi
+if [[ "$plex_port" == "" ]]; then
+  plex_port="32400"
+fi
+plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
 plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
 echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
 let num=1
-  while [ $num -le $plex_users ]; do
-    lestream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | cut -d'|' -f$num`
-    ##echo $lestream > ~/.conky/test$num.log
-    title=`echo $lestream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
-    user=`echo $lestream | grep -Po '(?<=<User id)[^>]*' | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//' | cut -d@ -f1`
-    transcode=`echo $lestream | sed 's/.* videoDecision="//' | sed 's/".*//'`
-    let inprogressms=`echo $lestream | sed 's/.* viewOffset="//' | sed 's/".*//'`
-    inprogress=`printf '%d:%02d:%02d\n' $(($inprogressms/1000/3600)) $(($inprogressms/1000%3600/60)) $(($inprogressms/1000%60))`
-	let durationms=`echo $lestream | sed 's/.* duration="//' | sed 's/".*//'`
-    duration=`printf '%d:%02d:%02d\n' $(($durationms/1000/3600)) $(($durationms/1000%3600/60)) $(($durationms/1000%60))`
-    checkepisode=`echo $lestream | grep 'grandparentTitle='`
-    if [[ "$checkepisode" != "" ]]; then
-      serie=`echo $lestream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
-      episode=`echo $lestream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
-      season=`echo $lestream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
-	  if [[ "$transcode" == "transcode" ]]; then
-	    echo -e "$font_extra\u25CF $font_standard$serie ($season x $episode) $txt_align_right$user"
-	    else
-	    echo -e "$font_extra\u25C9 $font_standard$serie ($season x $episode) $txt_align_right$user"
-	  fi
-	else
-	  if [[ "$transcode" == "transcode" ]]; then
-	    echo -e "$font_extra\u25CF $font_standard$title $txt_align_right$user"
-	   else
-	  echo -e "$font_extra\u25C9 $font_standard$title $txt_align_right$user"
-	fi
+while [ $num -le $plex_users ]; do
+  plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | cut -d'|' -f$num`
+  plex_user=`echo $plex_stream | grep -Po '(?<=<User id)[^>]*' | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//' | cut -d@ -f1`
+  plex_transcode=`echo $plex_stream | sed 's/.* videoDecision="//' | sed 's/".*//'`
+  let plex_inprogressms=`echo $plex_stream | sed 's/.* viewOffset="//' | sed 's/".*//'`
+  plex_inprogress=`printf '%d:%02d:%02d\n' $(($plex_inprogressms/1000/3600)) $(($plex_inprogressms/1000%3600/60)) $(($plex_inprogressms/1000%60))`
+  let plex_durationms=`echo $plex_stream | sed 's/.* duration="//' | sed 's/".*//'`
+  plex_duration=`printf '%d:%02d:%02d\n' $(($plex_durationms/1000/3600)) $(($plex_durationms/1000%3600/60)) $(($plex_durationms/1000%60))`
+  plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
+  if [[ "$plex_checkepisode" != "" ]]; then
+    plex_serie=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
+    plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
+    plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
+    if [[ "$plex_transcode" == "transcode" ]]; then
+      echo -e "$font_extra\u25CF $font_standard$plex_serie ($plex_season x $plex_episode) $txt_align_right$plex_user"
+    else
+      echo -e "$font_extra\u25C9 $font_standard$plex_serie ($plex_season x $plex_episode) $txt_align_right$plex_user"
     fi
-    bar_progress=$(($inprogressms*100/$durationms))
-    echo $inprogress" / "$duration  \${execbar echo $bar_progress}
-    let num=$num+1
-  done
+  else
+    plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
+    if [[ "$plex_transcode" == "transcode" ]]; then
+      echo -e "$font_extra\u25CF $font_standard$plex_title $txt_align_right$plex_user"
+    else
+      echo -e "$font_extra\u25C9 $font_standard$plex_title $txt_align_right$plex_user"
+    fi
+  fi
+  plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
+  echo $plex_inprogress" / "$plex_duration  \${execbar echo $plex_bar_progress}
+  let num=$num+1
+done
