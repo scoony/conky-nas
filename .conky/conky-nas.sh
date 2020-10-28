@@ -125,7 +125,7 @@ let num=1
     checkepisode=`echo $lestream | grep 'grandparentTitle='`
     if [[ "$checkepisode" != "" ]]; then
       serie=`echo $lestream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
-      episode=`echo $lestream | sed 's/.* index="//' | sed 's/".*//'`
+      episode=`echo $lestream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
       season=`echo $lestream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
 	  if [[ "$transcode" == "transcode" ]]; then
 	    echo -e "$font_extra\u25CF $font_standard$serie ($season x $episode) $txt_align_right$user"
