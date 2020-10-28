@@ -79,7 +79,7 @@ for drive in $drives ; do
     disk_total=`df $drive | sed 1d | awk '{print $2}'`
     disk_total_human=`df -Hl $mount_point | sed 1d | awk '{print $2}'`
     disk_usage=`df $drive | sed 1d | awk '{print $5}' | sed 's/%//'`
-    echo $font_standard$mount_point ${txt_align_right}"["$disk_free_human" / "$(printf "%02d" $disk_usage)"%] "\${execbar 6,160 echo $disk_usage}
+    echo $font_standard$mount_point ${txt_align_right}"["$(printf "%04s" $disk_free_human)" / "$(printf "%02d" $disk_usage)"%] "\${execbar 6,160 echo $disk_usage}
   fi
 done
 echo "\${font}\${voffset -4}"
