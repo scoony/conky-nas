@@ -9,3 +9,4 @@ install transmission-remote
 - autodetect plex-token
 - autodetect net-adapter
 - check if reboot is required
+- multilanguage done
