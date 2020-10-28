@@ -120,7 +120,7 @@ if [[ "$transmission_state" != "dead" ]]; then
 fi
 
 plex_state=`systemctl show -p SubState --value plexmediaserver`
-if [[ "$plex_state" != "dead" ]]; then
+if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
   echo "${font_title}$mui_plex_title \${hr 2}"
   echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
   if [[ "$plex_token" == "" ]]; then
@@ -166,4 +166,7 @@ if [[ "$plex_state" != "dead" ]]; then
     echo $plex_inprogress" / "$plex_duration  \${execbar echo $plex_bar_progress}
     let num=$num+1
   done
+else
+  echo "${font_title}$mui_plex_title \${hr 2}"
+  echo $font_standard$mui_plex_error
 fi
