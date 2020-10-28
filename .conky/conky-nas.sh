@@ -17,16 +17,6 @@ plex_ip=""
 plex_port=""
 plex_token=""
 
-## Function to humanize speed
-humanise() {
-  b=${1:-0}; d=''; s=0; S=(B {Ki,Mi,Gi,Ti}B)
-  while ((b > 1024)); do
-    d="$(printf ".%02d" $((b % 1000 * 100 / 1000)))"
-    b=$((b / 1000))
-    let s++
-  done
-  echo "$b$d ${S[$s]}"
-}
 
 ## DONT EDIT AFTER THIS
 #######################
@@ -103,7 +93,6 @@ fi
 net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
 net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
 echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
-##echo "${font_standard}Link Speed: $txt_align_right $net_adapter_speed"
 if [[ "$vpn_detected" != "" ]]; then
   echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
   echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
@@ -122,10 +111,10 @@ if [[ "$transmission_state" != "dead" ]]; then
   echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
   transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
   let transmission_down=$transmission_down*1000
-  transmission_down_human=`humanise $transmission_down`
+  transmission_down_human=`numfmt --to=iec-i --suffix=B $transmission_down`
   transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
   let transmission_up=$transmission_up*1000
-  transmission_up_human=`humanise $transmission_up`
+  transmission_up_human=`numfmt --to=iec-i --suffix=B $transmission_up`
   echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
   echo "\${font}\${voffset -4}"
 fi
