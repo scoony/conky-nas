@@ -1,7 +1,4 @@
 #!/bin/bash
-
-## apt install libxml2-utils
-
  
 ## CONFIG
 #########
@@ -85,7 +82,7 @@ echo "${font_title}NETWORK \${hr 2}"
 echo "${font_standard}VPN: $txt_align_right\${execi 5 systemctl is-active openvpnauto}"
 echo "${font_standard}IP (public): $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
 echo "${font_standard}IP (box): $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
-echo "${font_standard}Down: \${downspeed enp4s0}  ${txt_align_right}Up: \${upspeed enp4s0} "
+echo "${font_standard}Down: \${downspeed enp4s0}  ${txt_align_right}Up: \${upspeed enp4s0}"
 echo "\${color lightgray}\${downspeedgraph enp4s0 40,130 } ${txt_align_right}\${upspeedgraph enp4s0 40,130 }\$color"
 echo "\${font}\${voffset -4}"
 
