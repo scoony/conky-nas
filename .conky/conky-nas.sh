@@ -31,13 +31,14 @@ fi
 
 ## Check local language and apply MUI
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
-if [[ -f "~/.conky/MUI/"$os_language".lang" ]]; then
-  script_language=`echo "~/.conky/MUI/"$os_language".lang"`
+if [[ -f ~/.conky/MUI/$os_language.lang ]]; then
+  script_language="~/.conky/MUI/$os_language.lang"
+  source ~/.conky/MUI/$os_language.lang
 else
-  script_language=`echo "~/.conky/MUI/default.lang"`
+  script_language="~/.conky/MUI/default.lang"
+  source ~/.conky/MUI/default.lang
 fi
-my_language=$script_language
-##source $my_language
+
 
 if [ -f ~/.conky/avatar.png ]; then
   echo "\${image $user_avatar -p 238,3 -s 60x60 -f 86400}"
@@ -46,31 +47,31 @@ echo "\${voffset -10}\${font sans-serif:bold:size=18}\${alignc}\${time %H:%M}\${
 echo "${txt_align_center}\${time %A %d %B}"
 echo "\${font}\${voffset -4}"
 
-echo "${font_title}SYSTEM \${hr 2}"
-echo "${font_standard}Host:$txt_align_right\$nodename"
-echo "${font_standard}Uptime:$txt_align_right\$uptime"
+echo "${font_title}$mui_system_title \${hr 2}"
+echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
+echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 if [ -f /var/run/reboot-required ]; then
   echo "\${execbar 14 echo "100"}"
-  echo "${font_standard}\${voffset -21}${txt_align_center}\${color black}REBOOT REQUIRED\${color}"
+  echo "${font_standard}\${voffset -21}${txt_align_center}\${color black}$mui_system_reboot\${color}"
 fi
 echo "\${font}\${voffset -4}"
 
 
-echo "${font_title}CPU \${hr 2}"
+echo "${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 echo "${font_standard}\${cpugraph cpu}"
-echo "${font_standard}CPU: \${cpu cpu}% \${cpubar cpu}"
+echo "${font_standard}$mui_cpu_cpu \${cpu cpu}% \${cpubar cpu}"
 ##echo "\${voffset -16}\${alignr -5}\$cpu%"
 echo "\${font}\${voffset -4}"
 
-echo "${font_title}MEMORY \${hr 2}"
-echo "${font_standard}RAM $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
+echo "${font_title}$mui_memory_title \${hr 2}"
+echo "${font_standard}$mui_memory_ram $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
 echo "${font_standard}\$membar"
-echo "${font_standard}SWAP $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
+echo "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
 echo "${font_standard}\${swapbar}"
 echo "\${font}\${voffset -4}"
 
-echo "${font_title}DISK USAGE \${hr 2}"
+echo "${font_title}$mui_diskusage_title \${hr 2}"
 drives=`ls /dev/sd*[1-9]`
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | cut -d ' ' -f 2`
@@ -87,30 +88,30 @@ for drive in $drives ; do
 done
 echo "\${font}\${voffset -4}"
 
-echo "${font_title}NETWORK \${hr 2}"
+echo "${font_title}$mui_network_title \${hr 2}"
 net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
 net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
-echo "${font_standard}Adapter: $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
 ##echo "${font_standard}Link Speed: $txt_align_right $net_adapter_speed"
-echo "${font_standard}VPN: $txt_align_right\${execi 5 systemctl is-active openvpnauto}"
-echo "${font_standard}IP (public): $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
-echo "${font_standard}IP (box): $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
-echo "${font_standard}Down: \${downspeed $net_adapter}  ${txt_align_right}Up: \${upspeed $net_adapter}"
+echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active openvpnauto}"
+echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
+echo "${font_standard}$mui_network_ip_box $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
+echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
 echo "\${color lightgray}\${downspeedgraph $net_adapter 40,130 } ${txt_align_right}\${upspeedgraph $net_adapter 40,130 }\$color"
 echo "\${font}\${voffset -4}"
 
-echo "${font_title}TRANSMISSION \${hr 2}"
-echo "${font_standard}State: ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
-echo "${font_standard}Queue: ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
-##echo "${font_standard}Down: \${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }'} ${txt_align_right}Up: \${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }'}"
+echo "${font_title}$mui_transmission_title \${hr 2}"
+echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
+echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
+##echo "${font_standard}$mui_transmission_down \${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }'} ${txt_align_right}$mui_transmission_up \${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }'}"
 echo "\${font}\${voffset -4}"
 
-echo "${font_title}PLEX \${hr 2}"
-echo "${font_standard}State: ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
+echo "${font_title}$mui_plex_title \${hr 2}"
+echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
 token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
 plex_xml=`curl --silent http://localhost:32400/status/sessions?X-Plex-Token=$token`
 plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
-echo $font_standard"Stream(s):"$txt_align_right$plex_users" "
+echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
 let num=1
   while [ $num -le $plex_users ]; do
     lestream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | cut -d'|' -f$num`
