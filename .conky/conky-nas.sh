@@ -17,6 +17,17 @@ plex_ip=""
 plex_port=""
 plex_token=""
 
+## Function to humanize speed
+humanise() {
+  b=${1:-0}; d=''; s=0; S=(B {Ki,Mi,Gi,Ti}B)
+  while ((b > 1024)); do
+    d="$(printf ".%02d" $((b % 1000 * 100 / 1000)))"
+    b=$((b / 1000))
+    let s++
+  done
+  echo "$b$d ${S[$s]}"
+}
+
 ## DONT EDIT AFTER THIS
 #######################
 
