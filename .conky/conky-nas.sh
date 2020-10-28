@@ -1,4 +1,7 @@
 #!/bin/bash
+
+## apt install libxml2-utils
+
  
 ## CONFIG
 #########
@@ -46,12 +49,18 @@ echo "\${font}\${voffset -4}"
 echo "${font_title}SYSTEM \${hr 2}"
 echo "${font_standard}Host:$txt_align_right\$nodename"
 echo "${font_standard}Uptime:$txt_align_right\$uptime"
+if [ -f /var/run/reboot-required ]; then
+  echo "\${execbar 14 echo "100"}"
+  echo "${font_standard}\${voffset -21}${txt_align_center}\${color black}REBOOT REQUIRED\${color}"
+fi
 echo "\${font}\${voffset -4}"
+
 
 echo "${font_title}CPU \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
-echo "${font_standard}\${cpugraph cpu1}"
-echo "${font_standard}CPU: \${cpu cpu1}% \${cpubar cpu1}"
+echo "${font_standard}\${cpugraph cpu}"
+echo "${font_standard}CPU: \${cpu cpu}% \${cpubar cpu}"
+##echo "\${voffset -16}\${alignr -5}\$cpu%"
 echo "\${font}\${voffset -4}"
 
 echo "${font_title}MEMORY \${hr 2}"
@@ -73,17 +82,21 @@ for drive in $drives ; do
     disk_total=`df $drive | sed 1d | awk '{print $2}'`
     disk_total_human=`df -Hl $mount_point | sed 1d | awk '{print $2}'`
     disk_usage=`df $drive | sed 1d | awk '{print $5}' | sed 's/%//'`
-    echo $font_standard$mount_point "["$disk_free_human" / "$(printf "%02d" $disk_usage)"%] "\${execbar echo $disk_usage}
+    echo $font_standard$mount_point ${txt_align_right}"["$disk_free_human" / "$(printf "%02d" $disk_usage)"%] "\${execbar 6,160 echo $disk_usage}
   fi
 done
 echo "\${font}\${voffset -4}"
 
 echo "${font_title}NETWORK \${hr 2}"
+net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
+net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
+echo "${font_standard}Adapter: $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+##echo "${font_standard}Link Speed: $txt_align_right $net_adapter_speed"
 echo "${font_standard}VPN: $txt_align_right\${execi 5 systemctl is-active openvpnauto}"
 echo "${font_standard}IP (public): $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
 echo "${font_standard}IP (box): $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
-echo "${font_standard}Down: \${downspeed enp4s0}  ${txt_align_right}Up: \${upspeed enp4s0}"
-echo "\${color lightgray}\${downspeedgraph enp4s0 40,130 } ${txt_align_right}\${upspeedgraph enp4s0 40,130 }\$color"
+echo "${font_standard}Down: \${downspeed $net_adapter}  ${txt_align_right}Up: \${upspeed $net_adapter}"
+echo "\${color lightgray}\${downspeedgraph $net_adapter 40,130 } ${txt_align_right}\${upspeedgraph $net_adapter 40,130 }\$color"
 echo "\${font}\${voffset -4}"
 
 echo "${font_title}TRANSMISSION \${hr 2}"
