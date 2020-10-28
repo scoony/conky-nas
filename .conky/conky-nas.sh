@@ -109,7 +109,9 @@ echo "\${font}\${voffset -4}"
 echo "${font_title}$mui_transmission_title \${hr 2}"
 echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
 echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
-##echo "${font_standard}$mui_transmission_down \${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }'} ${txt_align_right}$mui_transmission_up \${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }'}"
+transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }'`
+transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }'`
+echo "${font_standard}$mui_transmission_down $transmission_down ${txt_align_right}$mui_transmission_up $transmission_up"
 echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_plex_title \${hr 2}"
