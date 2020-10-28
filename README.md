@@ -13,7 +13,8 @@ install ifconfig
 - check if reboot is required
 - multilanguage done
 - autodetect if network is secured thru VPN and adapt the display
-
+- détection des services plex et transmission-daemon
+- humanisation des vitesses de transmission
 
 #### A FAIRE
 - chercher les ips en dehors de conky et n'afficher que dans le echo
