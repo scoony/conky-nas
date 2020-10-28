@@ -10,3 +10,4 @@ install transmission-remote
 - autodetect net-adapter
 - check if reboot is required
 - multilanguage done
+- autodetect if network is secured thru VPN and adapt the display
