@@ -1,8 +1,5 @@
 #!/bin/bash
 
-## apt install libxml2-utils
-
- 
 ## CONFIG
 #########
 font_title="\${font Ubuntu:bold:size=10}"
@@ -88,14 +85,23 @@ for drive in $drives ; do
 done
 echo "\${font}\${voffset -4}"
 
-echo "${font_title}$mui_network_title \${hr 2}"
+vpn_detected=`ifconfig | grep "tun[0-9]"`
+if [[ "$vpn_detected" != "" ]]; then
+  echo "${font_title}$mui_network_title_secured \${hr 2}"
+else
+  echo "${font_title}$mui_network_title \${hr 2}"
+fi
 net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
 net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
 echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
 ##echo "${font_standard}Link Speed: $txt_align_right $net_adapter_speed"
-echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active openvpnauto}"
+if [[ "$vpn_detected" != "" ]]; then
+  echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
+  echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
+  echo "${font_standard}$mui_network_ip_box $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
+else
 echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
-echo "${font_standard}$mui_network_ip_box $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
+fi
 echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
 echo "\${color lightgray}\${downspeedgraph $net_adapter 40,130 } ${txt_align_right}\${upspeedgraph $net_adapter 40,130 }\$color"
 echo "\${font}\${voffset -4}"
