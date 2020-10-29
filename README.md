@@ -20,8 +20,8 @@ This project was created to make the perfect conky for a Plex server.
 - multilanguage done
 - autodetect if network is secured thru VPN and adapt the display
 - autodetect plexmediaserver and transmission-daemon and activate display accordingly
-- humanisation des vitesses de transmission
-- Remote plex is done
+- humanized speeds in transmission
+- remote plex is done
 
 #### To-do list:
 - chercher les ips en dehors de conky et n'afficher que dans le echo
