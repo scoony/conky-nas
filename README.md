@@ -21,3 +21,4 @@ install ifconfig
 - chercher les ips en dehors de conky et n'afficher que dans le echo
 - comparer les ip et message à la reboot
 - graph cpu en gris comme net graph
+- vérifier si la mise en page est la meme sans avatar
