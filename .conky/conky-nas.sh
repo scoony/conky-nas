@@ -55,11 +55,21 @@ if [ -f /var/run/reboot-required ]; then
 fi
 echo "\${font}\${voffset -4}"
 
-
 echo "${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 echo "${font_standard}\${cpugraph cpu}"
 echo "${font_standard}$mui_cpu_cpu \${cpu cpu}% \${cpubar cpu}"
+HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
+if [[ "$HandBrake_process" != "" ]]; then
+  HandBrake_line=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p'`
+  if [[ $HandBrake_line != "Encodage terminé" ]] && [[ $HandBrake_line != "..." ]] && [[ $HandBrake_line != "" ]]; then
+    HandBrake_progress=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p' | cut -d' ' -f2 | sed "s/(//" | sed "s/\..*//"`
+	HandBrake_progress_human=`printf '%d' $HandBrake_progress`
+	echo "${font_standard}Handbrake : $(printf "%2d" $HandBrake_progress_human)% \${execbar 6 echo $HandBrake_progress_human}"
+    HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '3p'`
+    echo "${font_standard}${HandBrake_file:0:49}"
+  fi
+fi
 echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_memory_title \${hr 2}"
