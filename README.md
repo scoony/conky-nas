@@ -2,6 +2,8 @@
 
 This project was created to make the perfect conky for a Plex server (multi-language support).
 
+![image](https://raw.githubusercontent.com/scoony/conky-nas/main/extras/conky-nas-demo.gif)
+
 #### Install: (not working yet)
 ```
 bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/extras/installer.sh)"
