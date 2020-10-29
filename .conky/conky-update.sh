@@ -18,7 +18,7 @@ for current_file in $file{001..999}; do
     echo "$current_file : No upgrade required"
   else
     echo "$current_file : Upgrade required"
-    wget -quiet "${remote_folder}${current_file}" -O "${user_path}${current_file}"
+    wget --quiet "${remote_folder}${current_file}" -O "${user_path}${current_file}"
     echo "Update Done"
   fi
 done
