@@ -2,6 +2,11 @@
 
 This project was created to make the perfect conky for a Plex server (multi-language support).
 
+####Install: (not working yet)
+```
+bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/master/extra/installer.sh)"
+```
+
 #### Support:
 - transmission-deamon
 - plexmediaserver
