@@ -19,6 +19,9 @@ for current_file in $file{001..999}; do
   else
     echo "$current_file : Upgrade required"
     wget --quiet "${remote_folder}${current_file}" -O "${user_path}${current_file}"
+    if [[ "$current_file" =~ ".sh" ]]; then
+      chmod +x "${user_path}${current_file}"
+    fi
     echo "Update Done"
   fi
 done
