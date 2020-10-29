@@ -12,19 +12,18 @@ This project was created to make the perfect conky for a Plex server.
 - install transmission-remote
 - install ifconfig
 
-#### Work done
+#### Work done:
 - autodetect HDD
 - autodetect plex-token
 - autodetect net-adapter
 - check if reboot is required
 - multilanguage done
 - autodetect if network is secured thru VPN and adapt the display
-- autodetect plexmediaserver and transmission-daemon services (to display only if required)
-- humanization of transmission speeds
-- remote plex server is handled
-- remote transmission server is handled
+- détection des services plex et transmission-daemon
+- humanisation des vitesses de transmission
+- Remote plex is done
 
-#### To-do list
+#### To-do list:
 - chercher les ips en dehors de conky et n'afficher que dans le echo
 - comparer les ip et message à la reboot
 - graph cpu en gris comme net graph
