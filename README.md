@@ -20,3 +20,4 @@ install ifconfig
 #### A FAIRE
 - chercher les ips en dehors de conky et n'afficher que dans le echo
 - comparer les ip et message à la reboot
+- graph cpu en gris comme net graph
