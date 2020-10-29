@@ -20,7 +20,7 @@ for current_file in $file{001..999}; do
     echo "$current_file : Upgrade required"
     wget --quiet "${remote_folder}${current_file}" -O "${user_path}${current_file}"
     sed -i -e 's/\r//g' "${user_path}${current_file}"
-    if [[ "$current_file" =~ ".sh" ]]; then
+    if [[ "$current_file" =~ ".sh" ]]; then
       chmod +x "${user_path}${current_file}"
     fi
     echo "Update Done"
