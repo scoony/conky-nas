@@ -10,7 +10,7 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 #### Support:
 - transmission-deamon
 - plexmediaserver
-- openvpn service
+- openvpn custom service (for permanent vpn)
 
 #### Required:
 - apt install libxml2-utils
