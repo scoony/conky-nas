@@ -12,10 +12,11 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - plexmediaserver
 - openvpn custom service (for permanent vpn)
 
-#### Required:
-- apt install libxml2-utils
-- install transmission-remote
-- install ifconfig
+#### Required (for manual install):
+- libxml2-utils
+- transmission-cli
+- net-tools
+- jq
 
 #### Work done:
 - autodetect HDD
