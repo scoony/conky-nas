@@ -1,15 +1,19 @@
 #!/bin/bash
 
 remote_folder="https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/"
-local_folder="~/.conky/"
+local_folder="/home/scoony/.conky/"
 
-file=""
+file001="conky-nas.sh"
+file002="conky-update.sh"
+file003="MUI/default.lang"
+file004="MUI/fr.lang"
 
-remote_md5=`curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/conky-nas.sh | md5sum | cut -f1 -d" "`
-local_md5=`md5sum ~/.conky/conky-nas.sh | cut -f1 -d" "`
-
-if [[ $remote_md5 == $local_md5 ]]; then
-  echo "No upgrade required"
-else
-  echo "Upgrade required"
-fi
+for current_file in $file{001..999}; do
+  remote_md5=`curl -s ${remote_folder}$current_file | md5sum | cut -f1 -d" "`
+  local_md5=`md5sum ${local_folder}$current_file | cut -f1 -d" "`
+  if [[ $remote_md5 == $local_md5 ]]; then
+    echo "$current_file : No upgrade required"
+  else
+    echo "$current_file : Upgrade required"
+  fi
+done
