@@ -15,8 +15,8 @@ install ifconfig
 - autodetect if network is secured thru VPN and adapt the display
 - détection des services plex et transmission-daemon
 - humanisation des vitesses de transmission
+- Remote plex is done
 
 #### A FAIRE
 - chercher les ips en dehors de conky et n'afficher que dans le echo
 - comparer les ip et message à la reboot
-- prévoir le cas de figure d'un plex distant
