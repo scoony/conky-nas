@@ -190,9 +190,9 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
       plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
       plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
       if [[ "$plex_transcode" == "transcode" ]]; then
-        echo -e "$font_extra\u25CF $font_standard$plex_serie ($plex_season x $plex_episode) $txt_align_right$plex_user"
+        echo -e "$font_extra\u25CF $font_standard$plex_serie ("$plex_season"x$plex_episode) $txt_align_right$plex_user"
       else
-        echo -e "$font_extra\u25C9 $font_standard$plex_serie ($plex_season x $plex_episode) $txt_align_right$plex_user"
+        echo -e "$font_extra\u25C9 $font_standard$plex_serie ("$plex_season"x$plex_episode) $txt_align_right$plex_user"
       fi
     else
       plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
