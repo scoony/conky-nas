@@ -62,7 +62,7 @@ echo "${font_standard}$mui_cpu_cpu \${cpu cpu}% \${cpubar cpu}"
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
   HandBrake_line=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p'`
-  if [[ $HandBrake_line != "Encodage terminé" ]] && [[ $HandBrake_line != "..." ]] && [[ $HandBrake_line != "" ]]; then
+  if [[ $HandBrake_line != "Encodage terminé" ]] && [[ $HandBrake_line != "..." ]] && [[ $HandBrake_line != "" ]] && [[ $HandBrake_line != "Encodage en cours" ]]; then
     HandBrake_progress=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p' | cut -d' ' -f2 | sed "s/(//" | sed "s/\..*//"`
 	HandBrake_progress_human=`printf '%d' $HandBrake_progress`
 	echo "${font_standard}$mui_cpu_handbrake $(printf "%3d" $HandBrake_progress_human)% \${execbar 6 echo $HandBrake_progress_human}"
