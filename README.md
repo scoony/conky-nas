@@ -1,12 +1,18 @@
 # conky-nas
 
-apt install libxml2-utils
+This project was created to make the perfect conky for a Plex server.
 
-install transmission-remote
+#### Support:
+- transmission-deamon
+- plexmediaserver
+- openvpn service
 
-install ifconfig
+#### Required:
+- apt install libxml2-utils
+- install transmission-remote
+- install ifconfig
 
-#### FAIT
+#### Work done
 - autodetect HDD
 - autodetect plex-token
 - autodetect net-adapter
@@ -17,7 +23,7 @@ install ifconfig
 - humanisation des vitesses de transmission
 - Remote plex is done
 
-#### A FAIRE
+#### To-do list
 - chercher les ips en dehors de conky et n'afficher que dans le echo
 - comparer les ip et message à la reboot
 - graph cpu en gris comme net graph
