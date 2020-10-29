@@ -65,9 +65,14 @@ if [[ "$HandBrake_process" != "" ]]; then
   if [[ $HandBrake_line != "Encodage terminé" ]] && [[ $HandBrake_line != "..." ]] && [[ $HandBrake_line != "" ]]; then
     HandBrake_progress=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p' | cut -d' ' -f2 | sed "s/(//" | sed "s/\..*//"`
 	HandBrake_progress_human=`printf '%d' $HandBrake_progress`
-	echo "${font_standard}Handbrake : $(printf "%2d" $HandBrake_progress_human)% \${execbar 6 echo $HandBrake_progress_human}"
-    HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '3p'`
-    echo "${font_standard}${HandBrake_file:0:49}"
+	echo "${font_standard}$mui_cpu_handbrake $(printf "%3d" $HandBrake_progress_human)% \${execbar 6 echo $HandBrake_progress_human}"
+    HandBrake_categorie=`cat "/opt/scripts/.convert2hdlight" | sed -n '5p'`
+	HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
+    if [[ "$HandBrake_categorie" == "Film" ]]; then
+	  echo "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:49}"
+	else
+	  echo "${font_standard}$mui_cpu_handbrake_serie$txt_align_right${HandBrake_file:0:49}"
+	fi
   fi
 fi
 echo "\${font}\${voffset -4}"
