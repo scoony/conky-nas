@@ -25,7 +25,7 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - check if reboot is required
 - multilanguage done
 - autodetect if network is secured thru VPN and adapt the display
-- autodetect plexmediaserver and transmission-daemon and activate display accordingly
+- autodetect plexmediaserver and transmission-daemon (activate display accordingly)
 - humanized speeds in transmission
 - remote plex is done
 
