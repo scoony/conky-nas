@@ -1,5 +1,10 @@
 #!/bin/bash
 
+### make sure it's not the root account
+apt update
+apt install conky-all net-tools jq curl transmission-remote-cli
+
+
 mkdir -p ~/.conky/MUI
 wget --q ".conkyrc" -O "~/.conkyrc"
 chmod + x ~/.conkyrc
