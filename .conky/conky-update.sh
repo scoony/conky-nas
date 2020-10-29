@@ -16,7 +16,7 @@ if [[ ! -d "${user_path}MUI" ]]; then
 fi
 for current_file in $file{001..999}; do
   remote_md5=`curl -s ${remote_folder}$current_file | md5sum | cut -f1 -d" "`
-  local_md5=`md5sum ${user_path}$current_file | cut -f1 -d" " 2>/dev/null`
+  local_md5=`md5sum ${user_path}$current_file 2>/dev/null | cut -f1 -d" "`
   if [[ $remote_md5 == $local_md5 ]]; then
     echo "$current_file : No upgrade required"
   else
