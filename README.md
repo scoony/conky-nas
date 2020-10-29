@@ -19,7 +19,7 @@ This project was created to make the perfect conky for a Plex server.
 - check if reboot is required
 - multilanguage done
 - autodetect if network is secured thru VPN and adapt the display
-- détection des services plex et transmission-daemon
+- autodetect plexmediaserver and transmission-daemon and activate display accordingly
 - humanisation des vitesses de transmission
 - Remote plex is done
 
