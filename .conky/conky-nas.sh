@@ -37,7 +37,9 @@ else
 fi
 
 
-if [ -f $user_avatar ]; then
+avatar_path=`echo ~`
+user_avatar_path=${user_avatar//\~/$avatar_path}
+if [[ -f "$user_avatar_path" ]]; then
   echo "\${image $user_avatar -p 238,3 -s 60x60 -f 86400}"
 fi
 echo "\${voffset -10}\${font sans-serif:bold:size=18}\${alignc}\${time %H:%M}\${font}"
