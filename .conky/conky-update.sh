@@ -12,7 +12,7 @@ file004="MUI/fr.lang"
 user_home=`echo ~`
 user_path=${local_folder//\~/$user_home}
 if [[ -d "${user_path}MUI" ]]; then
-  mkdir "${user_path}MUI"
+  mkdir -p "${user_path}MUI"
 fi
 for current_file in $file{001..999}; do
   remote_md5=`curl -s ${remote_folder}$current_file | md5sum | cut -f1 -d" "`
