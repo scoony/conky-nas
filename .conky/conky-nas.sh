@@ -125,14 +125,19 @@ transmission_state=`systemctl show -p SubState --value transmission-daemon`
 if [[ "$transmission_state" != "dead" ]]; then
   echo "${font_title}$mui_transmission_title \${hr 2}"
   echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
-  echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
-  transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
-  let transmission_down=$transmission_down*1000
-  transmission_down_human=`numfmt --to=iec-i --suffix=B $transmission_down`
-  transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
-  let transmission_up=$transmission_up*1000
-  transmission_up_human=`numfmt --to=iec-i --suffix=B $transmission_up`
-  echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+  if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
+    echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
+    transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
+    let transmission_down=$transmission_down*1000
+    transmission_down_human=`numfmt --to=iec-i --suffix=B $transmission_down`
+    transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
+    let transmission_up=$transmission_up*1000
+    transmission_up_human=`numfmt --to=iec-i --suffix=B $transmission_up`
+    echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+  else
+    echo "\${execbar 14 echo "100"}"
+    echo "${font_standard}\${voffset -17}${txt_align_center}\${color black}$mui_transmission_error\${color}"
+  fi
   echo "\${font}\${voffset -4}"
 fi
 
