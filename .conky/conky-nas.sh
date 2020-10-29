@@ -172,5 +172,6 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
   done
 else
   echo "${font_title}$mui_plex_title \${hr 2}"
-  echo $font_standard$mui_plex_error
+  echo "\${execbar 14 echo "100"}"
+  echo "${font_standard}\${voffset -17}${txt_align_center}\${color black}$mui_plex_error\${color}"
 fi
