@@ -52,13 +52,13 @@ echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
 echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 if [ -f /var/run/reboot-required ]; then
   echo "\${execbar 14 echo "100"}"
-  echo "${font_standard}\${voffset -21}${txt_align_center}\${color black}$mui_system_reboot\${color}"
+  echo "${font_standard}\${voffset -21}${txt_align_center}\${color black}$mui_system_reboot\$color"
 fi
 echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
-echo "\${color lightgray}${font_standard}\${cpugraph cpu}"
+echo "\${color lightgray}${font_standard}\${cpugraph cpu}\${color}"
 echo "${font_standard}$mui_cpu_cpu \${cpu cpu}% \${cpubar cpu}"
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
