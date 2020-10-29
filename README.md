@@ -1,6 +1,6 @@
 # conky-nas
 
-This project was created to make the perfect conky for a Plex server.
+This project was created to make the perfect conky for a Plex server (multi-language support).
 
 #### Support:
 - transmission-deamon
