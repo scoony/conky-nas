@@ -19,9 +19,10 @@ This project was created to make the perfect conky for a Plex server.
 - check if reboot is required
 - multilanguage done
 - autodetect if network is secured thru VPN and adapt the display
-- détection des services plex et transmission-daemon
-- humanisation des vitesses de transmission
-- Remote plex is done
+- autodetect plexmediaserver and transmission-daemon services (to display only if required)
+- humanization of transmission speeds
+- remote plex server is handled
+- remote transmission server is handled
 
 #### To-do list
 - chercher les ips en dehors de conky et n'afficher que dans le echo
