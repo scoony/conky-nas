@@ -7,7 +7,7 @@ file001="conky-nas.sh"
 file002="conky-update.sh"
 file003="MUI/default.lang"
 file004="MUI/fr.lang"
-
+file005="MUI/de.lang"
 
 user_home=`echo ~`
 user_path=${local_folder//\~/$user_home}
