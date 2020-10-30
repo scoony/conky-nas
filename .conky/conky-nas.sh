@@ -52,8 +52,8 @@ hdd_total=`df --total -h 2>/dev/null | sed -e '$!d' | awk '{ print $2 }'`
 hdd_free_total=`df --total -h 2>/dev/null | sed -e '$!d' | awk '{ print $4 }'`
 echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
 echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
-echo "${font_standard}$mui_system_hdd_total$txt_align_right\$hdd_total"
-echo "${font_standard}$mui_system_hdd_free_total$txt_align_right\$hdd_free_total"
+echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
+echo "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
 if [ -f /var/run/reboot-required ]; then
   echo "\${execbar 14 echo "100"}"
   echo "${font_standard}\${voffset -21}${txt_align_center}\${color black}$mui_system_reboot\$color"
