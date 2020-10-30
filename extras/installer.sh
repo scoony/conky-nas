@@ -10,6 +10,7 @@ wget --q ".conkyrc" -O "~/.conkyrc"
 chmod + x ~/.conkyrc
 wget --q "conky-update.sh" -O "~/.conky/conky-update.sh"
 chmod +x ~/.conky/conky-update.sh
+wget --q "conky-nas.conf" -O "~/.conky/conky-nas.conf"
 bash ~/.conky/conky-update.sh
 
 ### add to boot
