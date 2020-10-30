@@ -142,12 +142,15 @@ if [[ "$transmission_state" != "dead" ]]; then
   if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
     test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
     if [[ "$test_transmission" != "" ]]; then
-      echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
-      transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
+      transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
+      transmission_queue=`cat transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
+      echo "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
+      transmission_down=`cat transm.log | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
       transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
-      transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
+      transmission_up=`cat transm.log | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
       transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
       echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+      rm transm.log
     else
       echo "\${execbar 14 echo "100"}"
       echo "${font_standard}\${voffset -20}${txt_align_center}\${color black}$mui_transmission_error\${color}"
