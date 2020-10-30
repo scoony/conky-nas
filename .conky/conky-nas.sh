@@ -150,8 +150,12 @@ if [[ "$transmission_state" != "dead" ]]; then
     if [[ -f "/etc/transmission-deamon/settings.json" ]]; then
       transmission_port=`echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-port"'`
       transmission_ip="localhost"
-      transmission_login=`echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-username"'`
-      transmission_password=`echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-password"'`
+      echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-username"' | sed 's/./\\&/g' >temp_tr.log
+      transmission_login=`cat temp_tr.log`
+      rm temp_tr.log
+      echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-password"' | sed 's/./\\&/g' >temp_tr.log
+      transmission_password=`cat temp_tr.log`
+      rm temp_tr.log
       echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
       transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
       transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
