@@ -49,6 +49,9 @@ if [[ -f "$user_avatar_path" ]]; then
 fi
 echo "\${voffset -10}\${font sans-serif:bold:size=18}\${alignc}\${time %H:%M}\${font}"
 echo "${txt_align_center}\${time %A %d %B}"
+if [[ "$user_town" != "" ]]; then
+  echo "${txt_align_center}${font_weather}\${exec curl wttr.in/$user_town?format=2}${font_standard}"
+fi
 echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_system_title \${hr 2}"
