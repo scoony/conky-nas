@@ -3,6 +3,8 @@
 mui_system_title="SYSTÈME"
 mui_system_host="Hote:"
 mui_system_uptime="Uptime:"
+mui_system_hdd_total="Capacité HDD totale:"
+mui_system_hdd_free_total="Espace libre total:"
 mui_system_reboot="REDÉMARRAGE NÉCESSAIRE"
 mui_cpu_title="PROCESSEUR"
 mui_cpu_cpu="Processeur:"
