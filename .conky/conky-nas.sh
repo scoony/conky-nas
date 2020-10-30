@@ -48,8 +48,8 @@ echo "${txt_align_center}\${time %A %d %B}"
 echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_system_title \${hr 2}"
-hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=iec-i --suffix=B`
-hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=iec-i --suffix=B`
+hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
+hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
 echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
@@ -69,15 +69,17 @@ if [[ "$HandBrake_process" != "" ]]; then
   HandBrake_line=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p'`
   if [[ "$HandBrake_line" != "Encodage terminé" ]] && [[ "$HandBrake_line" != "..." ]] && [[ "$HandBrake_line" != "" ]] && [[ "$HandBrake_line" != "Encodage en cours" ]]; then
     HandBrake_progress=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p' | cut -d' ' -f2 | sed "s/(//" | sed "s/\..*//"`
-	HandBrake_progress_human=`printf '%d' $HandBrake_progress`
-	echo "${font_standard}$mui_cpu_handbrake $(printf "%3d" $HandBrake_progress_human)% \${execbar 6 echo $HandBrake_progress_human}"
+    HandBrake_ETA=`cat "/opt/scripts/.convert2hdlight" | sed -n '7p'`
+    HandBrake_progress_human=`printf '%d' $HandBrake_progress`
+    echo "${font_standard}$mui_cpu_handbrake $(printf "%3d" $HandBrake_progress_human)% \${execbar 6 echo $HandBrake_progress_human}"
+    echo "${font_standard}$mui_cpu_handbrake_ETA$txt_align_right$HandBrake_ETA"
     HandBrake_categorie=`cat "/opt/scripts/.convert2hdlight" | sed -n '5p'`
-	HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
+    HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
     if [[ "$HandBrake_categorie" == "Film" ]]; then
-	  echo "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:49}"
-	else
-	  echo "${font_standard}$mui_cpu_handbrake_serie$txt_align_right${HandBrake_file:0:49}"
-	fi
+      echo "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:40}"
+    else
+      echo "${font_standard}$mui_cpu_handbrake_serie$txt_align_right${HandBrake_file:0:40}"
+    fi
   fi
 fi
 echo "\${font}\${voffset -4}"
@@ -203,7 +205,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
       fi
     fi
     plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
-    echo $plex_inprogress" / "$plex_duration  \${execbar echo $plex_bar_progress}
+    echo $font_standard$plex_inprogress" / "$plex_duration  \${execbar echo $plex_bar_progress}
     let num=$num+1
   done
 else
