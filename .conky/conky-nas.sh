@@ -47,8 +47,8 @@ if [[ -f "$user_avatar_path" ]]; then
     echo "\${image $user_avatar -p 238,3 -s 60x60 -f 86400}"
   fi
 fi
-echo "\${voffset -10}\${font sans-serif:bold:size=18}\${alignc}\${time %H:%M}\${font}"
-echo "${txt_align_center}\${time %A %d %B}"
+echo "\${voffset -10}${font_time}\${alignc}\${time %H:%M}\${font}"
+echo "${font_date}${txt_align_center}\${time %A %d %B}"
 if [[ "$user_town" != "" ]]; then
   echo "${txt_align_center}${font_weather}\${exec curl --silent wttr.in/$user_town?format=2}${font_standard}"
 fi
