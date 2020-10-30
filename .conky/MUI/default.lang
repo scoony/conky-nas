@@ -3,6 +3,8 @@
 mui_system_title="SYSTEM"
 mui_system_host="Host:"
 mui_system_uptime="Uptime:"
+mui_system_hdd_total="HDD Total:"
+mui_system_hdd_free_total="HDD Free:"
 mui_system_reboot="REBOOT REQUIRED"
 mui_cpu_title="CP"
 mui_cpu_cpu="CPU:"
