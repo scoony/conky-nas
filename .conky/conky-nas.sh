@@ -140,10 +140,10 @@ if [[ "$transmission_state" != "dead" ]]; then
   echo "${font_title}$mui_transmission_title \${hr 2}"
   echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
   if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
-    echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
-    transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
+    echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
+    transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
     transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
-    transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
+    transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
     transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
     echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
   else
@@ -156,10 +156,10 @@ if [[ "$transmission_state" != "dead" ]]; then
       echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-password"' | sed 's/./\\&/g' >temp_tr.log
       transmission_password=`cat temp_tr.log`
       rm temp_tr.log
-      echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
-      transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
+      echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
+      transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
       transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
-      transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
+      transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
       transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
       echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
     else
