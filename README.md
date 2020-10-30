@@ -20,6 +20,7 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - transmission-cli
 - net-tools
 - jq
+- fonts-symbola
 
 #### Work done:
 - autodetect HDD
