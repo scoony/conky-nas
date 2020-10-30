@@ -31,6 +31,8 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - autodetect plexmediaserver and transmission-daemon (activate display accordingly)
 - humanized speeds in transmission
 - remote plex is done
+- de language added
+- the size and location of avatar can be set in the conf
 
 #### To-do list:
 - chercher les ips en dehors de conky et n'afficher que dans le echo
