@@ -2,7 +2,7 @@
 
 ### make sure it's not the root account
 sudo apt update
-sudo apt install -y conky-all net-tools jq curl transmission-cli
+sudo apt install -y conky-all net-tools jq curl transmission-cli fonts-symbola
 
 
 mkdir -p ~/.conky/MUI
