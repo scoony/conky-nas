@@ -13,6 +13,7 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - transmission-deamon
 - plexmediaserver
 - openvpn custom service (for permanent vpn)
+- language (FR, ENG and DE)
 
 #### Required (for manual install):
 - libxml2-utils
