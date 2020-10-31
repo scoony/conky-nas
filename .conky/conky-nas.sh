@@ -62,8 +62,8 @@ echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
 echo "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
 if [ -f /var/run/reboot-required ]; then
-  echo "\${execbar 14 echo "100"}"
-  echo "${font_standard}\${voffset -21}${txt_align_center}\${color black}$mui_system_reboot\$color"
+  printf "\${execbar 14 echo 100}"
+  printf "${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_system_reboot\$color"
 fi
 echo "\${font}\${voffset -4}"
 
@@ -123,9 +123,9 @@ for drive in $drives ; do
     disk_total_human=`df -Hl $mount_point | sed 1d | awk '{print $2}'`
     disk_usage=`df $drive | sed 1d | awk '{print $5}' | sed 's/%//'`
     disk_temp=`echo $user_pass | sudo -kS hddtemp $drive 2>/dev/null | awk '{ print $NF }' | sed 's/C//'`
-    echo ${font_standard}${mount_point:0:18} ${txt_align_right}\${goto 120}"["$(printf "%04s" $disk_free_human)" / "$(printf "%03d" $disk_usage)"%] "\${execbar 6,79 echo $disk_usage}
-    echo "${font_standard}\${voffset -12}\${color light grey}\${goto 286}\${execbar 9,20 echo "100"}\${color}"
-    echo "\${font Noto Mono:regular:size=6}\${voffset -13}\${goto 289}\${color black}$disk_temp\$color"
+    printf "${font_standard}${mount_point:0:18} ${txt_align_right}\${goto 120}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%%] ""\${execbar 6,79 echo $disk_usage}"
+    printf "${font_standard}\${color light grey}\${goto 286}\${execbar 9,20 echo "100"}\${color}"
+    echo "\${font Noto Mono:regular:size=6}\${goto 289}\${color black}$disk_temp\$color"
 
   fi
 done
@@ -168,11 +168,12 @@ if [[ "$transmission_state" != "dead" ]]; then
       echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
       rm transm.log
     else
-      echo "\${execbar 14 echo "100"}"
-      echo "${font_standard}\${voffset -20}${txt_align_center}\${color black}$mui_transmission_error\${color}"
+      printf "\${execbar 14 echo 100}"
+      printf "${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_transmission_error\$color"
     fi
   else
-    if [[ -f "/etc/transmission-deamon/settings.json" ]]; then
+    ## was set to settings2 instead of settings to disable
+    if [[ -f "/etc/transmission-deamon/settings2.json" ]]; then
       transmission_port=`echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-port"'`
       transmission_ip="localhost"
       echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-username"' | sed 's/./\\&/g' >temp_tr.log
@@ -188,8 +189,9 @@ if [[ "$transmission_state" != "dead" ]]; then
       transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
       echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
     else
-      echo "\${execbar 14 echo "100"}"
-      echo "${font_standard}\${voffset -20}${txt_align_center}\${color black}$mui_transmission_error\${color}"
+      echo ""
+      printf "\${execbar 14 echo 100}"
+      printf "${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_transmission_error\$color"
     fi
   fi
   echo "\${font}\${voffset -4}"
@@ -246,6 +248,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
   done
 else
   echo "${font_title}$mui_plex_title \${hr 2}"
-  echo "\${execbar 14 echo "100"}"
-  echo "${font_standard}\${voffset -17}${txt_align_center}\${color black}$mui_plex_error\${color}"
+    echo ""
+    printf "\${execbar 14 echo 100}"
+    printf "${font_standard}\${voffset -1}\${goto 0 }${txt_align_center}\${color black}$mui_plex_error\$color"
 fi
