@@ -10,6 +10,7 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 ```
 
 #### Support:
+- hdd temp
 - transmission-deamon
 - plexmediaserver
 - openvpn custom service (for permanent vpn)
