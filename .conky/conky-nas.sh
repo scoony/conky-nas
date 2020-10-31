@@ -157,9 +157,9 @@ if [[ "$transmission_state" != "dead" ]]; then
       transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
       transmission_queue=`cat transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
       echo "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
-      transmission_down=`cat transm.log | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
+      transmission_down=`cat transm.log | grep Sum: | awk '{ print $NF }' | sed "s/\..*//"`
       transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
-      transmission_up=`cat transm.log | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
+      transmission_up=`cat transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
       transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
       echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
       rm transm.log
