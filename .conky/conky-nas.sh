@@ -122,7 +122,7 @@ for drive in $drives ; do
     disk_total=`df $drive | sed 1d | awk '{print $2}'`
     disk_total_human=`df -Hl $mount_point | sed 1d | awk '{print $2}'`
     disk_usage=`df $drive | sed 1d | awk '{print $5}' | sed 's/%//'`
-    disk_temp=`echo $user_pass | sudo -kS hddtemp $drive | awk '{ print $NF }' | sed 's/C//'`
+    disk_temp=`echo $user_pass | sudo -kS hddtemp $drive 2>/dev/null | awk '{ print $NF }' | sed 's/C//'`
     echo ${font_standard}${mount_point:0:18} ${txt_align_right}\${goto 120}"["$(printf "%04s" $disk_free_human)" / "$(printf "%03d" $disk_usage)"%] "\${execbar 6,79 echo $disk_usage}
     echo "${font_standard}\${voffset -12}\${color light grey}\${goto 286}\${execbar 9,20 echo "100"}\${color}"
     echo "\${font Noto Mono:regular:size=6}\${voffset -13}\${goto 289}\${color black}$disk_temp\$color"
