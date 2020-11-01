@@ -69,14 +69,26 @@ echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
+cpu_temp="0"
+if [[ "$gpu_temp" -ge "85" ]]; then
+  cpu_color="red"
+else
+  cpu_color="light grey"
+fi
 echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
 printf "${font_standard}$mui_cpu_cpu \${cpu cpu}%% \${goto 154}\${cpubar 6,140 cpu}"
-printf "${font_standard}\${color $disk_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
+printf "${font_standard}\${color $cpu_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
 echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}\${hwmon 1 temp 2}°\$color"
 gpu_brand=`lspci | grep ' VGA '`
 if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
+  gpu_temp=`nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader`
+  if [[ "$gpu_temp" -ge "85" ]]; then
+    gpu_color="red"
+  else
+    gpu_color="light grey"
+  fi
   printf "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}%% \${goto 154}\${nvidiabar 6,140 gpuutil}"
-  printf "${font_standard}\${color $disk_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
+  printf "${font_standard}\${color $gpu_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
   echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}\${nvidia temp}°\$color"
 fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
@@ -165,10 +177,10 @@ net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
 echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
 if [[ "$vpn_detected" != "" ]]; then
   echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
-  echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
+  echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain}"
   echo "${font_standard}$mui_network_ip_box $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
 else
-echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
+echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain}"
 fi
 echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
 echo "\${color lightgray}\${downspeedgraph $net_adapter 40,150 } ${txt_align_right}\${upspeedgraph $net_adapter 40,150 }\$color"
