@@ -72,7 +72,7 @@ echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | ta
 echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
 printf "${font_standard}$mui_cpu_cpu \${cpu cpu}%% \${goto 154}\${cpubar 6,140 cpu}"
 printf "${font_standard}\${color $disk_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
-echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}\${cpu temp}°\$color"
+echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}\${hwmon 1 temp 2}°\$color"
 gpu_brand=`lspci | grep ' VGA '`
 if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   printf "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}%% \${goto 154}\${nvidiabar 6,140 gpuutil}"
