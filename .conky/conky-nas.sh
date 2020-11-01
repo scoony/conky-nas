@@ -163,7 +163,7 @@ for drive in $drives ; do
       else
         disk_color="light grey"
       fi
-      echo ${font_standard}${mount_point:0:18}${txt_align_right}\${goto 120}"["$(printf "%04s" $disk_free_human)" / "$(printf "%03d" $disk_usage)"%] "\${voffset 1}\${color $disk_color}\${execbar 6,112 echo $disk_usage}
+      echo ${font_standard}${mount_point:0:18}${txt_align_right}\${goto 120}"["$(printf "%04s" $disk_free_human)" / "$(printf "%03d" $disk_usage)"%]\${voffset 1}\${color $disk_color}\${execbar 6,118 echo $disk_usage}"
     fi
   fi
 done
