@@ -163,7 +163,7 @@ else
 echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
 fi
 echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
-echo "\${color lightgray}\${downspeedgraph $net_adapter 40,130 } ${txt_align_right}\${upspeedgraph $net_adapter 40,130 }\$color"
+echo "\${color lightgray}\${downspeedgraph $net_adapter 40,150 } ${txt_align_right}\${upspeedgraph $net_adapter 40,150 }\$color"
 echo "\${font}\${voffset -4}"
 
 transmission_state=`systemctl show -p SubState --value transmission-daemon`
