@@ -69,16 +69,16 @@ echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
-cpu_temp="0"
-if [[ "$gpu_temp" -ge "85" ]]; then
+cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type) <(cat /sys/class/thermal/thermal_zone*/temp) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep "x86_pkg_temp" | awk '{ print $2 }' | sed 's/\°C//'`
+if [[ "$cpu_temp" -ge "85" ]]; then
   cpu_color="red"
 else
   cpu_color="light grey"
 fi
 echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
-printf "${font_standard}$mui_cpu_cpu \${cpu cpu}%% \${goto 154}\${cpubar 6,140 cpu}"
-printf "${font_standard}\${color $cpu_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
-echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}\${hwmon 1 temp 2}°\$color"
+printf "${font_standard}$mui_cpu_cpu \${cpu cpu}%% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}"
+printf "${font_standard}\${color $cpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}"
+echo "\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}${cpu_temp:0:2}°\$color"
 gpu_brand=`lspci | grep ' VGA '`
 if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   gpu_temp=`nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader`
@@ -87,9 +87,9 @@ if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   else
     gpu_color="light grey"
   fi
-  printf "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}%% \${goto 154}\${nvidiabar 6,140 gpuutil}"
-  printf "${font_standard}\${color $gpu_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
-  echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}\${nvidia temp}°\$color"
+  printf "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}%% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}"
+  printf "${font_standard}\${color $gpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}"
+  echo "\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\${nvidia temp}°\$color"
 fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
@@ -112,7 +112,7 @@ if [[ "$HandBrake_process" != "" ]]; then
     while [ "$HandBrake_file" == "" ]; do
       HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
     done
-    echo "${font_standard}$mui_cpu_handbrake $(printf "%3d" $HandBrake_progress_human)% \${goto 154}\${execbar 6 echo $HandBrake_progress_human}"
+    echo "${font_standard}$mui_cpu_handbrake $(printf "%3d" $HandBrake_progress_human)% \${goto 154}\${voffset 1}\${execbar 6 echo $HandBrake_progress_human}"
     echo "${font_standard}$mui_cpu_handbrake_ETA$txt_align_right$HandBrake_ETA"
     if [[ "$HandBrake_categorie" == "Film" ]]; then
       echo "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:40}"
@@ -148,19 +148,22 @@ for drive in $drives ; do
         disk_temp=""
         disk_color="light blue"
       else
-        disk_temp=`echo $user_pass | sudo -kS hddtemp $drive 2>/dev/null | awk '{ print $NF }' | sed 's/C//'`
-        disk_temp_number=` echo $disk_temp | sed 's/\°//'`
-        if [[ "$disk_temp_number" -ge "45" ]]; then
+        disk_temp=`echo $user_pass | sudo -kS hddtemp $drive 2>/dev/null | awk '{ print $NF }' | sed 's/°C//'`
+        if [[ "$disk_temp" -ge "45" ]]; then
           disk_color="red"
         else
           disk_color="light grey"
         fi
       fi
-      printf "${font_standard}${mount_point:0:20} ${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%%]\${execbar 6,88 echo $disk_usage}"
-      printf "${font_standard}\${color $disk_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
-      echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}$disk_temp\$color"
+      printf "${font_standard}${mount_point:0:20} ${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%%]\${voffset 1}\${execbar 6,88 echo $disk_usage}"
+      printf "${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}"
+      if [[ "$disk_temp" != "" ]]; then
+        echo "\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
+      else
+        echo "\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}Zzz\$color"
+      fi
     else
-      echo ${font_standard}${mount_point:0:18} ${txt_align_right}\${goto 120}"["$(printf "%04s" $disk_free_human)" / "$(printf "%03d" $disk_usage)"%] "\${execbar 6,112 echo $disk_usage}
+      echo ${font_standard}${mount_point:0:18} ${txt_align_right}\${goto 120}"["$(printf "%04s" $disk_free_human)" / "$(printf "%03d" $disk_usage)"%] "\${voffset 1}\${execbar 6,112 echo $disk_usage}
     fi
   fi
 done
@@ -278,7 +281,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
       fi
     fi
     plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
-    echo $font_standard$plex_inprogress" / "$plex_duration  \${execbar echo $plex_bar_progress}
+    echo $font_standard$plex_inprogress" / "$plex_duration  \${voffset 1}\${execbar echo $plex_bar_progress}
     let num=$num+1
   done
 else
