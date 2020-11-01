@@ -122,7 +122,7 @@ for drive in $drives ; do
     disk_total=`df $drive | sed 1d | awk '{print $2}'`
     disk_total_human=`df -Hl $mount_point | sed 1d | awk '{print $2}'`
     disk_usage=`df $drive | sed 1d | awk '{print $5}' | sed 's/%//'`
-    if [[ "$user_pass" != "" ]]; then
+    if [[ "$user_pass" == "" ]]; then
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
       if [[ "$disk_interface" =~ "usb" ]]; then
         disk_temp=""
@@ -136,11 +136,11 @@ for drive in $drives ; do
           disk_color="light grey"
         fi
       fi
-      printf "${font_standard}${mount_point:0:20} ${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%%] ""\${execbar 6,79 echo $disk_usage}"
-      printf "${font_standard}\${color $disk_color}\${goto 295}\${execbar 9,20 echo "100"}\${color}"
+      printf "${font_standard}${mount_point:0:20} ${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%%]\${execbar 6,88 echo $disk_usage}"
+      printf "${font_standard}\${color $disk_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
       echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}$disk_temp\$color"
     else
-      echo ${font_standard}${mount_point:0:18} ${txt_align_right}\${goto 120}"["$(printf "%04s" $disk_free_human)" / "$(printf "%03d" $disk_usage)"%] "\${execbar 6,102 echo $disk_usage}
+      echo ${font_standard}${mount_point:0:18} ${txt_align_right}\${goto 120}"["$(printf "%04s" $disk_free_human)" / "$(printf "%03d" $disk_usage)"%] "\${execbar 6,112 echo $disk_usage}
     fi
   fi
 done
