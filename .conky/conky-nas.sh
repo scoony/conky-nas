@@ -62,8 +62,7 @@ echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
 echo "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
 if [ -f /var/run/reboot-required ]; then
-  printf "\${execbar 14 echo 100}"
-  printf "${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_system_reboot\$color"
+  echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_system_reboot\$color"
 fi
 echo "\${font}\${voffset -4}"
 
@@ -206,8 +205,8 @@ if [[ "$transmission_state" != "dead" ]]; then
       echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
       rm transm.log
     else
-      printf "\${execbar 14 echo 100}"
-      printf "${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_transmission_error\$color"
+      echo ""
+      echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
     fi
   else
     ## was set to settings2 instead of settings to disable
@@ -228,11 +227,30 @@ if [[ "$transmission_state" != "dead" ]]; then
       echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
     else
       echo ""
-      printf "\${execbar 14 echo 100}"
-      printf "${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_transmission_error\$color"
+      echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
     fi
   fi
   echo "\${font}\${voffset -4}"
+else
+  if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
+    echo "${font_title}$mui_transmission_title \${hr 2}"
+    test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
+    if [[ "$test_transmission" != "" ]]; then
+      transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
+      transmission_queue=`cat transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
+      echo "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
+      transmission_down=`cat transm.log | grep Sum: | awk '{ print $NF }' | sed "s/\..*//"`
+      transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
+      transmission_up=`cat transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
+      transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
+      echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+      rm transm.log
+    else
+      echo ""
+      echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
+    fi
+    echo "\${font}\${voffset -4}"
+  fi
 fi
 
 plex_state=`systemctl show -p SubState --value plexmediaserver`
@@ -286,7 +304,6 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
   done
 else
   echo "${font_title}$mui_plex_title \${hr 2}"
-    echo ""
-    printf "\${execbar 14 echo 100}"
-    printf "${font_standard}\${voffset -1}\${goto 0 }${txt_align_center}\${color black}$mui_plex_error\$color"
+  echo ""
+  echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
 fi
