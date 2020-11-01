@@ -76,9 +76,7 @@ else
   cpu_color="light grey"
 fi
 echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
-printf "${font_standard}$mui_cpu_cpu \${cpu cpu}%% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}"
-printf "${font_standard}\${color $cpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}"
-echo "\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${cpu_temp:0:2}°\$color"
+echo "${font_standard}$mui_cpu_cpu \${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}${font_standard}\${color $cpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${cpu_temp:0:2}°\$color"
 gpu_brand=`lspci | grep ' VGA '`
 if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   gpu_temp=`nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader`
@@ -87,9 +85,7 @@ if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   else
     gpu_color="light grey"
   fi
-  printf "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}%% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}"
-  printf "${font_standard}\${color $gpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}"
-  echo "\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}\${nvidia temp}°\$color"
+  echo "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${color $gpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}\${nvidia temp}°\$color"
 fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
@@ -156,9 +152,9 @@ for drive in $drives ; do
         fi
       fi
       if [[ "$disk_temp" != "" ]]; then
-        echo "${font_standard}${mount_point:0:20} ${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%%]\${voffset 1}\${execbar 6,82 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
+        echo "${font_standard}${mount_point:0:20} ${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
       else
-        echo "${font_standard}${mount_point:0:20} ${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%%]\${voffset 1}\${execbar 6,82 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}Zzz\$color"
+        echo "${font_standard}${mount_point:0:20} ${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}Zzz\$color"
       fi
     else
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
