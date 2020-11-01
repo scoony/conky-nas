@@ -70,10 +70,14 @@ echo "\${font}\${voffset -4}"
 echo "${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
-echo "${font_standard}$mui_cpu_cpu \${cpu cpu}% \${cpubar cpu}"
+printf "${font_standard}$mui_cpu_cpu \${cpu cpu}%% \${goto 154}\${cpubar 6,140 cpu}"
+printf "${font_standard}\${color $disk_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
+echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}\${cpu temp}°\$color"
 gpu_brand=`lspci | grep ' VGA '`
 if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
-  echo "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}% \${nvidiabar gpuutil}}"
+  printf "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}%% \${goto 154}\${nvidiabar 6,140 gpuutil}"
+  printf "${font_standard}\${color $disk_color}\${goto 296}\${execbar 9,20 echo "100"}\${color}"
+  echo "\${font Noto Mono:regular:size=6}\${goto 298}\${color black}\${nvidia temp}°\$color"
 fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
