@@ -122,7 +122,7 @@ for drive in $drives ; do
     disk_total=`df $drive | sed 1d | awk '{print $2}'`
     disk_total_human=`df -Hl $mount_point | sed 1d | awk '{print $2}'`
     disk_usage=`df $drive | sed 1d | awk '{print $5}' | sed 's/%//'`
-    if [[ "$user_pass" == "" ]]; then
+    if [[ "$user_pass" != "" ]]; then
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
       if [[ "$disk_interface" =~ "usb" ]]; then
         disk_temp=""
