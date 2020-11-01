@@ -71,6 +71,10 @@ echo "${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
 echo "${font_standard}$mui_cpu_cpu \${cpu cpu}% \${cpubar cpu}"
+gpu_brand=`lspci | grep ' VGA '`
+if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
+  echo "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}% \${nvidiabar gpuutil}}"
+fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
   HandBrake_line=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p'`
