@@ -112,7 +112,7 @@ if [[ "$HandBrake_process" != "" ]]; then
     while [ "$HandBrake_file" == "" ]; do
       HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
     done
-    echo "${font_standard}$mui_cpu_handbrake $(printf "%3d" $HandBrake_progress_human)% \${execbar 6 echo $HandBrake_progress_human}"
+    echo "${font_standard}$mui_cpu_handbrake $(printf "%3d" $HandBrake_progress_human)% \${goto 154}\${execbar 6 echo $HandBrake_progress_human}"
     echo "${font_standard}$mui_cpu_handbrake_ETA$txt_align_right$HandBrake_ETA"
     if [[ "$HandBrake_categorie" == "Film" ]]; then
       echo "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:40}"
