@@ -153,7 +153,7 @@ for drive in $drives ; do
       if [[ "$disk_temp" != "" ]]; then
         echo "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
       else
-        echo "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}Zzz\$color"
+        echo "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
       fi
     else
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
