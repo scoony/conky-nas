@@ -69,13 +69,17 @@ echo "\${font}\${voffset -4}"
 echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type) <(cat /sys/class/thermal/thermal_zone*/temp) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep "x86_pkg_temp" | awk '{ print $2 }' | sed 's/\°C//' | sed 's/\..*//'`
-if [[ "$cpu_temp" -ge "85" ]]; then
-  cpu_color="red"
-else
-  cpu_color="light grey"
-fi
-echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
-echo "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}${font_standard}\${color $cpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${cpu_temp:0:2}°\$color"
+cpu_num="1"
+for cpu_number in $cpu_temp ; do
+  if [[ "$cpu_number" -ge "85" ]]; then
+    cpu_color="red"
+  else
+    cpu_color="light grey"
+  fi
+  echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
+  echo "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${color $cpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
+  cpu_num=$((cpu_num+1))
+done
 gpu_brand=`lspci | grep ' VGA '`
 if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   gpu_temp=`nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader`
