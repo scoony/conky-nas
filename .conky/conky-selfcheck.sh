@@ -49,14 +49,12 @@ push-message() {
 
 
 if [[ ! -d ~/.conky/pushover ]]; then mkdir -p ~/.conky/pushover; fi
-echo "\${font FontAwesome:size=16}\${font} ${font_title}PUSHOVER \${hr 2}"
-if [[ "$push_token_app" != "" ]] && [[ "$push_destinataire" != "" ]]; then
-  echo "${font_standard}OK"
-else
+if [[ "$push_token_app" == "" ]] || [[ "$push_destinataire" == "" ]]; then
+  echo "\${font FontAwesome:size=16}\${font} ${font_title}PUSHOVER \${hr 2}"
   echo ""
   echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_pushover_error\$color"
+  echo "\${font}\${voffset -4}"
 fi
-echo "\${font}\${voffset -4}"
 
 echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_services_title \${hr 2}"
 for myservice in $services_list; do
