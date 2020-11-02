@@ -78,7 +78,7 @@ else
   cpu_color="light grey"
 fi
 echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
-echo "${font_standard}$mui_cpu_cpu \${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}${font_standard}\${color $cpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${cpu_temp:0:2}°\$color"
+echo "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}${font_standard}\${color $cpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${cpu_temp:0:2}°\$color"
 gpu_brand=`lspci | grep ' VGA '`
 if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   gpu_temp=`nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader`
@@ -87,7 +87,7 @@ if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   else
     gpu_color="light grey"
   fi
-  echo "${font_standard}\${nvidia modelname}: \${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${color $gpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}\${nvidia temp}°\$color"
+  echo "${font_standard}\${nvidia modelname}:\${goto 130}\${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${color $gpu_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}\${nvidia temp}°\$color"
 fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
@@ -110,7 +110,7 @@ if [[ "$HandBrake_process" != "" ]]; then
     while [ "$HandBrake_file" == "" ]; do
       HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
     done
-    echo "${font_standard}$mui_cpu_handbrake $(printf "%3d" $HandBrake_progress_human)% \${goto 154}\${voffset 1}\${execbar 6 echo $HandBrake_progress_human}"
+    echo "${font_standard}$mui_cpu_handbrake\${goto 124}$(printf "%3d" $HandBrake_progress_human)%\${goto 154}\${voffset 1}\${execbar 6 echo $HandBrake_progress_human}"
     echo "${font_standard}$mui_cpu_handbrake_ETA$txt_align_right$HandBrake_ETA"
     if [[ "$HandBrake_categorie" == "Film" ]]; then
       echo "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:40}"
