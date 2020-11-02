@@ -2,6 +2,9 @@
  
 mui_pushover_Title="PUSHOVER"
 mui_pushover_error="CONF DATEI ÜBERPRÜFEN"
+mui_pushover_service="this service is not running."
+mui_pushover_service_restart="this service is not running, trying to restart it."
+mui_pushover_service_restarted="this service was restarted and is running now."
 mui_system_title="SYSTEM"
 mui_system_host="Host:"
 mui_system_uptime="Uptime:"

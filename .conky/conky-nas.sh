@@ -123,8 +123,8 @@ if [[ "$services_list" != "" ]]; then
       service_color=""
       if [[ -f ~/.conky/pushover/$myservice ]]; then
         rm ~/.conky/pushover/$myservice
-        myservice_message="Le service $myservice était OK lors de la dernière vérification"
-        push-message "Selfcheck Service" "$myservice_message"
+        myservice_message="[ $myservice ] $mui_pushover_service_restarted"
+        push-message "Conky" "$myservice_message"
       fi
     else
       service_color="red"
@@ -132,8 +132,13 @@ if [[ "$services_list" != "" ]]; then
       echo "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
       if [[ ! -f ~/.conky/pushover/$myservice ]]; then
         touch ~/.conky/pushover/$myservice
-        myservice_message="Le service $myservice était HS lors de la dernière vérification"
-        push-message "Conky Service" "$myservice_message"
+        if [[ "$user_pass" != "" ]]; then
+          myservice_message="[ $myservice ] $mui_pushover_service_restart"
+          echo $user_pass | sudo -kS service $myservice restart
+        else
+          myservice_message="[ $myservice ] $mui_pushover_service"
+        fi
+        push-message "Conky" "$myservice_message"
       fi
     fi
   done
