@@ -113,7 +113,7 @@ echo "\${font}\${voffset -4}"
 
 #### Services Block
 
-if [[ "$services_list" != ""]]
+if [[ "$services_list" != "" ]]; then
   echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font} ${font_title}$mui_services_title \${hr 2}"
   services_list_sorted=$(echo $services_list | xargs -n1 | sort -u | xargs)
   service_alert="0"
