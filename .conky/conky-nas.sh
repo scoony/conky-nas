@@ -7,6 +7,16 @@ font_standard="\${font Noto Mono:normal:size=8}"
 font_extra="\${font sans-serif:normal:size=8}"
 txt_align_right="\${alignr}"
 txt_align_center="\${alignc}"
+font_awesome_font="FontAwesome"
+font_awesome_system=""
+font_awesome_cpu=""
+font_awesome_memory=""
+font_awesome_diskusage=""
+font_awesome_network_secured=""
+font_awesome_network=""
+font_awesome_transmission=""
+font_awesome_plex=""
+font_awesome_service=""
 user_pass=""
 user_avatar=""
 transmission_login=""
@@ -54,7 +64,7 @@ if [[ "$user_town" != "" ]]; then
 fi
 echo "\${font}\${voffset -4}"
 
-echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_system_title \${hr 2}"
+echo "\${font ${font_awesome_font}:size=16}${font_awesome_system}\${font} ${font_title}$mui_system_title \${hr 2}"
 hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
@@ -66,7 +76,7 @@ if [ -f /var/run/reboot-required ]; then
 fi
 echo "\${font}\${voffset -4}"
 
-echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_cpu_title \${hr 2}"
+echo "\${font ${font_awesome_font}:size=16}${font_awesome_cpu}\${font} ${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type) <(cat /sys/class/thermal/thermal_zone*/temp) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep "x86_pkg_temp" | awk '{ print $2 }' | sed 's/\°C//' | sed 's/\..*//'`
 cpu_num="1"
@@ -122,14 +132,14 @@ if [[ "$HandBrake_process" != "" ]]; then
 fi
 echo "\${font}\${voffset -4}"
 
-echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_memory_title \${hr 2}"
+echo "\${font ${font_awesome_font}:size=16}${font_awesome_memory}\${font} ${font_title}$mui_memory_title \${hr 2}"
 echo "${font_standard}$mui_memory_ram $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
 echo "${font_standard}\$membar"
 echo "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
 echo "${font_standard}\${swapbar}"
 echo "\${font}\${voffset -4}"
 
-echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_diskusage_title \${hr 2}"
+echo "\${font ${font_awesome_font}:size=16}${font_awesome_diskusage}\${font} ${font_title}$mui_diskusage_title \${hr 2}"
 drives=`ls /dev/sd*[1-9]`
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | cut -d ' ' -f 2`
@@ -174,9 +184,9 @@ echo "\${font}\${voffset -4}"
 
 vpn_detected=`ifconfig | grep "tun[0-9]"`
 if [[ "$vpn_detected" != "" ]]; then
-  echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_network_title_secured \${hr 2}"
+  echo "\${font ${font_awesome_font}:size=16}${font_awesome_network_secured}\${font} ${font_title}$mui_network_title_secured \${hr 2}"
 else
-  echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_network_title \${hr 2}"
+  echo "\${font ${font_awesome_font}:size=16}${font_awesome_network}\${font} ${font_title}$mui_network_title \${hr 2}"
 fi
 net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
 net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
@@ -194,7 +204,7 @@ echo "\${font}\${voffset -4}"
 
 transmission_state=`systemctl show -p SubState --value transmission-daemon`
 if [[ "$transmission_state" != "dead" ]]; then
-  echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_transmission_title \${hr 2}"
+  echo "\${font ${font_awesome_font}:size=16}${font_awesome_transmission}\${font} ${font_title}$mui_transmission_title \${hr 2}"
   echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
   if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
     test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
@@ -259,7 +269,7 @@ fi
 
 plex_state=`systemctl show -p SubState --value plexmediaserver`
 if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
-  echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_plex_title \${hr 2}"
+  echo "\${font ${font_awesome_font}:size=16}${font_awesome_plex}\${font} ${font_title}$mui_plex_title \${hr 2}"
   if [[ "$plex_state" != "dead" ]]; then
     echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
   fi
