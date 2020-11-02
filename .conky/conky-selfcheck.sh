@@ -60,7 +60,8 @@ if [[ "$push_token_app" == "" ]] || [[ "$push_destinataire" == "" ]]; then
 fi
 
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font} ${font_title}$mui_services_title \${hr 2}"
-for myservice in $services_list; do
+services_list_sorted=`echo $services_list | xargs -n1 | sort -u | xargs`
+for myservice in $services_list_sorted; do
   service_mystate=`systemctl show -p SubState --value $myservice`
   if [[ "$service_mystate" != "dead" ]]; then
     service_color=""
