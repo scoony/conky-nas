@@ -34,3 +34,5 @@ mui_plex_title="PLEX"
 mui_plex_state="State:"
 mui_plex_streams="Stream(s):"
 mui_plex_error="CHECK YOUR CONF FILE"
+
+mui_services_title="SERVICES"
