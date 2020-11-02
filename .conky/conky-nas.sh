@@ -87,12 +87,14 @@ echo "\${font}\${voffset -4}"
 
 #### Pushover Block
 
-if [[ ! -d ~/.conky/pushover ]]; then mkdir -p ~/.conky/pushover; fi
-if [[ "$push_token_app" == "" ]] || [[ "$push_target" == "" ]]; then
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_pushover")\${font} ${font_title}$mui_pushover_title \${hr 2}"
-  echo ""
-  echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_pushover_error\$color"
-  echo "\${font}\${voffset -4}"
+if [[ "$push_activation" == "yes" ]]; then
+  if [[ ! -d ~/.conky/pushover ]]; then mkdir -p ~/.conky/pushover; fi
+  if [[ "$push_token_app" == "" ]] || [[ "$push_target" == "" ]]; then
+    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_pushover")\${font} ${font_title}$mui_pushover_title \${hr 2}"
+    echo ""
+    echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_pushover_error\$color"
+    echo "\${font}\${voffset -4}"
+  fi
 fi
 
 
