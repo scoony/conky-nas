@@ -21,10 +21,13 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 ## Required (for manual install)
 
 - libxml2-utils
-- transmission-cli
+- transmission-cli (optional)
+- plexmediaserver (optional)
 - net-tools
 - jq
 - fonts-symbola
+- fonts-font-awesome
+- curl
 
 ## Work done
 
