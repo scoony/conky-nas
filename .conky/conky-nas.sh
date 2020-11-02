@@ -54,7 +54,9 @@ if [[ "$user_town" != "" ]]; then
 fi
 echo "\${font}\${voffset -4}"
 
-##echo "\${font FontAwesome}\${exec printf ""}\${font}"
+
+##echo "\${font FontAwesome:size=30}\${exec awk 'BEGIN { print "\xEE\x8B\xAC"; }'}\${font}"
+
 echo "${font_title}$mui_system_title \${hr 2}"
 hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
