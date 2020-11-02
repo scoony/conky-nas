@@ -78,7 +78,7 @@ if [[ "$push_activation" == "yes" ]]; then
   if [ -n "$push_target" ]; then
     curl -s \
       --form-string "token=$push_token_app" \
-      --form-string "user=$push_destinataire" \
+      --form-string "user=$push_target" \
       --form-string "title=$push_title" \
       --form-string "message=$push_content" \
       --form-string "html=1" \
