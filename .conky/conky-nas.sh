@@ -113,34 +113,35 @@ echo "\${font}\${voffset -4}"
 
 #### Services Block
 
-echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font} ${font_title}$mui_services_title \${hr 2}"
-##Adds lines to the block
-services_list_sorted=$(echo $services_list | xargs -n1 | sort -u | xargs)
-service_alert="0"
-for myservice in $services_list_sorted ; do
-  service_mystate=`systemctl show -p SubState --value $myservice`
-  if [[ "$service_mystate" != "dead" ]]; then
-    service_color=""
-    if [[ -f ~/.conky/pushover/$myservice ]]; then
-      rm ~/.conky/pushover/$myservice
-      myservice_message="Le service $myservice était OK lors de la dernière vérification"
-      push-message "Selfcheck Service" "$myservice_message"
+if [[ "$services_list" != ""]]
+  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font} ${font_title}$mui_services_title \${hr 2}"
+  services_list_sorted=$(echo $services_list | xargs -n1 | sort -u | xargs)
+  service_alert="0"
+  for myservice in $services_list_sorted ; do
+    service_mystate=`systemctl show -p SubState --value $myservice`
+    if [[ "$service_mystate" != "dead" ]]; then
+      service_color=""
+      if [[ -f ~/.conky/pushover/$myservice ]]; then
+        rm ~/.conky/pushover/$myservice
+        myservice_message="Le service $myservice était OK lors de la dernière vérification"
+        push-message "Selfcheck Service" "$myservice_message"
+      fi
+    else
+      service_color="red"
+      service_alert="1"
+      if [[ ! -f ~/.conky/pushover/$myservice ]]; then
+        touch ~/.conky/pushover/$myservice
+        myservice_message="Le service $myservice était HS lors de la dernière vérification"
+        push-message "Conky Service" "$myservice_message"
+        echo "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
+      fi
     fi
-  else
-    service_color="red"
-    service_alert="1"
-    if [[ ! -f ~/.conky/pushover/$myservice ]]; then
-      touch ~/.conky/pushover/$myservice
-      myservice_message="Le service $myservice était HS lors de la dernière vérification"
-      push-message "Conky Service" "$myservice_message"
-      echo "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
-    fi
+  done
+  if [[ "$service_alert" == "0" ]]; then
+    echo "${font_standard}$mui_services_ok"
   fi
-done
-if [[ "$service_alert" == "0" ]]; then
-  echo "${font_standard}$mui_services_ok"
+  echo "\${font}\${voffset -4}"
 fi
-echo "\${font}\${voffset -4}"
 
 
 #### CPU Block
