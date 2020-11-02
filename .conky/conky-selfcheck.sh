@@ -9,7 +9,9 @@ txt_align_right="\${alignr}"
 txt_align_center="\${alignc}"
 push_token_app=""
 push_destinataire=""
+
 user_pass=""
+services_list=""
 
 
 ## DONT EDIT AFTER THIS
@@ -47,26 +49,24 @@ push-message() {
 
 
 if [[ ! -d ~/.conky/pushover ]]; then mkdir -p ~/.conky/pushover; fi
-services_list="cron CrossArkChat joal-conf openvpnauto plexmediaserver smbd ssh teamviewerd transmission-daemon"
 echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_services_title \${hr 2}"
 for myservice in $services_list; do
   service_mystate=`systemctl show -p SubState --value $myservice`
   if [[ "$service_mystate" != "dead" ]]; then
-#    echo "${font_standard}$myservice:${txt_align_right}\${color green}\${execi 5 systemctl is-active $myservice}\$color"
-    echo "${font_standard}$myservice:${txt_align_right}\${execi 5 systemctl is-active $myservice}"
+    service_color=""
     if [[ -f ~/.conky/pushover/$myservice ]]; then
       rm ~/.conky/pushover/$myservice
       myservice_message="Le service $myservice était OK lors de la dernière vérification"
       push-message "Selfcheck Service" "$myservice_message"
     fi
   else
-    echo "${font_standard}$myservice:${txt_align_right}\${color red}\${execi 5 systemctl is-active $myservice}\$color"
+    service_color="red"
     if [[ ! -f ~/.conky/pushover/$myservice ]]; then
       touch ~/.conky/pushover/$myservice
       myservice_message="Le service $myservice était HS lors de la dernière vérification"
       push-message "Selfcheck Service" "$myservice_message"
     fi
   fi
+  echo "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
 done
-
 echo "\${font}\${voffset -4}"
