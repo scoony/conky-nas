@@ -4,13 +4,13 @@ This project was created to make the perfect conky for a Plex server (multi-lang
 
 ![image](https://raw.githubusercontent.com/scoony/conky-nas/main/extras/conky-nas-demo.gif)
 
-#### Install not working yet
+## Install not working yet
 
 ```bash
 bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/extras/installer.sh)"
 ```
 
-#### Support
+## Support
 
 - hdd temp
 - transmission-deamon
@@ -18,7 +18,7 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - openvpn custom service (for permanent vpn)
 - language (FR, ENG and DE)
 
-#### Required (for manual install)
+## Required (for manual install)
 
 - libxml2-utils
 - transmission-cli
@@ -26,7 +26,7 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - jq
 - fonts-symbola
 
-#### Work done
+## Work done
 
 - autodetect HDD
 - autodetect plex-token
@@ -40,7 +40,7 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - de language added
 - the size and location of avatar can be set in the conf
 
-#### To-do list
+## To-do list
 
 - chercher les ips en dehors de conky et n'afficher que dans le echo
 - comparer les ip et message à la reboot
