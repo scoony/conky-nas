@@ -48,23 +48,6 @@ else
   source ~/.conky/MUI/default.lang
 fi
 
-## Functions
-
-push-message() {
-  push_title=$1
-  push_content=$2
-  if [ -n "$push_target" ]; then
-    curl -s \
-      --form-string "token=$push_token_app" \
-      --form-string "user=$push_destinataire" \
-      --form-string "title=$push_title" \
-      --form-string "message=$push_content" \
-      --form-string "html=1" \
-      --form-string "priority=0" \
-      https://api.pushover.net/1/messages.json > /dev/null
-  fi
-}
-
 
 #### Avatar, date & clock Block
 
@@ -88,6 +71,21 @@ echo "\${font}\${voffset -4}"
 #### Pushover Block
 
 if [[ "$push_activation" == "yes" ]]; then
+  ## Function to push
+  push-message() {
+  push_title=$1
+  push_content=$2
+  if [ -n "$push_target" ]; then
+    curl -s \
+      --form-string "token=$push_token_app" \
+      --form-string "user=$push_destinataire" \
+      --form-string "title=$push_title" \
+      --form-string "message=$push_content" \
+      --form-string "html=1" \
+      --form-string "priority=0" \
+      https://api.pushover.net/1/messages.json > /dev/null
+  fi
+  }
   if [[ ! -d ~/.conky/pushover ]]; then mkdir -p ~/.conky/pushover; fi
   if [[ "$push_token_app" == "" ]] || [[ "$push_target" == "" ]]; then
     echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_pushover")\${font} ${font_title}$mui_pushover_title \${hr 2}"
