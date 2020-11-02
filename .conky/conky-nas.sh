@@ -129,11 +129,11 @@ if [[ "$services_list" != "" ]]; then
     else
       service_color="red"
       service_alert="1"
+      echo "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
       if [[ ! -f ~/.conky/pushover/$myservice ]]; then
         touch ~/.conky/pushover/$myservice
         myservice_message="Le service $myservice était HS lors de la dernière vérification"
         push-message "Conky Service" "$myservice_message"
-        echo "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
       fi
     fi
   done
