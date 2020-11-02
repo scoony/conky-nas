@@ -1,11 +1,15 @@
  #!/bin/bash
  
+mui_pushover_Title="PUSHOVER"
+mui_pushover_error="VÉRIFIER LA CONFIGURATION"
 mui_system_title="SYSTÈME"
 mui_system_host="Hôte:"
 mui_system_uptime="Dernier redémarrage:"
 mui_system_hdd_total="Capacité HDD totale:"
 mui_system_hdd_free_total="Espace libre total:"
 mui_system_reboot="REDÉMARRAGE NÉCESSAIRE"
+mui_services_title="SERVICES"
+mui_services_ok="Tout les services sont fonctionnels"
 mui_cpu_title="PROCESSEUR"
 mui_cpu_cpu="Processeur:"
 mui_cpu_handbrake="Handbrake:"
@@ -34,6 +38,3 @@ mui_plex_title="PLEX"
 mui_plex_state="Service:"
 mui_plex_streams="Stream(s):"
 mui_plex_error="VÉRIFIER LA CONFIGURATION"
-
-mui_pushover_error="VÉRIFIER LA CONFIGURATION"
-mui_services_title="SERVICES"

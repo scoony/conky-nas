@@ -1,11 +1,15 @@
  #!/bin/bash
  
+mui_pushover_Title="PUSHOVER"
+mui_pushover_error="CHECK YOUR CONF FILE"
 mui_system_title="SYSTEM"
 mui_system_host="Host:"
 mui_system_uptime="Uptime:"
 mui_system_hdd_total="HDD Total:"
 mui_system_hdd_free_total="HDD Free:"
 mui_system_reboot="REBOOT REQUIRED"
+mui_services_title="SERVICES"
+mui_services_ok="Everything is running"
 mui_cpu_title="CPU"
 mui_cpu_cpu="CPU:"
 mui_cpu_handbrake="Handbrake:"
@@ -34,6 +38,3 @@ mui_plex_title="PLEX"
 mui_plex_state="State:"
 mui_plex_streams="Stream(s):"
 mui_plex_error="CHECK YOUR CONF FILE"
-
-mui_pushover_error="CHECK YOUR CONF FILE"
-mui_services_title="SERVICES"

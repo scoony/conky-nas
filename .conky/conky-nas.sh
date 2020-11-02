@@ -48,24 +48,25 @@ else
   source ~/.conky/MUI/default.lang
 fi
 
-## Launch conky-selfcheck if $active_selfcheck is "true" and kill if "false"
-if [[ "$active_selfcheck" == "true" ]]; then
-  conky_process=`ps aux | grep "\/.conkyrc2" | sed '/grep/d'`
-  if [[ "$conky_process" == "" ]]; then
-    if [[ ! -f ~/.conkyrc2 ]]; then 
-      wget -q https://raw.githubusercontent.com/scoony/conky-nas/main/.conkyrc2 -O ~/.conkyrc2 && sed -i -e 's/\r//g' ~/.conkyrc2
-    fi
-    if [[ ! -f ~/.conky/conky-selfcheck.sh ]]; then 
-      wget -q https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/conky-selfcheck.sh -O ~/.conky/conky-selfcheck.sh && sed -i -e 's/\r//g' ~/.conky/conky-selfcheck.sh  && chmod +x ~/.conky/conky-selfcheck.sh
-    fi
-    conky -c ~/.conkyrc2 & conky -c ~/.conkyrc &
+## Functions
+
+push-message() {
+  push_title=$1
+  push_content=$2
+  if [ -n "$push_target" ]; then
+    curl -s \
+      --form-string "token=$push_token_app" \
+      --form-string "user=$push_destinataire" \
+      --form-string "title=$push_title" \
+      --form-string "message=$push_content" \
+      --form-string "html=1" \
+      --form-string "priority=0" \
+      https://api.pushover.net/1/messages.json > /dev/null
   fi
-else
-  conky_process=`ps aux | grep "\/.conkyrc2" | sed '/grep/d'`
-  if [[ "$conky_process" != "" ]]; then
-    ps aux | grep "\/.conkyrc2" | sed '/grep/d' | awk '{print $2}' | xargs kill -9
-  fi
-fi
+}
+
+
+#### Avatar, date & clock Block
 
 avatar_path=`echo ~`
 user_avatar_path=${user_avatar//\~/$avatar_path}
@@ -83,6 +84,20 @@ if [[ "$user_town" != "" ]]; then
 fi
 echo "\${font}\${voffset -4}"
 
+
+#### Pushover Block
+
+if [[ ! -d ~/.conky/pushover ]]; then mkdir -p ~/.conky/pushover; fi
+if [[ "$push_token_app" == "" ]] || [[ "$push_target" == "" ]]; then
+  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_pushover")\${font} ${font_title}$mui_pushover_title \${hr 2}"
+  echo ""
+  echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_pushover_error\$color"
+  echo "\${font}\${voffset -4}"
+fi
+
+
+#### System Block
+
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_system")\${font} ${font_title}$mui_system_title \${hr 2}"
 hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
@@ -94,6 +109,41 @@ if [ -f /var/run/reboot-required ]; then
   echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_system_reboot\$color"
 fi
 echo "\${font}\${voffset -4}"
+
+
+#### Services Block
+
+echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font} ${font_title}$mui_services_title \${hr 2}"
+##Adds lines to the block
+services_list_sorted=$(echo $services_list | xargs -n1 | sort -u | xargs)
+service_alert="0"
+for myservice in $services_list_sorted ; do
+  service_mystate=`systemctl show -p SubState --value $myservice`
+  if [[ "$service_mystate" != "dead" ]]; then
+    service_color=""
+    if [[ -f ~/.conky/pushover/$myservice ]]; then
+      rm ~/.conky/pushover/$myservice
+      myservice_message="Le service $myservice était OK lors de la dernière vérification"
+      push-message "Selfcheck Service" "$myservice_message"
+    fi
+  else
+    service_color="red"
+    service_alert="1"
+    if [[ ! -f ~/.conky/pushover/$myservice ]]; then
+      touch ~/.conky/pushover/$myservice
+      myservice_message="Le service $myservice était HS lors de la dernière vérification"
+      push-message "Conky Service" "$myservice_message"
+      echo "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
+    fi
+  fi
+done
+if [[ "$service_alert" == "0" ]]; then
+  echo "${font_standard}$mui_services_ok"
+fi
+echo "\${font}\${voffset -4}"
+
+
+#### CPU Block
 
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_cpu")\${font} ${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
@@ -151,6 +201,9 @@ if [[ "$HandBrake_process" != "" ]]; then
 fi
 echo "\${font}\${voffset -4}"
 
+
+#### Memory Block
+
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_memory")\${font} ${font_title}$mui_memory_title \${hr 2}"
 echo "${font_standard}$mui_memory_ram $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
 echo "${font_standard}\$membar"
@@ -201,6 +254,9 @@ for drive in $drives ; do
 done
 echo "\${font}\${voffset -4}"
 
+
+#### Network Block
+
 vpn_detected=`ifconfig | grep "tun[0-9]"`
 if [[ "$vpn_detected" != "" ]]; then
   echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network_secured")\${font} ${font_title}$mui_network_title_secured \${hr 2}"
@@ -220,6 +276,9 @@ fi
 echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
 echo "\${color lightgray}\${downspeedgraph $net_adapter 40,150 } ${txt_align_right}\${upspeedgraph $net_adapter 40,150 }\$color"
 echo "\${font}\${voffset -4}"
+
+
+#### Transmission Block
 
 transmission_state=`systemctl show -p SubState --value transmission-daemon`
 if [[ "$transmission_state" != "dead" ]]; then
@@ -285,6 +344,9 @@ else
     echo "\${font}\${voffset -4}"
   fi
 fi
+
+
+#### Plex Block
 
 plex_state=`systemctl show -p SubState --value plexmediaserver`
 if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
