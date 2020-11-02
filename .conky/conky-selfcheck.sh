@@ -7,6 +7,9 @@ font_standard="\${font Noto Mono:normal:size=8}"
 font_extra="\${font sans-serif:normal:size=8}"
 txt_align_right="\${alignr}"
 txt_align_center="\${alignc}"
+font_awesome_font="FontAwesome"
+font_awesome_pushover=""
+font_awesome_service=""
 push_token_app=""
 push_destinataire=""
 
@@ -50,13 +53,13 @@ push-message() {
 
 if [[ ! -d ~/.conky/pushover ]]; then mkdir -p ~/.conky/pushover; fi
 if [[ "$push_token_app" == "" ]] || [[ "$push_destinataire" == "" ]]; then
-  echo "\${font FontAwesome:size=16}\${font} ${font_title}PUSHOVER \${hr 2}"
+  echo "\${font ${font_awesome_font}:size=16}${font_awesome_pushover}\${font} ${font_title}PUSHOVER \${hr 2}"
   echo ""
   echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_pushover_error\$color"
   echo "\${font}\${voffset -4}"
 fi
 
-echo "\${font FontAwesome:size=16}\${font} ${font_title}$mui_services_title \${hr 2}"
+echo "\${font ${font_awesome_font}:size=16}${font_awesome_service}\${font} ${font_title}$mui_services_title \${hr 2}"
 for myservice in $services_list; do
   service_mystate=`systemctl show -p SubState --value $myservice`
   if [[ "$service_mystate" != "dead" ]]; then

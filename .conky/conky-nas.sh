@@ -47,6 +47,24 @@ else
   source ~/.conky/MUI/default.lang
 fi
 
+## Launch conky-selfcheck if $active_selfcheck is "true" and kill if "false"
+if [[ "$active_selfcheck" == "true" ]]; then
+  conky_process=`ps aux | grep "\/.conkyrc2" | sed '/grep/d'`
+  if [[ "$conky_process" == "" ]]; then
+    if [[ ! -f ~/.conkyrc2 ]]; then 
+      wget -q https://raw.githubusercontent.com/scoony/conky-nas/main/.conkyrc2 -O ~/.conkyrc2 && sed -i -e 's/\r//g' ~/.conkyrc2
+    fi
+    if [[ ! -f ~/.conky/conky-selfcheck.sh ]]; then 
+      wget -q https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/conky-selfcheck.sh -O ~/.conky/conky-selfcheck.sh && sed -i -e 's/\r//g' ~/.conky/conky-selfcheck.sh  && chmod +x ~/.conky/conky-selfcheck.sh
+    fi
+    conky -c ~/.conkyrc2 & conky -c ~/.conkyrc &
+  fi
+else
+  conky_process=`ps aux | grep "\/.conkyrc2" | sed '/grep/d'`
+  if [[ "$conky_process" != "" ]]; then
+    ps aux | grep "\/.conkyrc2" | sed '/grep/d' | awk '{print $2}' | xargs kill -9
+  fi
+fi
 
 avatar_path=`echo ~`
 user_avatar_path=${user_avatar//\~/$avatar_path}
@@ -247,7 +265,7 @@ if [[ "$transmission_state" != "dead" ]]; then
   echo "\${font}\${voffset -4}"
 else
   if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
-    echo "${font_title}$mui_transmission_title \${hr 2}"
+    echo "\${font ${font_awesome_font}:size=16}${font_awesome_transmission}\${font} ${font_title}$mui_transmission_title \${hr 2}"
     test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
     if [[ "$test_transmission" != "" ]]; then
       transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
@@ -317,7 +335,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
     let num=$num+1
   done
 else
-  echo "${font_title}$mui_plex_title \${hr 2}"
+  echo "\${font ${font_awesome_font}:size=16}${font_awesome_plex}\${font} ${font_title}$mui_plex_title \${hr 2}"
   echo ""
   echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
 fi
