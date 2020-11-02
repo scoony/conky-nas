@@ -266,7 +266,7 @@ if [[ "$transmission_state" != "dead" ]]; then
   echo "\${font}\${voffset -4}"
 else
   if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
-    echo "\${font ${font_awesome_font}:size=16}${font_awesome_transmission}\${font} ${font_title}$mui_transmission_title \${hr 2}"
+    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font} ${font_title}$mui_transmission_title \${hr 2}"
     test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
     if [[ "$test_transmission" != "" ]]; then
       transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
@@ -336,7 +336,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
     let num=$num+1
   done
 else
-  echo "\${font ${font_awesome_font}:size=16}${font_awesome_plex}\${font} ${font_title}$mui_plex_title \${hr 2}"
+  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font} ${font_title}$mui_plex_title \${hr 2}"
   echo ""
   echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
 fi
