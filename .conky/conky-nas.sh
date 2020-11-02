@@ -54,6 +54,7 @@ if [[ "$user_town" != "" ]]; then
 fi
 echo "\${font}\${voffset -4}"
 
+##echo "\${font FontAwesome}\${exec printf ""}\${font}"
 echo "${font_title}$mui_system_title \${hr 2}"
 hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
@@ -68,7 +69,7 @@ echo "\${font}\${voffset -4}"
 
 echo "${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
-cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type) <(cat /sys/class/thermal/thermal_zone*/temp) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep "x86_pkg_temp" | awk '{ print $2 }' | sed 's/\°C//'`
+cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type) <(cat /sys/class/thermal/thermal_zone*/temp) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep "x86_pkg_temp" | awk '{ print $2 }' | sed 's/\°C//' | sed 's/\..*//'`
 if [[ "$cpu_temp" -ge "85" ]]; then
   cpu_color="red"
 else
