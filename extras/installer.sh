@@ -8,7 +8,7 @@ remote_folder="https://raw.githubusercontent.com/scoony/conky-nas/main"
 local_folder="$HOME"
 
 
-if [[ !-d "$local_folder/.conky" ]]; then mkdir "$local_folder/.conky"; fi
+if [[ ! -d "$local_folder/.conky" ]]; then mkdir "$local_folder/.conky"; fi
 wget -q "$remote_folder/.conkyrc" -O "$local_folder/"
 chmod + x "$HOME/.conkyrc"
 wget -q "$remote_folder/.conky/conky-update.sh" -O "$local_folder/.conky/"
