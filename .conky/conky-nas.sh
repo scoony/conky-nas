@@ -221,7 +221,7 @@ echo "\${font}\${voffset -4}"
 #### DiskUsage Block
 
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_diskusage")\${font} ${font_title}$mui_diskusage_title \${hr 2}"
-drives=`ls /dev/sd*[1-9]`
+drives=`ls /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | cut -d ' ' -f 2`
   if [[ "$mount_point" != "" ]]; then
@@ -234,7 +234,8 @@ for drive in $drives ; do
     disk_usage=`df $drive | sed 1d | awk '{print $5}' | sed 's/%//'`
     if [[ "$user_pass" != "" ]]; then
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
-      if [[ "$disk_interface" =~ "usb" ]]; then
+      disk_support=`udevadm info --query=all --name=$drive | grep ID_DRIVE_FLASH_SD`
+      if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
         disk_temp=""
         disk_color="light blue"
       else
@@ -252,7 +253,8 @@ for drive in $drives ; do
       fi
     else
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
-      if [[ "$disk_interface" =~ "usb" ]]; then
+      disk_support=`udevadm info --query=all --name=$drive | grep ID_DRIVE_FLASH_SD`
+      if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
         disk_color="light blue"
       else
         disk_color="light grey"
