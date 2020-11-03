@@ -4,11 +4,10 @@ remote_folder="https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/"
 local_folder="~/.conky/"
 
 file001="conky-nas.sh"
-file002="conky-selfcheck.sh"
-file003="conky-update.sh"
-file004="MUI/default.lang"
-file005="MUI/fr.lang"
-file006="MUI/de.lang"
+file002="conky-update.sh"
+file003="MUI/default.lang"
+file004="MUI/fr.lang"
+file005="MUI/de.lang"
 
 user_home=`echo ~`
 user_path=${local_folder//\~/$user_home}
