@@ -119,7 +119,7 @@ if [[ "$services_list" != "" ]]; then
   service_alert="0"
   for myservice in $services_list_sorted ; do
     service_mystate=`systemctl show -p SubState --value $myservice`
-    if [[ "$service_mystate" != "dead" ]]; then
+    if [[ "$service_mystate" == "running" ]]; then
       service_color=""
       if [[ -f ~/.conky/pushover/$myservice ]]; then
         rm ~/.conky/pushover/$myservice
