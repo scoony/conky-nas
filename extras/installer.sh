@@ -2,7 +2,7 @@
 
 ### make sure it's not the root account
 sudo apt update
-sudo apt install -y conky-all net-tools jq curl transmission-cli fonts-symbola fonts-noto-mono fonts-font-awesome
+sudo apt install -y conky-all net-tools jq curl transmission-cli fonts-symbola fonts-noto-mono fonts-font-awesome libxml2-utils
 
 remote_folder="https://raw.githubusercontent.com/scoony/conky-nas/main"
 local_folder="$HOME"
