@@ -217,6 +217,9 @@ echo "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapmax} 
 echo "${font_standard}\${swapbar}"
 echo "\${font}\${voffset -4}"
 
+
+#### DiskUsage Block
+
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_diskusage")\${font} ${font_title}$mui_diskusage_title \${hr 2}"
 drives=`ls /dev/sd*[1-9]`
 for drive in $drives ; do
