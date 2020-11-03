@@ -49,6 +49,14 @@ else
 fi
 
 
+#### Autoupdater
+
+if ! pgrep -x "conky-update" > /dev/null
+then
+  ./conky-update &
+fi
+
+
 #### Avatar, date & clock Block
 
 avatar_path=`echo ~`
