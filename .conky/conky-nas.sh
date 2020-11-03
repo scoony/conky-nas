@@ -18,6 +18,7 @@ font_awesome_transmission="\uf019"
 font_awesome_plex="\uf008"
 font_awesome_service="\uf085"
 font_awesome_pushover="\uf3cd"
+font_awesome_updater="\uf021"
 user_pass=""
 user_avatar=""
 transmission_login=""
@@ -53,7 +54,9 @@ fi
 
 if ! pgrep -x "conky-update" > /dev/null
 then
-  ./conky-update &
+  echo "\${execp ~/.conky/conky-update &}"
+else
+  printf "\${font FontAwesome:regular:size=8}\${alignr}$(echo -e $font_awesome_updater)\${font}"
 fi
 
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-while true; do
+while true ; do
 
   remote_folder="https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/"
   local_folder="~/.conky/"
