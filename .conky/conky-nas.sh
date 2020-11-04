@@ -78,6 +78,8 @@ if [[ -f "$user_avatar_path" ]]; then
   else
     echo "\${image $user_avatar -p 238,3 -s 60x60 -f 86400}"
   fi
+else
+  echo ""
 fi
 echo "\${voffset -10}${font_time}\${alignc}\${time %H:%M}\${font}"
 echo "${font_date}${txt_align_center}\${time %A %d %B}"
