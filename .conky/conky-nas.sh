@@ -54,7 +54,7 @@ fi
 
 if ! pgrep -x "conky-update" > /dev/null
 then
-  echo "\${execp ~/.conky/conky-update &}"
+  nohup ~/.conky/conky-update > /dev/null 2>/dev/null &
 else
   printf "\${font FontAwesome:regular:size=8}\${alignr}$(echo -e $font_awesome_updater)\${font}"
 fi
