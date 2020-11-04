@@ -19,5 +19,18 @@ wget -q "$remote_folder/.conky/conky-nas.conf" -O "$local_folder/.conky/conky-na
 #bash $local_folder/.conky/conky-update"
 
 ### add to boot
+if [[ ! -d "$HOME/.config/autostart" ]]; then mkdir "$HOME/.config/autostart"; fi 
+touch "$HOME/.config/autostart/Conky.desktop"
+cat <<EOT >> "$HOME/.config/autostart/Conky.desktop"
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Type=Application
+Name=Conky
+Exec="/usr/bin/conky"
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOT
+
 ### start conky
 conky &
