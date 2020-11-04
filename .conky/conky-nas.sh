@@ -60,6 +60,14 @@ else
 fi
 
 
+#### Functions
+
+##charwidth() {
+##  set "$(printf '...%s\b\b...\n' "$1" | col -b)"
+##  echo "$((${#1} - 4))"
+##}
+
+
 #### Avatar, date & clock Block
 
 avatar_path=`echo ~`
@@ -109,7 +117,7 @@ fi
 
 #### System Block
 
-echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_system")\${font} ${font_title}$mui_system_title \${hr 2}"
+echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_system")\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
 hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
@@ -125,7 +133,7 @@ echo "\${font}\${voffset -4}"
 #### Services Block
 
 if [[ "$services_list" != "" ]]; then
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font} ${font_title}$mui_services_title \${hr 2}"
+  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
   services_list_sorted=$(echo $services_list | xargs -n1 | sort -u | xargs)
   service_alert="0"
   for myservice in $services_list_sorted ; do
@@ -162,7 +170,7 @@ fi
 
 #### CPU Block
 
-echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_cpu")\${font} ${font_title}$mui_cpu_title \${hr 2}"
+echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_cpu")\${font}\${goto 35} ${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type) <(cat /sys/class/thermal/thermal_zone*/temp) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep "x86_pkg_temp" | awk '{ print $2 }' | sed 's/\°C//' | sed 's/\..*//'`
 cpu_num="1"
@@ -221,7 +229,7 @@ echo "\${font}\${voffset -4}"
 
 #### Memory Block
 
-echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_memory")\${font} ${font_title}$mui_memory_title \${hr 2}"
+echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_memory")\${font}\${goto 35} ${font_title}$mui_memory_title \${hr 2}"
 echo "${font_standard}$mui_memory_ram $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
 echo "${font_standard}\$membar"
 echo "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
@@ -231,7 +239,7 @@ echo "\${font}\${voffset -4}"
 
 #### DiskUsage Block
 
-echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_diskusage")\${font} ${font_title}$mui_diskusage_title \${hr 2}"
+echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_diskusage")\${font}\${goto 35} ${font_title}$mui_diskusage_title \${hr 2}"
 drives=`ls /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | cut -d ' ' -f 2`
@@ -281,9 +289,9 @@ echo "\${font}\${voffset -4}"
 
 vpn_detected=`ifconfig | grep "tun[0-9]"`
 if [[ "$vpn_detected" != "" ]]; then
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network_secured")\${font} ${font_title}$mui_network_title_secured \${hr 2}"
+  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network_secured")\${font}\${goto 35} ${font_title}$mui_network_title_secured \${hr 2}"
 else
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font} ${font_title}$mui_network_title \${hr 2}"
+  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
 fi
 net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
 net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
@@ -304,7 +312,7 @@ echo "\${font}\${voffset -4}"
 
 transmission_state=`systemctl show -p SubState --value transmission-daemon`
 if [[ "$transmission_state" != "dead" ]]; then
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font} ${font_title}$mui_transmission_title \${hr 2}"
+  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
   echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
   if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
     test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
@@ -372,7 +380,7 @@ fi
 
 plex_state=`systemctl show -p SubState --value plexmediaserver`
 if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font} ${font_title}$mui_plex_title \${hr 2}"
+  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
   if [[ "$plex_state" != "dead" ]]; then
     echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
   fi
@@ -420,7 +428,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
     let num=$num+1
   done
 else
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font} ${font_title}$mui_plex_title \${hr 2}"
+  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
   echo ""
   echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
 fi
