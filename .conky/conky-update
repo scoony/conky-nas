@@ -6,7 +6,7 @@ while true ; do
   remote_folder="https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/"
   local_folder="~/.conky/"
 
-  source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/extras/updates-files)
+  source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/extras/update-files)
 
   user_home=`echo ~`
   user_path=${local_folder//\~/$user_home}
