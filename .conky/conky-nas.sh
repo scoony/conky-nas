@@ -297,13 +297,17 @@ else
 fi
 net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
 net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
-echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+if [[ "$net_adapter" == "wlan0" ]]; then
+  echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\$wireless_essid \$wireless_bitrate Mbps)"
+else
+  echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+fi
 if [[ "$vpn_detected" != "" ]]; then
   echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
   echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
   echo "${font_standard}$mui_network_ip_box $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
 else
-echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain}"
+  echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain}"
 fi
 echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
 echo "\${color lightgray}\${downspeedgraph $net_adapter 40,150 } ${txt_align_right}\${upspeedgraph $net_adapter 40,150 }\$color"
