@@ -6,11 +6,7 @@ while true ; do
   remote_folder="https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/"
   local_folder="~/.conky/"
 
-  file001="conky-nas.sh"
-  file002="conky-update"
-  file003="MUI/default.lang"
-  file004="MUI/fr.lang"
-  file005="MUI/de.lang"
+  source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/extras/update-files)
 
   user_home=`echo ~`
   user_path=${local_folder//\~/$user_home}
