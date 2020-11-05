@@ -298,7 +298,7 @@ fi
 net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
 net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
 if [[ "$net_adapter" == "wlan0" ]]; then
-  echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\$wireless_essid \$wireless_bitrate Mbps)"
+  echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\${wireless_essid} \${wireless_bitrate} Mbps)"
 else
   echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
 fi
