@@ -94,17 +94,19 @@ echo "\${font}\${voffset -4}"
 if [[ "$push_activation" == "yes" ]]; then
   ## Function to push
   push-message() {
-  push_title=$1
-  push_content=$2
-  if [ -n "$push_target" ]; then
-    curl -s \
-      --form-string "token=$push_token_app" \
-      --form-string "user=$push_target" \
-      --form-string "title=$push_title" \
-      --form-string "message=$push_content" \
-      --form-string "html=1" \
-      --form-string "priority=0" \
-      https://api.pushover.net/1/messages.json > /dev/null
+  if [[ "$DISPLAY" == ":0" ]]; then
+    push_title=$1
+    push_content=$2
+    if [ -n "$push_target" ]; then
+      curl -s \
+        --form-string "token=$push_token_app" \
+        --form-string "user=$push_target" \
+        --form-string "title=$push_title" \
+        --form-string "message=$push_content" \
+        --form-string "html=1" \
+        --form-string "priority=0" \
+        https://api.pushover.net/1/messages.json > /dev/null
+    fi
   fi
   }
   if [[ ! -d ~/.conky/pushover ]]; then mkdir -p ~/.conky/pushover; fi
