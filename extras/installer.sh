@@ -9,12 +9,11 @@ my_printf="\r                                                                   
 
 ## Check local language and apply MUI
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
-os_language_check=`echo de fr | grep "$os_language"`
-if [[ "$os_language_check" == "" ]]; then
+check_language=`curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/MUI/$os_language.lang`
+if [[ $check_language == "404: Not Found" ]]; then
   os_language="default"
 fi
 source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/MUI/$os_language.lang)
-
 
 ### make sure it's not the root account
 eval 'echo -e "\e[43m-------------------- $mui_installer_title --------------------\e[0m"' $log_install_echo
