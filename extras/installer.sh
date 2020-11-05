@@ -7,10 +7,19 @@ log_install_echo="| tee -a $fichier_log_perso"
 my_printf="\r                                                                             "
 
 
+## Check local language and apply MUI
+os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
+os_language_check=`echo de fr | grep "$os_language"`
+if [[ "$os_language_check" == "" ]]; then
+  os_language="default"
+fi
+source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/MUI/$os_language.lang)
+
+
 ### make sure it's not the root account
-eval 'echo -e "\e[43m-------------------- CONKY NAS INSTALLATION --------------------\e[0m"' $log_install_echo
+eval 'echo -e "\e[43m-------------------- $mui_installer_title --------------------\e[0m"' $log_install_echo
 if [ "$(whoami)" == "root" ]; then
-  eval 'echo -e "[ FAIL ] Do NOT run this script as root!"' $log_install_echo
+  eval 'echo -e "$mui_installer_fail' $log_install_echo
   exit 1
 fi
 
@@ -22,11 +31,11 @@ i=0
 while kill -0 $pid 2>/dev/null
   do
   i=$(( (i+1) %4 ))
-  printf "\r[  ] Update respository ... ${spin:$i:1}"
+  printf "\r[  ] $mui_installer_apt_update ${spin:$i:1}"
   sleep .1
 done
 printf "$my_printf" && printf "\r"
-eval 'echo -e "[\e[42m\u2713 \e[0m] Update done"' $log_install_echo
+eval 'echo -e "[\e[42m\u2713 \e[0m] $mui_installer_apt_update_done"' $log_install_echo
 
 ## install applications
 sudo apt install -y conky-all net-tools jq curl transmission-cli fonts-symbola fonts-noto-mono fonts-font-awesome libxml2-utils 2>/dev/null >> $log_install &
@@ -36,18 +45,17 @@ i=0
 while kill -0 $pid 2>/dev/null
   do
   i=$(( (i+1) %4 ))
-  printf "\r[  ] Installing packages in progress ... ${spin:$i:1}"
+  printf "\r[  ] $mui_installer_apt_install ${spin:$i:1}"
   sleep .1
 done
 printf "$my_printf" && printf "\r"
-eval 'echo -e "[\e[42m\u2713 \e[0m] Install packages done"' $log_install_echo
+eval 'echo -e "[\e[42m\u2713 \e[0m] mui_installer_apt_install_done"' $log_install_echo
 
 
 ## download files
 file001="/.conky/conky-nas.conf"
 file002="/.conky/conky-update"
 file003="/.conkyrc"
-
 if [[ ! -d "$user_path/.conky" ]]; then mkdir "$user_path/.conky"; fi
 for current_file in $file{001..999}; do
   wget --quiet "${remote_folder}${current_file}" -O "${user_path}${current_file}" >> $log_install &
@@ -57,7 +65,7 @@ for current_file in $file{001..999}; do
   while kill -0 $pid 2>/dev/null
     do
     i=$(( (i+1) %4 ))
-    printf "\r[  ] Downloading basename $(basename ${current_file}) ... ${spin:$i:1}" 
+    printf "\r[  ] $mui_installer_wget basename $(basename ${current_file}) ... ${spin:$i:1}" 
     sleep .1
   done
   if [[ "$current_file" =~ ".sh" ]]; then
@@ -66,11 +74,15 @@ for current_file in $file{001..999}; do
 done
 chmod +x "$HOME/.conky/conky-update"
 printf "$my_printf" && printf "\r"
-eval 'echo -e "[\e[42m\u2713 \e[0m] conky updater launched"' $log_install_echo
+eval 'echo -e "[\e[42m\u2713 \e[0m] $mui_installer_wget_done"' $log_install_echo
+
+
+## launch of conky-update
+eval 'echo -e "[\e[42m\u2713 \e[0m] $mui_installer_conkyupdate"' $log_install_echo
 nohup "$user_path/.conky/conky-update" > /dev/null 2>/dev/null &
 
 ### add to boot
-eval 'echo -e "[\e[42m\u2713 \e[0m] Adding autostart and launching conky"' $log_install_echo
+eval 'echo -e "[\e[42m\u2713 \e[0m] $mui_installer_autostart_start"' $log_install_echo
 if [[ ! -d "$HOME/.config/autostart" ]]; then mkdir "$HOME/.config/autostart"; fi 
 touch "$HOME/.config/autostart/Conky.desktop"
 cat <<EOT >> "$HOME/.config/autostart/Conky.desktop"
@@ -84,5 +96,4 @@ NoDisplay=false
 X-GNOME-Autostart-enabled=true
 EOT
 
-### start conky
 nohup conky > /dev/null 2>/dev/null &
