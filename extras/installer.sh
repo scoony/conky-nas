@@ -47,6 +47,16 @@ while kill -0 $pid 2>/dev/null
   printf "\r[  ] $mui_installer_apt_install ${spin:$i:1}"
   sleep .1
 done
+sudo apt install -f -y 2>/dev/null >> $log_install &
+pid=$!
+spin='-\|/'
+i=0
+while kill -0 $pid 2>/dev/null
+  do
+  i=$(( (i+1) %4 ))
+  printf "\r[  ] $mui_installer_apt_install ${spin:$i:1}"
+  sleep .1
+done
 printf "$my_printf" && printf "\r"
 eval 'echo -e "[\e[42m\u2713 \e[0m] mui_installer_apt_install_done"' $log_install_echo
 
