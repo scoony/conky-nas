@@ -64,6 +64,7 @@ for current_file in $file{001..999}; do
     chmod +x "${user_path}${current_file}"
   fi
 done
+chmod +x "$HOME/.conky/conky-update"
 printf "$my_printf" && printf "\r"
 eval 'echo -e "[\e[42m\u2713 \e[0m] conky updater launched"' $log_install_echo
 nohup "$user_path/.conky/conky-update" > /dev/null 2>/dev/null &
@@ -84,4 +85,4 @@ X-GNOME-Autostart-enabled=true
 EOT
 
 ### start conky
-nohup conky &
+nohup conky > /dev/null 2>/dev/null &
