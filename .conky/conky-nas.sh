@@ -298,16 +298,34 @@ else
   echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
 fi
 net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
-net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
 if [[ "$net_adapter" == "wlan0" ]]; then
   echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\${wireless_essid $net_adapter})"
 else
+  net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
   echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
 fi
 if [[ "$vpn_detected" != "" ]]; then
   echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
-  echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain; echo}"
-  echo "${font_standard}$mui_network_ip_box $txt_align_right\${execi 1000  dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com}"
+  net_ip_public=`dig -4 +short myip.opendns.com @resolver1.opendns.com`
+  net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
+  echo "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
+  echo "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
+  if [[ "$net_ip_box" == "$net_ip_public" ]]; then
+    if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
+      touch ~/.conky/pushover/vpn_error
+      if [[ "$user_pass" != "" ]]; then
+        mynetwork_message="[ VPN ] $mui_network_vpn_restart"
+        echo $user_pass | sudo -kS service $vpn_service restart
+      else
+        mynetwork_message="[ VPN ] $mui_network_vpn"
+      fi
+      push-message "Conky" "$mynetwork_message"
+    fi
+  else
+    if [[ -f ~/.conky/pushover/vpn_error ]]; then
+      rm ~/.conky/pushover/vpn_error
+    fi
+  fi
 else
   echo "${font_standard}$mui_network_ip_public $txt_align_right\${execi 1000  wget -q -O- http://ipecho.net/plain}"
 fi
