@@ -317,7 +317,7 @@ if [[ "$vpn_detected" != "" ]]; then
         mynetwork_message="[ VPN ] $mui_network_vpn_restart"
         echo $user_pass | sudo -kS service $vpn_service restart
       else
-        mynetwork_message="[ VPN ] $mui_network_vpn"
+        mynetwork_message="[ VPN ] $mui_network_vpn_ko"
       fi
       push-message "Conky" "$mynetwork_message"
     fi
