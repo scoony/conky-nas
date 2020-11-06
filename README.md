@@ -42,9 +42,3 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - remote plex is done
 - de language added
 - the size and location of avatar can be set in the conf
-
-## To-do list
-
-- chercher les ips en dehors de conky et n'afficher que dans le echo
-- comparer les ip et message à la reboot
-- vérifier si la mise en page est la meme sans avatar
