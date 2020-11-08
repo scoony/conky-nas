@@ -16,6 +16,8 @@ font_awesome_network_secured="\uf21b"
 font_awesome_network="\uf6ff"
 font_awesome_transmission="\uf019"
 font_awesome_plex="\uf008"
+plex_stream_state_play="\${font Font Awesome 5 Duotone Solid:regular:size=8}\uF04B$font_standard"
+plex_stream_state_pause="\${font Font Awesome 5 Duotone Solid:regular:size=8}\uF04C$font_standard"
 font_awesome_service="\uf085"
 font_awesome_pushover="\uf3cd"
 font_awesome_updater="\uf021"
@@ -434,21 +436,31 @@ if [[ "$plex_check" == "yes" ]]; then
       let plex_durationms=`echo $plex_stream | sed 's/.* duration="//' | sed 's/".*//'`
       plex_duration=`printf '%d:%02d:%02d\n' $(($plex_durationms/1000/3600)) $(($plex_durationms/1000%3600/60)) $(($plex_durationms/1000%60))`
       plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
+      plex_state=`echo $plex_stream | sed 's/.* state="//' | sed 's/".*//'`
+      if [[ "$plex_state" == "playing" ]]; then
+        plex_state_human="$plex_stream_state_play "
+      else
+        if [[ "$plex_state" == "paused" ]]; then
+          plex_state_human="$plex_stream_state_pause "
+        else
+          plex_state_human=""
+        fi
+      fi
       if [[ "$plex_checkepisode" != "" ]]; then
         plex_serie=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
         plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
         plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
         if [[ "$plex_transcode" == "transcode" ]]; then
-          echo -e "$font_extra\u25CF $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}"
+          echo -e "$font_extra\u25CF $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right$plex_state_human${plex_user:0:15}"
         else
-          echo -e "$font_extra\u25C9 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}"
+          echo -e "$font_extra\u25C9 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right$plex_state_human${plex_user:0:15}"
         fi
       else
         plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
         if [[ "$plex_transcode" == "transcode" ]]; then
-          echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}"
+          echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right$plex_state_human${plex_user:0:16}"
         else
-          echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}"
+          echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right$plex_state_human${plex_user:0:16}"
         fi
       fi
       plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
