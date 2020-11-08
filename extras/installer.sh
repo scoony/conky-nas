@@ -18,7 +18,7 @@ source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/
 ### make sure it's not the root account
 eval 'echo -e "\e[43m-------------------- $mui_installer_title --------------------\e[0m"' $log_install_echo
 if [ "$(whoami)" == "root" ]; then
-  eval 'echo -e "$mui_installer_fail' $log_install_echo
+  eval 'echo -e "$mui_installer_fail"' $log_install_echo
   exit 1
 fi
 
@@ -34,7 +34,8 @@ while kill -0 $pid 2>/dev/null
   sleep .1
 done
 printf "$my_printf" && printf "\r"
-eval 'echo -e "[\e[42m\u2713 \e[0m] $mui_installer_apt_update_done"' $log_install_echo
+eval 'echo -e "[\e[42m\u2713 \e[0m] $mui_installer_apt_update_done
+$log_install_echo
 
 ## install applications
 sudo apt install -y conky-all net-tools jq curl transmission-cli fonts-symbola fonts-noto-mono fonts-font-awesome libxml2-utils 2>/dev/null >> $log_install &
