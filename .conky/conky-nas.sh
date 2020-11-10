@@ -273,10 +273,26 @@ for drive in $drives ; do
           disk_color="light grey"
         fi
       fi
-      if [[ "$disk_temp" != "" ]]; then
-        echo "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
+## Trop de traitement si fait toute les secondes, faire toutes les heures et mettre les logs dans un dossier à la update peut etre
+##      smart_enabled=`echo $user_pass | sudo -kS smartctl -a $drive | grep "SMART support is:" | awk '{print $NF}' | tail -1`
+##      smart_status=`echo $user_pass | sudo -kS smartctl -a $drive | grep "SMART overall-health" | awk '{print $NF}'`
+##      smart_offline_uncorrectable=`echo $user_pass | sudo -kS smartctl -a $drive | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
+      if [[ "$smart_enabled" == "Enabled" ]]; then
+        if [[ "$smart_status" == "PASSED" ]]; then
+          smart_glyph="\uf0c8"
+          smart_color="light green"
+        else
+          smart_glyph="\uf046"
+          smart_color="light grey"
+        fi
       else
-        echo "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
+        smart_glyph="\u0020"
+        smart_color=""
+      fi
+      if [[ "$disk_temp" != "" ]]; then
+        echo -e "\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 300}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
+      else
+        echo -e "\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}$smart_glyph\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}\${execbar 8,20 echo "100"}\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
       fi
     else
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
@@ -286,7 +302,7 @@ for drive in $drives ; do
       else
         disk_color="light grey"
       fi
-      echo "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
+      echo "\${offset -10}SMART${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
     fi
   fi
 done
