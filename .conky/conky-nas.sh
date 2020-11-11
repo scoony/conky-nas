@@ -314,7 +314,11 @@ for drive in $drives ; do
       if [[ "$disk_temp" != "" ]]; then
         echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
       else
-        echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
+        if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
+          echo -e "\${voffset -1}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
+        else
+          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
+        fi
       fi
     else
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
