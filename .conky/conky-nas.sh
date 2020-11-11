@@ -273,49 +273,49 @@ for drive in $drives ; do
         else
           disk_color="light grey"
         fi
-      fi
-      drive_short=`basename $drive`
-      if [[ ! -d ~/.conky/SMART ]]; then
-        mkdir ~/.conky/SMART
-      fi
-      printf "\${execi 3600 echo $user_pass | sudo -kS smartctl -a $drive > ~/.conky/SMART/$drive_short.log }"
-      smart_enabled=`cat ~/.conky/SMART/$drive_short.log | grep "SMART support is:" | awk '{print $NF}' | tail -1`
-      smart_status=`cat ~/.conky/SMART/$drive_short.log | grep "SMART overall-health" | awk '{print $NF}'`
-      smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
-      if [[ "$smart_offline_uncorrectable" == "" ]]; then
-        smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Reallocated_Sector_Ct" | awk '{print $NF}'`
-      fi
-      if [[ "$smart_enabled" == "Enabled" ]]; then
-        if [[ "$smart_status" == "PASSED" ]]; then
-          if [[ "$smart_offline_uncorrectable" == "0" ]]; then
-            smart_glyph="\uf0c8"
-            smart_color="light green"
-          else
-            smart_glyph="\uf0c8"
-            smart_color="orange"
-            last_smart_error=`cat ~/.conky/SMART/$drive_short.error 2>/dev/null`
-            if [[ "$smart_offline_uncorrectable" != "$last_smart_error" ]]; then
-              smart_serial=`cat ~/.conky/SMART/$drive_short.log | grep "Serial Number:" | awk '{print $NF}' | tail -1`
-              smart_size=`df -Hl $drive | awk '{ print $2 }' | tail -1`
-              smart_age=`cat ~/.conky/SMART/$drive_short.log | grep -i "Power_On_Hours" | awk '{print $NF}' | tail -1 | awk '{print $1/24}'`
-              push_content=`echo -e "[ <b>SMART</b> ] $mui_smart_error_title\n\n<b>$mui_smart_error_main</b> $drive\n<b>$mui_smart_error_serial</b> $smart_serial\n<b>$mui_smart_error_size</b> $smart_size\n<b>$mui_smart_error_age</b> $smart_age\n<b>$mui_smart_error_errors</b> $smart_offline_uncorrectable"`
-              push-message "Conky" "$push_content"
+        drive_short=`basename $drive`
+        if [[ ! -d ~/.conky/SMART ]]; then
+          mkdir ~/.conky/SMART
+        fi
+        printf "\${execi 3600 echo $user_pass | sudo -kS smartctl -a $drive > ~/.conky/SMART/$drive_short.log }"
+        smart_enabled=`cat ~/.conky/SMART/$drive_short.log | grep "SMART support is:" | awk '{print $NF}' | tail -1`
+        smart_status=`cat ~/.conky/SMART/$drive_short.log | grep "SMART overall-health" | awk '{print $NF}'`
+        smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
+        if [[ "$smart_offline_uncorrectable" == "" ]]; then
+          smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Reallocated_Sector_Ct" | awk '{print $NF}'`
+        fi
+        if [[ "$smart_enabled" == "Enabled" ]]; then
+          if [[ "$smart_status" == "PASSED" ]]; then
+            if [[ "$smart_offline_uncorrectable" == "0" ]]; then
+              smart_glyph="\uf0c8"
+              smart_color="light green"
+            else
+              smart_glyph="\uf0c8"
+              smart_color="orange"
+              last_smart_error=`cat ~/.conky/SMART/$drive_short.error 2>/dev/null`
+              if [[ "$smart_offline_uncorrectable" != "$last_smart_error" ]]; then
+                smart_serial=`cat ~/.conky/SMART/$drive_short.log | grep "Serial Number:" | awk '{print $NF}' | tail -1`
+                smart_size=`df -Hl $drive | awk '{ print $2 }' | tail -1`
+                smart_age=`cat ~/.conky/SMART/$drive_short.log | grep -i "Power_On_Hours" | awk '{print $NF}' | tail -1 | awk '{print $1/24}'`
+                push_content=`echo -e "[ <b>SMART</b> ] $mui_smart_error_title\n\n<b>$mui_smart_error_main</b> $drive\n<b>$mui_smart_error_serial</b> $smart_serial\n<b>$mui_smart_error_size</b> $smart_size\n<b>$mui_smart_error_age</b> $smart_age\n<b>$mui_smart_error_errors</b> $smart_offline_uncorrectable"`
+                push-message "Conky" "$push_content"
+              fi
+              echo $smart_offline_uncorrectable > ~/.conky/SMART/$drive_short.error
             fi
-            echo $smart_offline_uncorrectable > ~/.conky/SMART/$drive_short.error
+          else
+            smart_glyph="\uf046"
+            smart_color="red"
           fi
         else
-          smart_glyph="\uf046"
-          smart_color="red"
+          smart_glyph="\u0020"
+          smart_color=""
         fi
-      else
-        smart_glyph="\u0020"
-        smart_color=""
       fi
       if [[ "$disk_temp" != "" ]]; then
         echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
       else
         if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
-          echo -e "\${voffset -1}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
+          echo -e "\${voffset 1}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
         else
           echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
         fi
