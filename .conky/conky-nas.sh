@@ -278,7 +278,6 @@ for drive in $drives ; do
         mkdir ~/.conky/SMART
       fi
       printf "\${execi 3600 echo $user_pass | sudo -kS smartctl -a $drive > ~/.conky/SMART/$drive_short.log }"
-## Trop de traitement si fait toute les secondes, faire toutes les heures et mettre les logs dans un dossier à la update peut etre
       smart_enabled=`cat ~/.conky/SMART/$drive_short.log | grep "SMART support is:" | awk '{print $NF}' | tail -1`
       smart_status=`cat ~/.conky/SMART/$drive_short.log | grep "SMART overall-health" | awk '{print $NF}'`
       smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
@@ -297,7 +296,8 @@ for drive in $drives ; do
             if [[ "$smart_offline_uncorrectable" != "$last_smart_error" ]]; then
               smart_serial=`cat ~/.conky/SMART/$drive_short.log | grep "Serial Number:" | awk '{print $NF}' | tail -1`
               smart_size=`df -Hl $drive | awk '{ print $2 }' | tail -1`
-              push_content=`echo -e "[ <b>SMART</b> ] $mui_smart_error_title\n\n<b>$mui_smart_error_main</b> $drive\n<b>$mui_smart_error_serial</b> $smart_serial\n<b>$mui_smart_error_size</b> $smart_size\n<b>$mui_smart_error_errors</b> $smart_offline_uncorrectable"`
+              smart_age=`cat ~/.conky/SMART/$drive_short.log | grep -i "Power_On_Hours" | awk '{print $NF}' | tail -1`
+              push_content=`echo -e "[ <b>SMART</b> ] $mui_smart_error_title\n\n<b>$mui_smart_error_main</b> $drive\n<b>$mui_smart_error_serial</b> $smart_serial\n<b>$mui_smart_error_size</b> $smart_size\n<b>$mui_smart_error_age</b> $smart_age\n<b>$mui_smart_error_errors</b> $smart_offline_uncorrectable"`
               push-message "Conky" "$push_content"
             fi
             echo $smart_offline_uncorrectable > ~/.conky/SMART/$drive_short.error
