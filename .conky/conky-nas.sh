@@ -282,6 +282,9 @@ for drive in $drives ; do
       smart_enabled=`cat ~/.conky/SMART/$drive_short.log | grep "SMART support is:" | awk '{print $NF}' | tail -1`
       smart_status=`cat ~/.conky/SMART/$drive_short.log | grep "SMART overall-health" | awk '{print $NF}'`
       smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
+      if [[ "$smart_offline_uncorrectable" == "" ]]; then
+        smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Reallocated_Sector_Ct" | awk '{print $NF}'`
+      fi
       if [[ "$smart_enabled" == "Enabled" ]]; then
         if [[ "$smart_status" == "PASSED" ]]; then
           if [[ "$smart_offline_uncorrectable" == "0" ]]; then
@@ -289,7 +292,7 @@ for drive in $drives ; do
             smart_color="light green"
           else
             smart_glyph="\uf0c8"
-            smart_color="red"
+            smart_color="orange"
           fi
         else
           smart_glyph="\uf046"
@@ -312,7 +315,7 @@ for drive in $drives ; do
       else
         disk_color="light grey"
       fi
-      echo "\${offset -10}SMART${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
+      echo "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
     fi
   fi
 done
