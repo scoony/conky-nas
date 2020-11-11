@@ -98,7 +98,7 @@ echo "\${font}\${voffset -4}"
 if [[ "$push_activation" == "yes" ]]; then
   ## Function to push
   push-message() {
-  if [[ "$DISPLAY" == ":0" ]]; then
+  if [[ "$DISPLAY" == ":0" ]] || [[ "$DISPLAY" == ":1" ]]; then
     push_title=$1
     push_content=$2
     if [ -n "$push_target" ]; then
@@ -296,8 +296,8 @@ for drive in $drives ; do
             last_smart_error=`cat ~/.conky/SMART/$drive_short.error 2>/dev/null`
             if [[ "$smart_offline_uncorrectable" != "$last_smart_error" ]]; then
               smart_serial=`cat ~/.conky/SMART/$drive_short.log | grep "Serial Number:" | awk '{print $NF}' | tail -1`
-              myservice_message="[ SMART ] $mui_smart_error_title"
-              push-message "Conky" "$mui_smart_error_main $drive\n$mui_smart_error_main $smart_serial\n$mui_smart_error_errors $smart_offline_uncorrectable"
+              push_content=`echo -e "[ <b>SMART</b> ] $mui_smart_error_title\n\n<b>$mui_smart_error_main</b> $drive\n<b>$mui_smart_error_serial</b> $smart_serial\n<b>$mui_smart_error_errors</b> $smart_offline_uncorrectable"`
+              push-message "Conky" "$push_content"
             fi
             echo $smart_offline_uncorrectable > ~/.conky/SMART/$drive_short.error
           fi
