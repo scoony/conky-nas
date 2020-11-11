@@ -20,6 +20,7 @@ bar="\${voffset -2}\${font Ubuntu Mono Regular:regular:size=6}\u2588\u2588\u2588
 plex_check="yes"
 plex_stream_state_play="\${font FontAwesome:regular:size=8}\uF04B$font_standard"
 plex_stream_state_pause="\${font FontAwesome:regular:size=8}\uF04C$font_standard"
+plex_stream_state_buffer="\${font FontAwesome:regular:size=8}\uF252$font_standard"
 font_awesome_service="\uf085"
 font_awesome_pushover="\uf3cd"
 font_awesome_updater="\uf021"
@@ -486,7 +487,7 @@ if [[ "$plex_check" == "yes" ]]; then
         if [[ "$plex_state" == "paused" ]]; then
           plex_state_human="$plex_stream_state_pause "
         else
-          plex_state_human=""
+          plex_state_human="$plex_stream_state_buffer"
         fi
       fi
       plex_checkmusic=`echo $plex_stream | grep ' type="track"'`
