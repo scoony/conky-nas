@@ -487,7 +487,7 @@ if [[ "$plex_check" == "yes" ]]; then
         if [[ "$plex_state" == "paused" ]]; then
           plex_state_human="$plex_stream_state_pause "
         else
-          plex_state_human="$plex_stream_state_buffer"
+          plex_state_human="$plex_stream_state_buffer "
         fi
       fi
       plex_checkmusic=`echo $plex_stream | grep ' type="track"'`
