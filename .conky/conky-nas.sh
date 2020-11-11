@@ -293,6 +293,13 @@ for drive in $drives ; do
           else
             smart_glyph="\uf0c8"
             smart_color="orange"
+            last_smart_error=`cat ~/.conky/SMART/$drive_short.error 2>/dev/null`
+            if [[ "$smart_offline_uncorrectable" != "$last_smart_error" ]]; then
+              smart_serial=`cat ~/.conky/SMART/$drive_short.log | grep "Serial Number:" | awk '{print $NF}' | tail -1`
+              myservice_message="[ SMART ] $mui_smart_error_title"
+              push-message "Conky" "$mui_smart_error_main $drive\n$mui_smart_error_main $smart_serial\n$mui_smart_error_errors $smart_offline_uncorrectable"
+            fi
+            echo $smart_offline_uncorrectable > ~/.conky/SMART/$drive_short.error
           fi
         else
           smart_glyph="\uf046"
