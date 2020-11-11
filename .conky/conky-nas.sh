@@ -296,7 +296,7 @@ for drive in $drives ; do
             if [[ "$smart_offline_uncorrectable" != "$last_smart_error" ]]; then
               smart_serial=`cat ~/.conky/SMART/$drive_short.log | grep "Serial Number:" | awk '{print $NF}' | tail -1`
               smart_size=`df -Hl $drive | awk '{ print $2 }' | tail -1`
-              smart_age=`cat ~/.conky/SMART/$drive_short.log | grep -i "Power_On_Hours" | awk '{print $NF}' | tail -1 | awk '{print $1/3}'`
+              smart_age=`cat ~/.conky/SMART/$drive_short.log | grep -i "Power_On_Hours" | awk '{print $NF}' | tail -1 | awk '{print $1/24}'`
               push_content=`echo -e "[ <b>SMART</b> ] $mui_smart_error_title\n\n<b>$mui_smart_error_main</b> $drive\n<b>$mui_smart_error_serial</b> $smart_serial\n<b>$mui_smart_error_size</b> $smart_size\n<b>$mui_smart_error_age</b> $smart_age\n<b>$mui_smart_error_errors</b> $smart_offline_uncorrectable"`
               push-message "Conky" "$push_content"
             fi
