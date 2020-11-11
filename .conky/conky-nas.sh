@@ -274,6 +274,9 @@ for drive in $drives ; do
         fi
       fi
       drive_short=`basename $drive`
+      if [[ ! -d ~/.conky/SMART ]]; then
+        mkdir ~/.conky/SMART
+      fi
       printf "\${execi 3600 echo $user_pass | sudo -kS smartctl -a $drive > ~/.conky/SMART/$drive_short.log }"
 ## Trop de traitement si fait toute les secondes, faire toutes les heures et mettre les logs dans un dossier à la update peut etre
       smart_enabled=`cat ~/.conky/SMART/$drive_short.log | grep "SMART support is:" | awk '{print $NF}' | tail -1`
