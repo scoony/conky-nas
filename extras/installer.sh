@@ -58,7 +58,7 @@ while kill -0 $pid 2>/dev/null
   sleep .1
 done
 printf "$my_printf" && printf "\r"
-eval 'echo -e "[\e[42m\u2713 \e[0m] mui_installer_apt_install_done"' $log_install_echo
+eval 'echo -e "[\e[42m\u2713 \e[0m] $mui_installer_apt_install_done"' $log_install_echo
 
 
 ## download files
