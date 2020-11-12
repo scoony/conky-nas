@@ -345,12 +345,15 @@ if [[ "$vpn_detected" != "" ]]; then
 else
   echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
 fi
-net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//"`
-if [[ "$net_adapter" == "wlan0" ]]; then
-  echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\${wireless_essid $net_adapter})"
-else
-  net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
-  echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | sed ':a;N;$!ba;s/\n/ /g'`
+net_adapter_number=`echo $net_adapter | wc -w`
+if [[ "$net_adapter_number" == "1" ]]; then
+  if [[ "$net_adapter_device" == "wlan0" ]]; then
+    echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\${wireless_essid $net_adapter})"
+  else
+    net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
+    echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+  fi
 fi
 net_ip_public=`dig -4 +short myip.opendns.com @resolver1.opendns.com`
 if [[ "$vpn_detected" != "" ]]; then
@@ -377,8 +380,21 @@ if [[ "$vpn_detected" != "" ]]; then
 else
   echo "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
 fi
-echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
-echo "\${color lightgray}\${downspeedgraph $net_adapter 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter 25,150 }\$color"
+if [[ "$net_adapter_number" != "1" ]]; then
+  for net_adapter_device in $net_adapter ; do
+    if [[ "$net_adapter_device" == "wlan0" ]]; then
+      echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device (\${wireless_essid $net_adapter_device})"
+    else
+      net_adapter_speed=`cat /sys/class/net/$net_adapter_device/speed`
+      echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device ($net_adapter_speed Mbps)"
+    fi
+    echo "${font_standard}$mui_network_down \${downspeed $net_adapter_device}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter_device}"
+    echo "\${color lightgray}\${downspeedgraph $net_adapter_device 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter_device 25,150 }\$color"
+  done
+else
+  echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
+  echo "\${color lightgray}\${downspeedgraph $net_adapter 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter 25,150 }\$color"
+fi
 echo "\${font}\${voffset -4}"
 
 
