@@ -13,10 +13,14 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 ## Support
 
 - hdd temp
+- GPU usage and temp (nVIDIA)
 - transmission-deamon
 - plexmediaserver
 - openvpn custom service (for permanent vpn)
 - language (FR, ENG and DE)
+- SMART Status check
+- Pushover (for push notifications)
+- checking services (restating them if sudo password is provided)
 
 ## Required (for manual install)
 
@@ -29,16 +33,3 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 - fonts-font-awesome
 - curl
 
-## Work done
-
-- autodetect HDD
-- autodetect plex-token
-- autodetect net-adapter
-- check if reboot is required
-- multilanguage done
-- autodetect if network is secured thru VPN and adapt the display
-- autodetect plexmediaserver and transmission-daemon (activate display accordingly)
-- humanized speeds in transmission
-- remote plex is done
-- de language added
-- the size and location of avatar can be set in the conf
