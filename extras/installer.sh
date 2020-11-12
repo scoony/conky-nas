@@ -2,15 +2,15 @@
 
 remote_folder="https://raw.githubusercontent.com/scoony/conky-nas/main"
 user_path="$HOME"
-log_install="install-conky-nas.log"
-log_install_echo="| tee -a $fichier_log_perso"
+log_install="$user_path/install-conky-nas.log"
+log_install_echo="| tee -a $log_install"
 my_printf="\r                                                                             "
 
 
 ## Check local language and apply MUI
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
-check_language=`curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/MUI/$os_language.lang`
-if [[ $check_language == "404: Not Found" ]]; then
+check_language=`curl -s "https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/MUI/$os_language.lang"`
+if [[ "$check_language" == "404: Not Found" ]]; then
   os_language="default"
 fi
 source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/MUI/$os_language.lang)
@@ -23,7 +23,7 @@ if [ "$(whoami)" == "root" ]; then
 fi
 
 ## apt update
-sudo apt update 2>/dev/null >> $log_install
+sudo apt update 2>/dev/null >> $log_install &
 pid=$!
 spin='-\|/'
 i=0
