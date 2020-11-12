@@ -25,11 +25,15 @@ bash -c "$(wget -qO - https://raw.githubusercontent.com/scoony/conky-nas/main/ex
 ## Required (for manual install)
 
 - libxml2-utils
+- transmission-daemon (optional)
 - transmission-cli (optional)
 - plexmediaserver (optional)
+- smartmontools
+- hddtemp
 - net-tools
 - jq
 - fonts-symbola
 - fonts-font-awesome
 - curl
+- nVIDIA drivers (for GPU infos)
 
