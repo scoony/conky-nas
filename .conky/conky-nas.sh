@@ -153,7 +153,7 @@ if [[ "$services_list" != "" ]]; then
       service_color=""
       if [[ -f ~/.conky/pushover/$myservice ]]; then
         rm ~/.conky/pushover/$myservice
-        myservice_message="[ $myservice ] $mui_pushover_service_restarted"
+        myservice_message=`echo -e "[ <b>${myservice^^}</b> ] $mui_pushover_service_restarted"`
         push-message "0" "Conky" "$myservice_message"
       fi
     else
@@ -163,10 +163,10 @@ if [[ "$services_list" != "" ]]; then
       if [[ ! -f ~/.conky/pushover/$myservice ]]; then
         touch ~/.conky/pushover/$myservice
         if [[ "$user_pass" != "" ]]; then
-          myservice_message="[ $myservice ] $mui_pushover_service_restart"
+          myservice_message=`echo -e "[ <b>${myservice^^}</b> ] $mui_pushover_service_restart"`
           echo $user_pass | sudo -kS service $myservice restart
         else
-          myservice_message="[ <b>${myservice^^}</b> ] $mui_pushover_service"
+          myservice_message=`echo -e "[ <b>${myservice^^}</b> ] $mui_pushover_service"`
         fi
         push-message "0" "Conky" "$myservice_message"
       fi
@@ -365,7 +365,7 @@ if [[ "$vpn_detected" != "" ]]; then
         mynetwork_message="[ VPN ] $mui_network_vpn_restart"
         echo $user_pass | sudo -kS service $vpn_service restart
       else
-        mynetwork_message="[ <b>VPN</b> ] $mui_network_vpn_ko"
+        mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
       fi
       push-message "0" "Conky" "$mynetwork_message"
     fi
