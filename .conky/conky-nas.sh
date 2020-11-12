@@ -101,8 +101,9 @@ if [[ "$push_activation" == "yes" ]]; then
   ## Function to push
   push-message() {
   if [[ "$DISPLAY" == ":0" ]] || [[ "$DISPLAY" == ":1" ]]; then
-    push_title=$1
-    push_content=$2
+    push_priority=$1
+    push_title=$2
+    push_content=$3
     if [ -n "$push_target" ]; then
       curl -s \
         --form-string "token=$push_token_app" \
@@ -110,7 +111,7 @@ if [[ "$push_activation" == "yes" ]]; then
         --form-string "title=$push_title" \
         --form-string "message=$push_content" \
         --form-string "html=1" \
-        --form-string "priority=0" \
+        --form-string "priority=$push_priority" \
         https://api.pushover.net/1/messages.json > /dev/null
     fi
   fi
@@ -153,7 +154,7 @@ if [[ "$services_list" != "" ]]; then
       if [[ -f ~/.conky/pushover/$myservice ]]; then
         rm ~/.conky/pushover/$myservice
         myservice_message="[ $myservice ] $mui_pushover_service_restarted"
-        push-message "Conky" "$myservice_message"
+        push-message "0" "Conky" "$myservice_message"
       fi
     else
       service_color="red"
@@ -165,9 +166,9 @@ if [[ "$services_list" != "" ]]; then
           myservice_message="[ $myservice ] $mui_pushover_service_restart"
           echo $user_pass | sudo -kS service $myservice restart
         else
-          myservice_message="[ $myservice ] $mui_pushover_service"
+          myservice_message="[ <b>${myservice^^}</b> ] $mui_pushover_service"
         fi
-        push-message "Conky" "$myservice_message"
+        push-message "0" "Conky" "$myservice_message"
       fi
     fi
   done
@@ -299,7 +300,7 @@ for drive in $drives ; do
                 smart_size=`df -Hl $drive | awk '{ print $2 }' | tail -1`
                 smart_age=`cat ~/.conky/SMART/$drive_short.log | grep -i "Power_On_Hours" | awk '{print $NF}' | tail -1 | awk '{print $1/24}'`
                 push_content=`echo -e "[ <b>SMART</b> ] $mui_smart_error_title\n\n<b>$mui_smart_error_main</b> $drive\n<b>$mui_smart_error_serial</b> $smart_serial\n<b>$mui_smart_error_size</b> $smart_size\n<b>$mui_smart_error_age</b> $smart_age\n<b>$mui_smart_error_errors</b> $smart_offline_uncorrectable"`
-                push-message "Conky" "$push_content"
+                push-message "0" "Conky" "$push_content"
               fi
               echo $smart_offline_uncorrectable > ~/.conky/SMART/$drive_short.error
             fi
@@ -364,9 +365,9 @@ if [[ "$vpn_detected" != "" ]]; then
         mynetwork_message="[ VPN ] $mui_network_vpn_restart"
         echo $user_pass | sudo -kS service $vpn_service restart
       else
-        mynetwork_message="[ VPN ] $mui_network_vpn_ko"
+        mynetwork_message="[ <b>VPN</b> ] $mui_network_vpn_ko"
       fi
-      push-message "Conky" "$mynetwork_message"
+      push-message "0" "Conky" "$mynetwork_message"
     fi
   else
     if [[ -f ~/.conky/pushover/vpn_error ]]; then
