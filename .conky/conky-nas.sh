@@ -137,7 +137,7 @@ echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
 echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
 echo "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
-power_supply=`acpi -b 2>/dev/null | grep "Battery"`
+power_supply=`acpi -b 2>/dev/null | sed '/rate information unavailable/d'`
 if [[ "$power_supply" != "" ]]; then
   battery_state=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\2/' | sed -n '1p'`
   battery_charge=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\3/' | sed -n '1p'`
