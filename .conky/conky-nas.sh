@@ -139,13 +139,13 @@ power_supply=`acpi -b 2>/dev/null | grep "Battery"`
 if [[ "$power_supply" != "" ]]; then
   battery_state=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\2/' | sed -n '1p'`
   battery_charge=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\3/' | sed -n '1p'`
-  if [[ $battery_charge -le 10 ]]; then
+  if [[ $battery_charge -lt 10 ]]; then
     battery_charge_color="red"
   else
-    if [[ $battery_charge -le 40 ]]; then
+    if [[ $battery_charge -lt 40 ]]; then
       battery_charge_color="orange"
     else
-      if [[ $battery_charge -le 80 ]]; then
+      if [[ $battery_charge -lt 80 ]]; then
         battery_charge_color="white"
       else
         battery_charge_color="green"
