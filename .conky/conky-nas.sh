@@ -153,15 +153,15 @@ if [[ "$power_supply" != "" ]]; then
     fi
   fi
   if [[ "$battery_state" == "Full" ]] || [[ "$battery_state" == "Unknown" ]]; then
-    echo "${font_standard}Chargé:\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
+    echo "${font_standard}$mui_system_charge_full\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
   else
     battery_timeleft=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%, \([0-2][0-9]:[0-5][0-9]:[0-5][0-9]\).*/\4/' | sed -n '1p'`  
     if [[ "$battery_state" == "Discharging" ]]; then
-      echo "${font_standard}Sur batterie:\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
-      echo "${font_standard}Autonomie:$txt_align_right$battery_timeleft"
+      echo "${font_standard}$mui_system_charge_offline\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
+      echo "${font_standard}$mui_system_charge_remaining$txt_align_right$battery_timeleft"
     else
-      echo "${font_standard}En charge:\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
-      echo "${font_standard}Avant chargement complet:$txt_align_right$battery_timeleft"
+      echo "${font_standard}$mui_system_charge_online\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
+      echo "${font_standard}$mui_system_charge_until_charged$txt_align_right$battery_timeleft"
 	  fi
   fi
 fi
