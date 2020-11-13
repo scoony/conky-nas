@@ -129,8 +129,10 @@ fi
 #### System Block
 
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_system")\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
-hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
-hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
+#hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
+hdd_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$2)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
+#hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
+hdd_free_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$4)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
 echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
 echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
