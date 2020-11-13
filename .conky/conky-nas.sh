@@ -135,6 +135,36 @@ echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
 echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
 echo "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
+power_supply=`acpi -b 2>/dev/null | grep "Battery"`
+if [[ "$power_supply" != "" ]]; then
+  battery_state=`acpi -b | awk "{print $1}" | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\2/' | sed -n '1p'`
+  battery_charge=`acpi -b | awk "{print $1}" | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\3/' | sed -n '1p'`
+  if [[ $battery_charge -le 10 ]]; then
+    battery_charge_color="red"
+  else
+    if [[ $battery_charge -le 40 ]]; then
+      battery_charge_color="orange"
+    else
+      if [[ $battery_charge -le 80 ]]; then
+        battery_charge_color="white"
+      else
+        battery_charge_color="green"
+      fi
+    fi
+  fi
+  if [[ "$battery_state" == "Full" ]] || [[ "$battery_state" == "Unknown" ]]; then
+    echo "${font_standard}Chargé:\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
+  else
+    battery_timeleft=`acpi -b | awk "{print $1}" | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%, \([0-2][0-9]:[0-5][0-9]:[0-5][0-9]\).*/\4/' | sed -n '1p'`  
+    if [[ "$battery_state" == "Discharging" ]]; then
+      echo "${font_standard}Sur batterie:\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
+      echo "${font_standard}Autonomie:$txt_align_right$battery_timeleft"
+    else
+      echo "${font_standard}En charge:\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
+      echo "${font_standard}Avant chargement complet:$txt_align_right$battery_timeleft"
+	  fi
+  fi
+fi
 if [ -f /var/run/reboot-required ]; then
   echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_system_reboot\$color"
 fi
@@ -192,7 +222,7 @@ for cpu_number in $cpu_temp ; do
     cpu_color="light grey"
   fi
   echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
-  echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${color $cpu_color}\${goto 296}\${color white}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
+  echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${color $cpu_color}\${goto 296}\${color light grey}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
   cpu_num=$((cpu_num+1))
 done
 gpu_brand=`lspci | grep ' VGA '`
@@ -203,7 +233,7 @@ if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   else
     gpu_color="light grey"
   fi
-  echo -e "${font_standard}\${nvidia modelname}:\${goto 130}\${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${color $gpu_color}\${goto 296}\${color white}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}\${nvidia temp}°\$color"
+  echo -e "${font_standard}\${nvidia modelname}:\${goto 130}\${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${color $gpu_color}\${goto 296}\${color light grey}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}\${nvidia temp}°\$color"
 fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
@@ -348,7 +378,7 @@ fi
 net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | sed ':a;N;$!ba;s/\n/ /g'`
 net_adapter_number=`echo $net_adapter | wc -w`
 if [[ "$net_adapter_number" == "1" ]]; then
-  if [[ "$net_adapter_device" == "wlan0" ]]; then
+  if [[ "$net_adapter" == "wlan0" ]]; then
     echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\${wireless_essid $net_adapter})"
   else
     net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
