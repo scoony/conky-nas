@@ -137,8 +137,8 @@ echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
 echo "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
 power_supply=`acpi -b 2>/dev/null | grep "Battery"`
 if [[ "$power_supply" != "" ]]; then
-  battery_state=`acpi -b | awk "{print $1}" | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\2/' | sed -n '1p'`
-  battery_charge=`acpi -b | awk "{print $1}" | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\3/' | sed -n '1p'`
+  battery_state=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\2/' | sed -n '1p'`
+  battery_charge=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\3/' | sed -n '1p'`
   if [[ $battery_charge -le 10 ]]; then
     battery_charge_color="red"
   else
@@ -155,7 +155,7 @@ if [[ "$power_supply" != "" ]]; then
   if [[ "$battery_state" == "Full" ]] || [[ "$battery_state" == "Unknown" ]]; then
     echo "${font_standard}Chargé:\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
   else
-    battery_timeleft=`acpi -b | awk "{print $1}" | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%, \([0-2][0-9]:[0-5][0-9]:[0-5][0-9]\).*/\4/' | sed -n '1p'`  
+    battery_timeleft=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%, \([0-2][0-9]:[0-5][0-9]:[0-5][0-9]\).*/\4/' | sed -n '1p'`  
     if [[ "$battery_state" == "Discharging" ]]; then
       echo "${font_standard}Sur batterie:\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
       echo "${font_standard}Autonomie:$txt_align_right$battery_timeleft"
