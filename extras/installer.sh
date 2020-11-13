@@ -37,7 +37,7 @@ printf "$my_printf" && printf "\r"
 eval 'echo -e "[\e[42m\u2713 \e[0m] $mui_installer_apt_update_done"' $log_install_echo
 
 ## install applications
-sudo apt install -y conky-all net-tools jq curl transmission-cli fonts-symbola fonts-noto-mono fonts-font-awesome libxml2-utils 2>/dev/null >> $log_install &
+sudo apt install -y conky-all acpi net-tools jq curl transmission-cli fonts-symbola fonts-noto-mono fonts-font-awesome libxml2-utils 2>/dev/null >> $log_install &
 pid=$!
 spin='-\|/'
 i=0
