@@ -396,7 +396,7 @@ if [[ "$net_adapter" != "" ]]; then
       if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
         touch ~/.conky/pushover/vpn_error
         if [[ "$user_pass" != "" ]]; then
-          mynetwork_message="[ VPN ] $mui_network_vpn_restart"
+          mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_restart"`
           echo $user_pass | sudo -kS service $vpn_service restart
         else
           mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
