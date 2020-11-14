@@ -66,12 +66,9 @@ else
 fi
 
 
-#### Functions
+#### Detect network adapter
 
-##charwidth() {
-##  set "$(printf '...%s\b\b...\n' "$1" | col -b)"
-##  echo "$((${#1} - 4))"
-##}
+net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | sed ':a;N;$!ba;s/\n/ /g'`
 
 
 #### Avatar, date & clock Block
@@ -89,8 +86,10 @@ else
 fi
 echo "\${voffset -10}${font_time}\${alignc}\${time %H:%M}\${font}"
 echo "${font_date}${txt_align_center}\${time %A %d %B}"
-if [[ "$user_town" != "" ]]; then
-  echo "${txt_align_center}${font_weather}\${exec curl --silent wttr.in/$user_town?format=2}${font_standard}"
+if [[ "$net_adapter" != "" ]]; then
+  if [[ "$user_town" != "" ]]; then
+    echo "${txt_align_center}${font_weather}\${exec curl --silent wttr.in/$user_town?format=2}${font_standard}"
+  fi
 fi
 echo "\${font}\${voffset -4}"
 
@@ -215,7 +214,7 @@ fi
 
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_cpu")\${font}\${goto 35} ${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
-cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type) <(cat /sys/class/thermal/thermal_zone*/temp) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep "x86_pkg_temp" | awk '{ print $2 }' | sed 's/\°C//' | sed 's/\..*//'`
+cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "Thermal" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
 cpu_num="1"
 for cpu_number in $cpu_temp ; do
   if [[ "$cpu_number" -ge "85" ]]; then
@@ -371,207 +370,216 @@ echo "\${font}\${voffset -4}"
 
 #### Network Block
 
-vpn_detected=`ifconfig | grep "tun[0-9]"`
-if [[ "$vpn_detected" != "" ]]; then
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network_secured")\${font}\${goto 35} ${font_title}$mui_network_title_secured \${hr 2}"
+if [[ "$net_adapter" != "" ]]; then
+  vpn_detected=`ifconfig | grep "tun[0-9]"`
+  if [[ "$vpn_detected" != "" ]]; then
+    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network_secured")\${font}\${goto 35} ${font_title}$mui_network_title_secured \${hr 2}"
+  else
+    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
+  fi
+  net_adapter_number=`echo $net_adapter | wc -w`
+  if [[ "$net_adapter_number" == "1" ]]; then
+    if [[ "$net_adapter" == "wlan0" ]]; then
+      echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\${wireless_essid $net_adapter})"
+    else
+      net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
+      echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+    fi
+  fi
+  net_ip_public=`dig -4 +short myip.opendns.com @resolver1.opendns.com`
+  if [[ "$vpn_detected" != "" ]]; then
+    echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
+    net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
+    echo "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
+    echo "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
+    if [[ "$net_ip_box" == "$net_ip_public" ]]; then
+      if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
+        touch ~/.conky/pushover/vpn_error
+        if [[ "$user_pass" != "" ]]; then
+          mynetwork_message="[ VPN ] $mui_network_vpn_restart"
+          echo $user_pass | sudo -kS service $vpn_service restart
+        else
+          mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
+        fi
+        push-message "0" "Conky" "$mynetwork_message"
+      fi
+    else
+      if [[ -f ~/.conky/pushover/vpn_error ]]; then
+        rm ~/.conky/pushover/vpn_error
+      fi
+    fi
+  else
+    echo "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
+  fi
+  if [[ "$net_adapter_number" != "1" ]]; then
+    for net_adapter_device in $net_adapter ; do
+      if [[ "$net_adapter_device" == "wlan0" ]]; then
+        echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device (\${wireless_essid $net_adapter_device})"
+      else
+        net_adapter_speed=`cat /sys/class/net/$net_adapter_device/speed`
+        echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device ($net_adapter_speed Mbps)"
+      fi
+      echo "${font_standard}$mui_network_down \${downspeed $net_adapter_device}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter_device}"
+      echo "\${color lightgray}\${downspeedgraph $net_adapter_device 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter_device 25,150 }\$color"
+    done
+  else
+    echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
+    echo "\${color lightgray}\${downspeedgraph $net_adapter 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter 25,150 }\$color"
+  fi
 else
   echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
-fi
-net_adapter=`ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | sed ':a;N;$!ba;s/\n/ /g'`
-net_adapter_number=`echo $net_adapter | wc -w`
-if [[ "$net_adapter_number" == "1" ]]; then
-  if [[ "$net_adapter" == "wlan0" ]]; then
-    echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\${wireless_essid $net_adapter})"
-  else
-    net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
-    echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
-  fi
-fi
-net_ip_public=`dig -4 +short myip.opendns.com @resolver1.opendns.com`
-if [[ "$vpn_detected" != "" ]]; then
-  echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
-  net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
-  echo "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
-  echo "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
-  if [[ "$net_ip_box" == "$net_ip_public" ]]; then
-    if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
-      touch ~/.conky/pushover/vpn_error
-      if [[ "$user_pass" != "" ]]; then
-        mynetwork_message="[ VPN ] $mui_network_vpn_restart"
-        echo $user_pass | sudo -kS service $vpn_service restart
-      else
-        mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
-      fi
-      push-message "0" "Conky" "$mynetwork_message"
-    fi
-  else
-    if [[ -f ~/.conky/pushover/vpn_error ]]; then
-      rm ~/.conky/pushover/vpn_error
-    fi
-  fi
-else
-  echo "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
-fi
-if [[ "$net_adapter_number" != "1" ]]; then
-  for net_adapter_device in $net_adapter ; do
-    if [[ "$net_adapter_device" == "wlan0" ]]; then
-      echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device (\${wireless_essid $net_adapter_device})"
-    else
-      net_adapter_speed=`cat /sys/class/net/$net_adapter_device/speed`
-      echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device ($net_adapter_speed Mbps)"
-    fi
-    echo "${font_standard}$mui_network_down \${downspeed $net_adapter_device}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter_device}"
-    echo "\${color lightgray}\${downspeedgraph $net_adapter_device 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter_device 25,150 }\$color"
-  done
-else
-  echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
-  echo "\${color lightgray}\${downspeedgraph $net_adapter 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter 25,150 }\$color"
+  echo ""
+  echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_network_error\$color"
 fi
 echo "\${font}\${voffset -4}"
 
 
 #### Transmission Block
 
-if [[ "$transmission_check" == "yes" ]]; then
-  transmission_state=`systemctl show -p SubState --value transmission-daemon`
-  if [[ "$transmission_state" != "dead" ]]; then
-    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
-    echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
-    if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
-      test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
-      if [[ "$test_transmission" != "" ]]; then
-        transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
-        transmission_queue=`cat transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
-        echo "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
-        transmission_down=`cat transm.log | grep Sum: | awk '{ print $NF }' | sed "s/\..*//"`
-        transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
-        transmission_up=`cat transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
-        transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-        echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
-        rm transm.log
+if [[ "$net_adapter" != "" ]]; then
+  if [[ "$transmission_check" == "yes" ]]; then
+    transmission_state=`systemctl show -p SubState --value transmission-daemon`
+    if [[ "$transmission_state" != "dead" ]]; then
+      echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
+      echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
+      if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
+        test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
+        if [[ "$test_transmission" != "" ]]; then
+          transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
+          transmission_queue=`cat transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
+          echo "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
+          transmission_down=`cat transm.log | grep Sum: | awk '{ print $NF }' | sed "s/\..*//"`
+          transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
+          transmission_up=`cat transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
+          transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
+          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+          rm transm.log
+        else
+          echo ""
+          echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
+        fi
       else
-        echo ""
-        echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
-      fi
-    else
-      ## was set to settings2 instead of settings to disable
-      if [[ -f "/etc/transmission-deamon/settings2.json" ]]; then
-        transmission_port=`echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-port"'`
-        transmission_ip="localhost"
-        echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-username"' | sed 's/./\\&/g' >temp_tr.log
-        transmission_login=`cat temp_tr.log`
-        rm temp_tr.log
-        echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-password"' | sed 's/./\\&/g' >temp_tr.log
-        transmission_password=`cat temp_tr.log`
-        rm temp_tr.log
-        echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
-        transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
-        transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
-        transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
-        transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-        echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
-      else
-        echo ""
-        echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
-      fi
-    fi
-    echo "\${font}\${voffset -4}"
-  else
-    if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
-      echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font} ${font_title}$mui_transmission_title \${hr 2}"
-      test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
-      if [[ "$test_transmission" != "" ]]; then
-        transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
-        transmission_queue=`cat transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
-        echo "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
-        transmission_down=`cat transm.log | grep Sum: | awk '{ print $NF }' | sed "s/\..*//"`
-        transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
-        transmission_up=`cat transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
-        transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-        echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
-        rm transm.log
-      else
-        echo ""
-        echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
+        ## was set to settings2 instead of settings to disable
+        if [[ -f "/etc/transmission-deamon/settings2.json" ]]; then
+          transmission_port=`echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-port"'`
+          transmission_ip="localhost"
+          echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-username"' | sed 's/./\\&/g' >temp_tr.log
+          transmission_login=`cat temp_tr.log`
+          rm temp_tr.log
+          echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-password"' | sed 's/./\\&/g' >temp_tr.log
+          transmission_password=`cat temp_tr.log`
+          rm temp_tr.log
+          echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
+          transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
+          transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
+          transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
+          transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
+          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+        else
+          echo ""
+          echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
+        fi
       fi
       echo "\${font}\${voffset -4}"
+    else
+      if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
+        echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font} ${font_title}$mui_transmission_title \${hr 2}"
+        test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
+        if [[ "$test_transmission" != "" ]]; then
+          transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
+          transmission_queue=`cat transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
+          echo "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
+          transmission_down=`cat transm.log | grep Sum: | awk '{ print $NF }' | sed "s/\..*//"`
+          transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
+          transmission_up=`cat transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
+          transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
+          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+          rm transm.log
+        else
+          echo ""
+          echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
+        fi
+        echo "\${font}\${voffset -4}"
+      fi
     fi
   fi
 fi
 
+
 #### Plex Block
 
-if [[ "$plex_check" == "yes" ]]; then
-  plex_state=`systemctl show -p SubState --value plexmediaserver`
-  if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
-    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
-    if [[ "$plex_state" != "dead" ]]; then
-      echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
-    fi
-    if [[ "$plex_token" == "" ]]; then
-      plex_token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
-    fi
-    if [[ "$plex_ip" == "" ]]; then
-      plex_ip="localhost"
-    fi
-    if [[ "$plex_port" == "" ]]; then
-      plex_port="32400"
-    fi
-    plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
-    plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
-    echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
-    let num=1
-    while [ $num -le $plex_users ]; do
-      plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | sed "s/<\/Track> /|/g" | cut -d'|' -f$num`
-      plex_user=`echo $plex_stream | grep -Po '(?<=<User id)[^>]*' | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//' | cut -d@ -f1`
-      plex_transcode=`echo $plex_stream | sed 's/.* videoDecision="//' | sed 's/".*//'`
-      let plex_inprogressms=`echo $plex_stream | sed 's/.* viewOffset="//' | sed 's/".*//'`
-      plex_inprogress=`printf '%d:%02d:%02d\n' $(($plex_inprogressms/1000/3600)) $(($plex_inprogressms/1000%3600/60)) $(($plex_inprogressms/1000%60))`
-      let plex_durationms=`echo $plex_stream | sed 's/.* duration="//' | sed 's/".*//'`
-      plex_duration=`printf '%d:%02d:%02d\n' $(($plex_durationms/1000/3600)) $(($plex_durationms/1000%3600/60)) $(($plex_durationms/1000%60))`
-      plex_state=`echo $plex_stream | sed 's/.* state="//' | sed 's/".*//'`
-      if [[ "$plex_state" == "playing" ]]; then
-        plex_state_human="$plex_stream_state_play "
-      else
-        if [[ "$plex_state" == "paused" ]]; then
-          plex_state_human="$plex_stream_state_pause "
-        else
-          plex_state_human="$plex_stream_state_buffer "
-        fi
+if [[ "$net_adapter" != "" ]]; then
+  if [[ "$plex_check" == "yes" ]]; then
+    plex_state=`systemctl show -p SubState --value plexmediaserver`
+    if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
+      echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
+      if [[ "$plex_state" != "dead" ]]; then
+        echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
       fi
-      plex_checkmusic=`echo $plex_stream | grep ' type="track"'`
-      if [[ "$plex_checkmusic" != "" ]]; then
+      if [[ "$plex_token" == "" ]]; then
+        plex_token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
+      fi
+      if [[ "$plex_ip" == "" ]]; then
+        plex_ip="localhost"
+      fi
+      if [[ "$plex_port" == "" ]]; then
+        plex_port="32400"
+      fi
+      plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
+      plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
+      echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
+      let num=1
+      while [ $num -le $plex_users ]; do
+        plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | sed "s/<\/Track> /|/g" | cut -d'|' -f$num`
+        plex_user=`echo $plex_stream | grep -Po '(?<=<User id)[^>]*' | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//' | cut -d@ -f1`
+        plex_transcode=`echo $plex_stream | sed 's/.* videoDecision="//' | sed 's/".*//'`
+        let plex_inprogressms=`echo $plex_stream | sed 's/.* viewOffset="//' | sed 's/".*//'`
+        plex_inprogress=`printf '%d:%02d:%02d\n' $(($plex_inprogressms/1000/3600)) $(($plex_inprogressms/1000%3600/60)) $(($plex_inprogressms/1000%60))`
+        let plex_durationms=`echo $plex_stream | sed 's/.* duration="//' | sed 's/".*//'`
+        plex_duration=`printf '%d:%02d:%02d\n' $(($plex_durationms/1000/3600)) $(($plex_durationms/1000%3600/60)) $(($plex_durationms/1000%60))`
+        plex_state=`echo $plex_stream | sed 's/.* state="//' | sed 's/".*//'`
+        if [[ "$plex_state" == "playing" ]]; then
+          plex_state_human="$plex_stream_state_play "
+        else
+          if [[ "$plex_state" == "paused" ]]; then
+            plex_state_human="$plex_stream_state_pause "
+          else
+            plex_state_human="$plex_stream_state_buffer "
+          fi
+        fi
+        plex_checkmusic=`echo $plex_stream | grep ' type="track"'`
+        if [[ "$plex_checkmusic" != "" ]]; then
           plex_artiste=`echo $plex_stream | sed 's/.* originalTitle="//' | sed 's/".*//'`
           plex_song=`echo $plex_stream | sed 's/<Media .*//' | sed 's/.* title="//' | sed 's/".*//'`
           echo -e "$font_extra\u25CF $font_standard$plex_artiste - $plex_song $txt_align_right${plex_user:0:15}"
-
-      else
-        plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
-        if [[ "$plex_checkepisode" != "" ]]; then
-          plex_serie=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
-          plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
-          plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
-          if [[ "$plex_transcode" == "transcode" ]]; then
-            echo -e "$font_extra\u25CF $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}"
-          else
-            echo -e "$font_extra\u25C9 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}"
-          fi
         else
-          plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
-          if [[ "$plex_transcode" == "transcode" ]]; then
-            echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}"
+          plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
+          if [[ "$plex_checkepisode" != "" ]]; then
+            plex_serie=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
+            plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
+            plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
+            if [[ "$plex_transcode" == "transcode" ]]; then
+              echo -e "$font_extra\u25CF $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}"
+            else
+              echo -e "$font_extra\u25C9 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}"
+            fi
           else
-            echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}"
+            plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
+            if [[ "$plex_transcode" == "transcode" ]]; then
+              echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}"
+            else
+              echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}"
+            fi
           fi
         fi
-      fi
-      plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
-      echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress}
-      let num=$num+1
-    done
-  else
-    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
-    echo ""
-    echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
+        plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
+        echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress}
+        let num=$num+1
+      done
+    else
+      echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
+      echo ""
+      echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
+    fi
   fi
 fi
