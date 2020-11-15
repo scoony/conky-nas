@@ -99,19 +99,21 @@ echo "\${font}\${voffset -4}"
 if [[ "$push_activation" == "yes" ]]; then
   ## Function to push
   push-message() {
-  if [[ "$DISPLAY" == ":0" ]] || [[ "$DISPLAY" == ":1" ]]; then
-    push_priority=$1
-    push_title=$2
-    push_content=$3
-    if [ -n "$push_target" ]; then
-      curl -s \
-        --form-string "token=$push_token_app" \
-        --form-string "user=$push_target" \
-        --form-string "title=$push_title" \
-        --form-string "message=$push_content" \
-        --form-string "html=1" \
-        --form-string "priority=$push_priority" \
-        https://api.pushover.net/1/messages.json > /dev/null
+  if [[ "$net_adapter" != "" ]]; then
+    if [[ "$DISPLAY" == ":0" ]] || [[ "$DISPLAY" == ":1" ]]; then
+      push_priority=$1
+      push_title=$2
+      push_content=$3
+      if [ -n "$push_target" ]; then
+        curl -s \
+          --form-string "token=$push_token_app" \
+          --form-string "user=$push_target" \
+          --form-string "title=$push_title" \
+          --form-string "message=$push_content" \
+          --form-string "html=1" \
+          --form-string "priority=$push_priority" \
+          https://api.pushover.net/1/messages.json > /dev/null
+      fi
     fi
   fi
   }
@@ -128,10 +130,10 @@ fi
 #### System Block
 
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_system")\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
-#hdd_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
-hdd_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$2)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
-#hdd_free_total=`df --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
-hdd_free_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$4)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
+hdd_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
+#hdd_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$2)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
+hdd_free_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
+#hdd_free_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$4)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
 echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
 echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
@@ -286,12 +288,12 @@ drives=`ls /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | cut -d ' ' -f 2`
   if [[ "$mount_point" != "" ]]; then
-    disk_free=`df $mount_point | sed 1d | awk '{print $4}'`
-    disk_free_human=`df -Hl $mount_point | sed 1d | awk '{print $4}'`
+    disk_free=`df $drive | sed 1d | awk '{print $4}'`
+    disk_free_human=`echo $disk_free | numfmt --from-unit=1024 --to=si`
     disk_used=`df $drive | sed 1d | awk '{print $3}'`
-    disk_used_human=`df -Hl $mount_point | sed 1d | awk '{print $3}'`
+    disk_used_human=`echo $disk_used | numfmt --from-unit=1024 --to=si`
     disk_total=`df $drive | sed 1d | awk '{print $2}'`
-    disk_total_human=`df -Hl $mount_point | sed 1d | awk '{print $2}'`
+    disk_total_human=`echo $disk_total | numfmt --from-unit=1024 --to=si`
     disk_usage=`df $drive | sed 1d | awk '{print $5}' | sed 's/%//'`
     if [[ "$user_pass" != "" ]]; then
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
@@ -502,19 +504,19 @@ if [[ "$net_adapter" != "" ]]; then
         echo "\${font}\${voffset -4}"
       fi
     fi
-  if [[ "$transmission_autoclean" == "yes" ]] && [[ $(date +"%H:%M:%S") == "00:00:00" ]]; then
-    check_unregistered=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "*" | awk '{print $1}'`
-    unregistered_list=($check_unregistered)
-    for h in "${unregistered_list[@]}"; do
-      item_unregistered=`echo $h | sed -r 's/\*//g'`
-      transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $item_unregistered --remove-and-delete >/dev/null
-    done
-    check=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "Finished" | awk '{print $1}'`
-    idle_list=($check)
-    for i in "${idle_list[@]}"; do
-      transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $i -r >/dev/null
-    done
-  fi
+    if [[ "$transmission_autoclean" == "yes" ]] && [[ $(date +"%H:%M:%S") == "00:00:00" ]]; then
+      check_unregistered=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "*" | awk '{print $1}'`
+      unregistered_list=($check_unregistered)
+      for h in "${unregistered_list[@]}"; do
+        item_unregistered=`echo $h | sed -r 's/\*//g'`
+        transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $item_unregistered --remove-and-delete >/dev/null
+      done
+      check=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "Finished" | awk '{print $1}'`
+      idle_list=($check)
+      for i in "${idle_list[@]}"; do
+        transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $i -r >/dev/null
+      done
+    fi
   fi
 fi
 
