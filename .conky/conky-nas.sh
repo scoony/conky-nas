@@ -502,7 +502,7 @@ if [[ "$net_adapter" != "" ]]; then
         echo "\${font}\${voffset -4}"
       fi
     fi
-  if [[ "$transmission_autoclean" == "yes" ]]; then
+  if [[ "$transmission_autoclean" == "yes" ]] && [[ $(date +"%H:%M:%S") == "00:00:00" ]]; then
     check_unregistered=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "*" | awk '{print $1}'`
     unregistered_list=($check_unregistered)
     for h in "${unregistered_list[@]}"; do
