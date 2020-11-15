@@ -214,7 +214,7 @@ fi
 
 echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_cpu")\${font}\${goto 35} ${font_title}$mui_cpu_title \${hr 2}"
 echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
-cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "Thermal" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
+cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
 cpu_num="1"
 for cpu_number in $cpu_temp ; do
   if [[ "$cpu_number" -ge "85" ]]; then
