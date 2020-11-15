@@ -502,6 +502,19 @@ if [[ "$net_adapter" != "" ]]; then
         echo "\${font}\${voffset -4}"
       fi
     fi
+  if [[ "$transmission_autoclean" == "yes" ]]; then
+    check_unregistered=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "*" | awk '{print $1}'`
+    unregistered_list=($check_unregistered)
+    for h in "${unregistered_list[@]}"; do
+      item_unregistered=`echo $h | sed -r 's/\*//g'`
+      transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $item_unregistered --remove-and-delete >/dev/null
+    done
+    check=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "Finished" | awk '{print $1}'`
+    idle_list=($check)
+    for i in "${idle_list[@]}"; do
+      transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $i -r >/dev/null
+    done
+  fi
   fi
 fi
 
