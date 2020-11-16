@@ -177,7 +177,6 @@ echo "\${font}\${voffset -4}"
 #### Services Block
 
 if [[ "$services_list" != "" ]]; then
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
   services_list_sorted=$(echo $services_list | xargs -n1 | sort -u | xargs)
   service_alert="0"
   for myservice in $services_list_sorted ; do
@@ -191,7 +190,10 @@ if [[ "$services_list" != "" ]]; then
       fi
     else
       service_color="red"
-      service_alert="1"
+      service_alert=$((service_alert+1))
+      if [[ "$service_alert" == "1" ]]; then
+        echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
+      fi
       echo "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
       if [[ ! -f ~/.conky/pushover/$myservice ]]; then
         touch ~/.conky/pushover/$myservice
@@ -205,10 +207,14 @@ if [[ "$services_list" != "" ]]; then
       fi
     fi
   done
-  if [[ "$service_alert" == "0" ]]; then
-    echo "${font_standard}$mui_services_ok"
+  if [[ "$service_alert" != "0" ]]; then
+    echo "\${font}\${voffset -4}"
   fi
-  echo "\${font}\${voffset -4}"
+  if [[ "$service_alert" == "0" ]] && [[ "$service_alert_view" == "yes" ]]; then
+    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
+    echo "${font_standard}$mui_services_ok"
+    echo "\${font}\${voffset -4}"
+  fi
 fi
 
 
