@@ -228,10 +228,10 @@ for cpu_number in $cpu_temp ; do
   if [[ "$cpu_number" -ge "85" ]]; then
     cpu_color="red"
   else
-    cpu_color="light grey"
+    cpu_color="lightgray"
   fi
-  echo "\${color lightgray}${font_standard}\${cpugraph cpu}\$color"
-  echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${color $cpu_color}\${goto 296}\${color light grey}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
+  echo "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
+  echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
   cpu_num=$((cpu_num+1))
 done
 gpu_brand=`lspci | grep ' VGA '`
@@ -240,9 +240,9 @@ if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   if [[ "$gpu_temp" -ge "85" ]]; then
     gpu_color="red"
   else
-    gpu_color="light grey"
+    gpu_color="lightgray"
   fi
-  echo -e "${font_standard}\${nvidia modelname}:\${goto 130}\${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${color $gpu_color}\${goto 296}\${color light grey}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}\${nvidia temp}°\$color"
+  echo -e "${font_standard}\${nvidia modelname}:\${goto 130}\${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}\${nvidia temp}°\$color"
 fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
@@ -306,13 +306,13 @@ for drive in $drives ; do
       disk_support=`udevadm info --query=all --name=$drive | grep ID_DRIVE_FLASH_SD`
       if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
         disk_temp=""
-        disk_color="light blue"
+        disk_color="lightblue"
       else
         disk_temp=`echo $user_pass | sudo -kS hddtemp $drive 2>/dev/null | awk '{ print $NF }' | sed 's/°C//'`
         if [[ "$disk_temp" -ge "45" ]]; then
           disk_color="red"
         else
-          disk_color="light grey"
+          disk_color="lightgray"
         fi
         drive_short=`basename $drive`
         if [[ ! -d ~/.conky/SMART ]]; then
@@ -329,7 +329,7 @@ for drive in $drives ; do
           if [[ "$smart_status" == "PASSED" ]]; then
             if [[ "$smart_offline_uncorrectable" == "0" ]]; then
               smart_glyph="\uf0c8"
-              smart_color="light green"
+              smart_color="lightgreen"
             else
               smart_glyph="\uf0c8"
               smart_color="orange"
@@ -365,9 +365,9 @@ for drive in $drives ; do
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
       disk_support=`udevadm info --query=all --name=$drive | grep ID_DRIVE_FLASH_SD`
       if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
-        disk_color="light blue"
+        disk_color="lightblue"
       else
-        disk_color="light grey"
+        disk_color="lightgray"
       fi
       echo "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
     fi
