@@ -249,6 +249,10 @@ if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   fi
   echo -e "${font_standard}\${nvidia modelname}:\${goto 130}\${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}\${nvidia temp}°\$color"
 fi
+if [[ "$gpu_brand" =~ "Intel" ]]; then
+  gpu_name=$(lspci | grep VGA | cut -d ':' -f3 | sed 's/^.//' | sed 's/ (.*//' | sed 's/Intel //' | sed 's/Corporation //')
+  echo -e "${font_standard}$gpu_name"
+fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
   HandBrake_line=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p'`
