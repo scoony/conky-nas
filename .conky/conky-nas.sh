@@ -55,6 +55,11 @@ else
   source ~/.conky/MUI/default.lang
 fi
 
+## Check custom configuration
+if [[ -f ~/.conky/custom.conf ]]; then
+  source ~/.conky/custom.conf
+fi
+
 
 #### Autoupdater
 
@@ -84,11 +89,11 @@ if [[ -f "$user_avatar_path" ]]; then
 else
   echo ""
 fi
-echo "\${voffset -10}${font_time}\${alignc}\${time %H:%M}\${font}"
-echo "${font_date}${txt_align_center}\${time %A %d %B}"
+echo -e "\${voffset -10}${font_time}\${alignc}\${time %H:%M}\${font}"
+echo -e "${font_date}${txt_align_center}\${time %A %d %B}"
 if [[ "$net_adapter" != "" ]]; then
   if [[ "$user_town" != "" ]]; then
-    echo "${txt_align_center}${font_weather}\${exec curl --silent wttr.in/$user_town?format=2}${font_standard}"
+    echo -e "${txt_align_center}${font_weather}\${exec curl --silent wttr.in/$user_town?format=2}${font_standard}"
   fi
 fi
 echo "\${font}\${voffset -4}"
@@ -119,9 +124,9 @@ if [[ "$push_activation" == "yes" ]]; then
   }
   if [[ ! -d ~/.conky/pushover ]]; then mkdir -p ~/.conky/pushover; fi
   if [[ "$push_token_app" == "" ]] || [[ "$push_target" == "" ]]; then
-    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_pushover")\${font} ${font_title}$mui_pushover_title \${hr 2}"
+    echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_pushover")\${font} ${font_title}$mui_pushover_title \${hr 2}"
     echo ""
-    echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_pushover_error\$color"
+    echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_pushover_error\$color"
     echo "\${font}\${voffset -4}"
   fi
 fi
@@ -129,15 +134,15 @@ fi
 
 #### System Block
 
-echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_system")\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
+echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_system")\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
 hdd_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 #hdd_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$2)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
 hdd_free_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 #hdd_free_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$4)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
-echo "${font_standard}$mui_system_host$txt_align_right\$nodename"
-echo "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
-echo "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
-echo "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
+echo -e "${font_standard}$mui_system_host$txt_align_right\$nodename"
+echo -e "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
+echo -e "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
+echo -e "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
 power_supply=`acpi -b 2>/dev/null | sed '/rate information unavailable/d'`
 if [[ "$power_supply" != "" ]]; then
   battery_state=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\2/' | sed -n '1p'`
@@ -156,20 +161,20 @@ if [[ "$power_supply" != "" ]]; then
     fi
   fi
   if [[ "$battery_state" == "Full" ]] || [[ "$battery_state" == "Unknown" ]]; then
-    echo "${font_standard}$mui_system_charge_full\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
+    echo -e "${font_standard}$mui_system_charge_full\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
   else
     battery_timeleft=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%, \([0-2][0-9]:[0-5][0-9]:[0-5][0-9]\).*/\4/' | sed -n '1p'`  
     if [[ "$battery_state" == "Discharging" ]]; then
-      echo "${font_standard}$mui_system_charge_offline\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
-      echo "${font_standard}$mui_system_charge_remaining$txt_align_right$battery_timeleft"
+      echo -e "${font_standard}$mui_system_charge_offline\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
+      echo -e "${font_standard}$mui_system_charge_remaining$txt_align_right$battery_timeleft"
     else
-      echo "${font_standard}$mui_system_charge_online\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
-      echo "${font_standard}$mui_system_charge_until_charged$txt_align_right$battery_timeleft"
+      echo -e "${font_standard}$mui_system_charge_online\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
+      echo -e "${font_standard}$mui_system_charge_until_charged$txt_align_right$battery_timeleft"
 	  fi
   fi
 fi
 if [ -f /var/run/reboot-required ]; then
-  echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_system_reboot\$color"
+  echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_system_reboot\$color"
 fi
 echo "\${font}\${voffset -4}"
 
@@ -192,9 +197,9 @@ if [[ "$services_list" != "" ]]; then
       service_color="red"
       service_alert=$((service_alert+1))
       if [[ "$service_alert" == "1" ]]; then
-        echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
+        echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
       fi
-      echo "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
+      echo -e "${font_standard}$myservice:${txt_align_right}\${color $service_color}\${execi 5 systemctl is-active $myservice}\$color"
       if [[ ! -f ~/.conky/pushover/$myservice ]]; then
         touch ~/.conky/pushover/$myservice
         if [[ "$user_pass" != "" ]]; then
@@ -211,8 +216,8 @@ if [[ "$services_list" != "" ]]; then
     echo "\${font}\${voffset -4}"
   fi
   if [[ "$service_alert" == "0" ]] && [[ "$service_alert_view" == "yes" ]]; then
-    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
-    echo "${font_standard}$mui_services_ok"
+    echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_service")\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
+    echo -e "${font_standard}$mui_services_ok"
     echo "\${font}\${voffset -4}"
   fi
 fi
@@ -220,8 +225,8 @@ fi
 
 #### CPU Block
 
-echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_cpu")\${font}\${goto 35} ${font_title}$mui_cpu_title \${hr 2}"
-echo "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
+echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_cpu")\${font}\${goto 35} ${font_title}$mui_cpu_title \${hr 2}"
+echo -e "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
 cpu_num="1"
 for cpu_number in $cpu_temp ; do
@@ -230,7 +235,7 @@ for cpu_number in $cpu_temp ; do
   else
     cpu_color="lightgray"
   fi
-  echo "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
+  echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
   echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
   cpu_num=$((cpu_num+1))
 done
@@ -265,12 +270,12 @@ if [[ "$HandBrake_process" != "" ]]; then
     while [ "$HandBrake_file" == "" ]; do
       HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
     done
-    echo "${font_standard}$mui_cpu_handbrake\${goto 124}$(printf "%3d" $HandBrake_progress_human)%\${goto 154}\${voffset 1}\${execbar 6 echo $HandBrake_progress_human}"
-    echo "${font_standard}$mui_cpu_handbrake_ETA$txt_align_right$HandBrake_ETA"
+    echo -e "${font_standard}$mui_cpu_handbrake\${goto 124}$(printf "%3d" $HandBrake_progress_human)%\${goto 154}\${voffset 1}\${execbar 6 echo $HandBrake_progress_human}"
+    echo -e "${font_standard}$mui_cpu_handbrake_ETA$txt_align_right$HandBrake_ETA"
     if [[ "$HandBrake_categorie" == "Film" ]]; then
-      echo "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:40}"
+      echo -e "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:40}"
     else
-      echo "${font_standard}$mui_cpu_handbrake_serie$txt_align_right${HandBrake_file:0:40}"
+      echo -e "${font_standard}$mui_cpu_handbrake_serie$txt_align_right${HandBrake_file:0:40}"
     fi
   fi
 fi
@@ -279,17 +284,17 @@ echo "\${font}\${voffset -4}"
 
 #### Memory Block
 
-echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_memory")\${font}\${goto 35} ${font_title}$mui_memory_title \${hr 2}"
-echo "${font_standard}$mui_memory_ram $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
-echo "${font_standard}\$membar"
-echo "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
-echo "${font_standard}\${swapbar}"
+echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_memory")\${font}\${goto 35} ${font_title}$mui_memory_title \${hr 2}"
+echo -e "${font_standard}$mui_memory_ram $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
+echo -e "${font_standard}\$membar"
+echo -e "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
+echo -e "${font_standard}\${swapbar}"
 echo "\${font}\${voffset -4}"
 
 
 #### DiskUsage Block
 
-echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_diskusage")\${font}\${goto 35} ${font_title}$mui_diskusage_title \${hr 2}"
+echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_diskusage")\${font}\${goto 35} ${font_title}$mui_diskusage_title \${hr 2}"
 drives=`ls /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | cut -d ' ' -f 2`
@@ -369,7 +374,7 @@ for drive in $drives ; do
       else
         disk_color="lightgray"
       fi
-      echo "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
+      echo -e "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
     fi
   fi
 done
@@ -381,25 +386,25 @@ echo "\${font}\${voffset -4}"
 if [[ "$net_adapter" != "" ]]; then
   vpn_detected=`ifconfig | grep "tun[0-9]"`
   if [[ "$vpn_detected" != "" ]]; then
-    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network_secured")\${font}\${goto 35} ${font_title}$mui_network_title_secured \${hr 2}"
+    echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network_secured")\${font}\${goto 35} ${font_title}$mui_network_title_secured \${hr 2}"
   else
-    echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
+    echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
   fi
   net_adapter_number=`echo $net_adapter | wc -w`
   if [[ "$net_adapter_number" == "1" ]]; then
     if [[ "$net_adapter" == "wlan0" ]]; then
-      echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\${wireless_essid $net_adapter})"
+      echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter (\${wireless_essid $net_adapter})"
     else
       net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
-      echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+      echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
     fi
   fi
   net_ip_public=`dig -4 +short myip.opendns.com @resolver1.opendns.com`
   if [[ "$vpn_detected" != "" ]]; then
-    echo "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
+    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
     net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
-    echo "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
-    echo "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
+    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
+    echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
     if [[ "$net_ip_box" == "$net_ip_public" ]]; then
       if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
         touch ~/.conky/pushover/vpn_error
@@ -417,27 +422,27 @@ if [[ "$net_adapter" != "" ]]; then
       fi
     fi
   else
-    echo "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
+    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
   fi
   if [[ "$net_adapter_number" != "1" ]]; then
     for net_adapter_device in $net_adapter ; do
       if [[ "$net_adapter_device" == "wlan0" ]]; then
-        echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device (\${wireless_essid $net_adapter_device})"
+        echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device (\${wireless_essid $net_adapter_device})"
       else
         net_adapter_speed=`cat /sys/class/net/$net_adapter_device/speed`
-        echo "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device ($net_adapter_speed Mbps)"
+        echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device ($net_adapter_speed Mbps)"
       fi
-      echo "${font_standard}$mui_network_down \${downspeed $net_adapter_device}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter_device}"
-      echo "\${color lightgray}\${downspeedgraph $net_adapter_device 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter_device 25,150 }\$color"
+      echo -e "${font_standard}$mui_network_down \${downspeed $net_adapter_device}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter_device}"
+      echo -e "\${color lightgray}\${downspeedgraph $net_adapter_device 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter_device 25,150 }\$color"
     done
   else
-    echo "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
-    echo "\${color lightgray}\${downspeedgraph $net_adapter 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter 25,150 }\$color"
+    echo -e "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
+    echo -e "\${color lightgray}\${downspeedgraph $net_adapter 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter 25,150 }\$color"
   fi
 else
-  echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
+  echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_network")\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
   echo ""
-  echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_network_error\$color"
+  echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_network_error\$color"
 fi
 echo "\${font}\${voffset -4}"
 
@@ -448,8 +453,8 @@ if [[ "$net_adapter" != "" ]]; then
   if [[ "$transmission_check" == "yes" ]]; then
     transmission_state=`systemctl show -p SubState --value transmission-daemon`
     if [[ "$transmission_state" != "dead" ]]; then
-      echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
-      echo "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
+      echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
+      echo -e "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
       if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
         test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
         if [[ "$test_transmission" != "" ]]; then
@@ -460,11 +465,11 @@ if [[ "$net_adapter" != "" ]]; then
           transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
           transmission_up=`cat transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
           transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+          echo -e "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
           rm transm.log
         else
           echo ""
-          echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
+          echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
         fi
       else
         ## was set to settings2 instead of settings to disable
@@ -477,7 +482,7 @@ if [[ "$net_adapter" != "" ]]; then
           echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-password"' | sed 's/./\\&/g' >temp_tr.log
           transmission_password=`cat temp_tr.log`
           rm temp_tr.log
-          echo "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
+          echo -e "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
           transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
           transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
           transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
@@ -485,27 +490,27 @@ if [[ "$net_adapter" != "" ]]; then
           echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
         else
           echo ""
-          echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
+          echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
         fi
       fi
       echo "\${font}\${voffset -4}"
     else
       if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
-        echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font} ${font_title}$mui_transmission_title \${hr 2}"
+        echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_transmission")\${font} ${font_title}$mui_transmission_title \${hr 2}"
         test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
         if [[ "$test_transmission" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >transm.log
           transmission_queue=`cat transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
-          echo "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
+          echo -e "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
           transmission_down=`cat transm.log | grep Sum: | awk '{ print $NF }' | sed "s/\..*//"`
           transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
           transmission_up=`cat transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
           transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+          echo -e "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
           rm transm.log
         else
           echo ""
-          echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
+          echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
         fi
         echo "\${font}\${voffset -4}"
       fi
@@ -533,9 +538,9 @@ if [[ "$net_adapter" != "" ]]; then
   if [[ "$plex_check" == "yes" ]]; then
     plex_state=`systemctl show -p SubState --value plexmediaserver`
     if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
-      echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
+      echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
       if [[ "$plex_state" != "dead" ]]; then
-        echo "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
+        echo -e "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
       fi
       if [[ "$plex_token" == "" ]]; then
         plex_token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
@@ -598,9 +603,9 @@ if [[ "$net_adapter" != "" ]]; then
         let num=$num+1
       done
     else
-      echo "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
+      echo -e "\${font ${font_awesome_font}}$(echo -e "$font_awesome_plex")\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
       echo ""
-      echo "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
+      echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
     fi
   fi
 fi
