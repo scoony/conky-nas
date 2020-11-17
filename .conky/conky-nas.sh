@@ -41,6 +41,11 @@ plex_token=""
 ## DONT EDIT AFTER THIS
 #######################
 
+## Cleaning for smart-status
+if [[ $(date +"%H:%M:%S") == "00:00:00" ]]; then
+  rm ~/.conky/transmission-done
+fi
+
 ## Check local language and apply MUI
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
 if [[ -f ~/.conky/MUI/$os_language.lang ]]; then
@@ -517,7 +522,7 @@ if [[ "$net_adapter" != "" ]]; then
         echo "\${font}\${voffset -4}"
       fi
     fi
-    if [[ "$transmission_autoclean" == "yes" ]] && [[ $(date +"%H:%M:%S") == "00:00:00" ]]; then
+    if [[ "$transmission_autoclean" == "yes" ]] && [[ ! -f ~/.conky/transmission-done ]]; then
       check_unregistered=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "*" | awk '{print $1}'`
       unregistered_list=($check_unregistered)
       for h in "${unregistered_list[@]}"; do
@@ -529,6 +534,7 @@ if [[ "$net_adapter" != "" ]]; then
       for i in "${idle_list[@]}"; do
         transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $i -r >/dev/null
       done
+      touch ~/.conky/transmission-done
     fi
   fi
 fi
