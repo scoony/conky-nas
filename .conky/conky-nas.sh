@@ -41,11 +41,6 @@ plex_token=""
 ## DONT EDIT AFTER THIS
 #######################
 
-## Load config (if exist)
-if [[ -f ~/.conky/conky-nas.conf ]]; then
-  source ~/.conky/conky-nas.conf
-fi
-
 ## Check local language and apply MUI
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
 if [[ -f ~/.conky/MUI/$os_language.lang ]]; then
@@ -56,9 +51,10 @@ else
   source ~/.conky/MUI/default.lang
 fi
 
-## Check custom configuration
-if [[ -f ~/.conky/custom.conf ]]; then
-  source ~/.conky/custom.conf
+
+## Load config (if exist)
+if [[ -f ~/.conky/conky-nas.conf ]]; then
+  source ~/.conky/conky-nas.conf
 fi
 
 
