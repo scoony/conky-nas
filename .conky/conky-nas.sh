@@ -331,6 +331,8 @@ for drive in $drives ; do
           mkdir ~/.conky/SMART
         fi
         printf "\${execi 3600 echo $user_pass | sudo -kS smartctl -a $drive_smart > ~/.conky/SMART/$drive_short.log }"
+        ## SMART STATISTICS
+        ## smartctl -l devstat /dev/sdd | grep -i uncorrectable | awk '{ print $4 }'
         smart_enabled=`cat ~/.conky/SMART/$drive_short.log | grep "SMART support is:" | awk '{print $NF}' | tail -1`
         smart_status=`cat ~/.conky/SMART/$drive_short.log | grep "SMART overall-health" | awk '{print $NF}'`
         smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
