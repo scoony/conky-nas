@@ -410,7 +410,7 @@ if [[ "$net_adapter" != "" ]]; then
   fi
   net_ip_public=`dig -4 +short myip.opendns.com @resolver1.opendns.com`
   if [[ "$vpn_detected" != "" ]]; then
-    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
+#    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
     net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
     echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
     echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
@@ -463,7 +463,7 @@ if [[ "$net_adapter" != "" ]]; then
     transmission_state=`systemctl show -p SubState --value transmission-daemon`
     if [[ "$transmission_state" != "dead" ]]; then
       echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
-      echo -e "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
+#      echo -e "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
       if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
         test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
         if [[ "$test_transmission" != "" ]]; then
@@ -553,9 +553,9 @@ if [[ "$net_adapter" != "" ]]; then
     plex_state=`systemctl show -p SubState --value plexmediaserver`
     if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
       echo -e "\${font ${font_awesome_font}}$font_awesome_plex\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
-      if [[ "$plex_state" != "dead" ]]; then
-        echo -e "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
-      fi
+#      if [[ "$plex_state" != "dead" ]]; then
+#        echo -e "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
+#      fi
       if [[ "$plex_token" == "" ]]; then
         plex_token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
       fi
