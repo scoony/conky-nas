@@ -525,7 +525,7 @@ if [[ "$net_adapter" != "" ]]; then
       fi
     fi
     if [[ ! -f ~/.conky/transmission-done ]] && [[( "$transmission_autoclean" == "yes" ) || ( "$transmission_clean_unregistered" == "yes" ) || ( "$transmission_clean_finished" == "yes" )]]; then
-      if [[ "$transmission_autoclean" == "yes" ]] || ( "$transmission_clean_unregistered" == "yes" ]]; then
+      if [[ "$transmission_autoclean" == "yes" ]] || [[ "$transmission_clean_unregistered" == "yes" ]]; then
         check_unregistered=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "*" | awk '{print $1}'`
         unregistered_list=($check_unregistered)
         for h in "${unregistered_list[@]}"; do
@@ -533,7 +533,7 @@ if [[ "$net_adapter" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $item_unregistered --remove-and-delete >/dev/null
         done
       fi
-      if [[ "$transmission_autoclean" == "yes" ]] || ( "$transmission_clean_finished" == "yes" ]]; then
+      if [[ "$transmission_autoclean" == "yes" ]] || [[ "$transmission_clean_finished" == "yes" ]]; then
         check=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "Finished" | awk '{print $1}'`
         idle_list=($check)
         for i in "${idle_list[@]}"; do
