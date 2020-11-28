@@ -111,9 +111,10 @@ if [[ "$push_activation" == "yes" ]]; then
       push_priority=$1
       push_title=$2
       push_content=$3
+      push_token=$4
       if [ -n "$push_target" ]; then
         curl -s \
-          --form-string "token=$push_token_app" \
+          --form-string "token=$push_token" \
           --form-string "user=$push_target" \
           --form-string "title=$push_title" \
           --form-string "message=$push_content" \
@@ -193,7 +194,7 @@ if [[ "$services_list" != "" ]]; then
       if [[ -f ~/.conky/pushover/$myservice ]]; then
         rm ~/.conky/pushover/$myservice
         myservice_message=`echo -e "[ <b>${myservice^^}</b> ] $mui_pushover_service_restarted"`
-        push-message "0" "Conky" "$myservice_message"
+        push-message "0" "Conky" "$myservice_message" "$push_token_app"
       fi
     else
       service_color="red"
@@ -210,7 +211,7 @@ if [[ "$services_list" != "" ]]; then
         else
           myservice_message=`echo -e "[ <b>${myservice^^}</b> ] $mui_pushover_service"`
         fi
-        push-message "0" "Conky" "$myservice_message"
+        push-message "0" "Conky" "$myservice_message" "$push_token_app"
       fi
     fi
   done
@@ -353,7 +354,7 @@ for drive in $drives ; do
                 smart_size=`df -Hl $drive | awk '{ print $2 }' | tail -1`
                 smart_age=`cat ~/.conky/SMART/$drive_short.log | grep -i "Power_On_Hours" | awk '{print $NF}' | tail -1 | awk '{print $1/24}'`
                 push_content=`echo -e "[ <b>SMART</b> ] $mui_smart_error_title\n\n<b>$mui_smart_error_main</b> $drive\n<b>$mui_smart_error_serial</b> $smart_serial\n<b>$mui_smart_error_size</b> $smart_size\n<b>$mui_smart_error_age</b> $smart_age\n<b>$mui_smart_error_errors</b> $smart_offline_uncorrectable"`
-                push-message "0" "Conky" "$push_content"
+                push-message "0" "Conky" "$push_content" "$push_token_app"
               fi
               echo $smart_offline_uncorrectable > ~/.conky/SMART/$drive_short.error
             fi
@@ -423,7 +424,7 @@ if [[ "$net_adapter" != "" ]]; then
         else
           mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
         fi
-        push-message "0" "Conky" "$mynetwork_message"
+        push-message "0" "Conky" "$mynetwork_message" "$push_token_app"
       fi
     else
       if [[ -f ~/.conky/pushover/vpn_error ]]; then
@@ -525,21 +526,33 @@ if [[ "$net_adapter" != "" ]]; then
       fi
     fi
     if [[ ! -f ~/.conky/transmission-done ]] && [[( "$transmission_autoclean" == "yes" ) || ( "$transmission_clean_unregistered" == "yes" ) || ( "$transmission_clean_finished" == "yes" )]]; then
+      transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | sed '/^ID/d' | sed '/^Sum:/d' > ~/.conky/transmission_list.log
       if [[ "$transmission_autoclean" == "yes" ]] || [[ "$transmission_clean_unregistered" == "yes" ]]; then
-        check_unregistered=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "*" | awk '{print $1}'`
+        check_unregistered=`cat ~/.conky/transmission_list.log | grep "*" | awk '{print $1}'`
         unregistered_list=($check_unregistered)
         for h in "${unregistered_list[@]}"; do
           item_unregistered=`echo $h | sed -r 's/\*//g'`
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $item_unregistered --remove-and-delete >/dev/null
+          if [[ "$transmission_push_activated" == "yes" ]]; then
+            torrent_name=`cat ~/.conky/transmission_list.log | grep "^$h*"| sed -n '1p' | awk '{print $NF}'` 
+            myunregistered_message=`echo -e "[ <b>TRANSMISSION</b> ] <b>$torrent_name</b> $mui_transmission_deleted"`
+          push-message "0" "Conky" "$myunregistered_message" "$transmission_push_token"
+          fi
         done
       fi
       if [[ "$transmission_autoclean" == "yes" ]] || [[ "$transmission_clean_finished" == "yes" ]]; then
-        check=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l | grep "Finished" | awk '{print $1}'`
-        idle_list=($check)
-        for i in "${idle_list[@]}"; do
+        check_finished=`cat ~/.conky/transmission_list.log | grep "Finished" | awk '{print $1}'`
+        finished_list=($check_finished)
+        for i in "${finished_list[@]}"; do
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $i -r >/dev/null
+          if [[ "$transmission_push_activated" == "yes" ]]; then
+            torrent_name=`cat ~/.conky/transmission_list.log | grep "$i" | grep "Finished" | sed "s/.*Finished//" | sed 's/^ //'`
+            myfinishedd_message=`echo -e "[ <b>TRANSMISSION</b> ] <b>$torrent_name</b> $mui_transmission_deleted"`
+            push-message "0" "Conky" "$myfinishedd_message" "$transmission_push_token"
+          fi
         done
       fi
+      rm ~/.conky/transmission_list.log
       touch ~/.conky/transmission-done
     fi
   fi
