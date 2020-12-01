@@ -231,17 +231,22 @@ fi
 echo -e "\${font ${font_awesome_font}}$font_awesome_cpu\${font}\${goto 35} ${font_title}$mui_cpu_title \${hr 2}"
 echo -e "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
-cpu_num="1"
-for cpu_number in $cpu_temp ; do
-  if [[ "$cpu_number" -ge "85" ]]; then
-    cpu_color="red"
-  else
-    cpu_color="lightgray"
-  fi
+if [[ "$cpu_temp" == "" ]]; then
   echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
-  echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
-  cpu_num=$((cpu_num+1))
-done
+  echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6 cpu$cpu_num}"
+else
+  cpu_num="1"
+  for cpu_number in $cpu_temp ; do
+    if [[ "$cpu_number" -ge "85" ]]; then
+      cpu_color="red"
+    else
+      cpu_color="lightgray"
+    fi
+    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
+    echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
+    cpu_num=$((cpu_num+1))
+  done
+fi
 gpu_brand=`lspci | grep ' VGA '`
 if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
   gpu_temp=`nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader`
@@ -533,7 +538,7 @@ if [[ "$net_adapter" != "" ]]; then
       for i in "${finished_list[@]}"; do
         item_finished=`echo $i | sed -r 's/\*//g'`
         if [[ ! -f ~/.conky/pushover/TRANSMISSION/$item_finished ]]; then
-          torrent_name=`cat ~/.conky/transmission_list.log | grep "$item_finished" | grep "Finished" | sed "s/.*Finished//" | sed 's/^ //'`
+          torrent_name=`cat ~/.conky/transmission_list.log | grep "$item_finished" | grep "Finished" | sed -n '1p' | sed "s/.*Finished//" | sed 's/^ //'`
           myfinished_message=`echo -e "[ <b>TRANSMISSION</b> ] <b>$torrent_name</b>: $mui_transmission_finished"`
           push-message "0" "Conky" "$myfinished_message" "$transmission_push_token"
           touch ~/.conky/pushover/TRANSMISSION/$item_finished
@@ -565,7 +570,7 @@ if [[ "$net_adapter" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $item_finished -r >/dev/null
           if [[ "$transmission_push_activated" == "yes" ]]; then
             if [[ -f ~/.conky/pushover/TRANSMISSION/$item_finished ]]; then rm ~/.conky/pushover/TRANSMISSION/$item_finished; fi
-            torrent_name=`cat ~/.conky/transmission_list.log | grep "$item_finished" | grep "Finished" | sed "s/.*Finished//" | sed 's/^ //'`
+            torrent_name=`cat ~/.conky/transmission_list.log | grep "$item_finished" | grep "Finished" | sed -n '1p' | sed "s/.*Finished//" | sed 's/^ //'`
             myfinished_message=`echo -e "[ <b>TRANSMISSION</b> ] <b>$torrent_name</b> $mui_transmission_deleted"`
             push-message "0" "Conky" "$myfinished_message" "$transmission_push_token"
           fi
