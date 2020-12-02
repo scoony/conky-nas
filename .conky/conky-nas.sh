@@ -538,7 +538,7 @@ if [[ "$net_adapter" != "" ]]; then
       for i in "${finished_list[@]}"; do
         item_finished=`echo $i | sed -r 's/\*//g'`
         if [[ ! -f ~/.conky/pushover/TRANSMISSION/$item_finished ]]; then
-          torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$item_finished" | grep "Finished" | sed -n '1p' | sed "s/.*Finished//" | sed 's/^[[:space:]]*//'`
+          torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$item_finished" | grep "[[:space:]]Finished[[:space:]]" | sed -n '1p' | sed "s/[[:space:]]Finished//" | sed 's/^[[:space:]]*//'`
           myfinished_message=`echo -e "[ <b>TRANSMISSION</b> ] <b>$torrent_name</b>: $mui_transmission_finished"`
           push-message "0" "Conky" "$myfinished_message" "$transmission_push_token"
           touch ~/.conky/pushover/TRANSMISSION/$item_finished
@@ -556,7 +556,7 @@ if [[ "$net_adapter" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $item_unregistered --remove-and-delete >/dev/null
           if [[ "$transmission_push_activated" == "yes" ]]; then
             if [[ -f ~/.conky/pushover/TRANSMISSION/$item_unregistered ]]; then rm ~/.conky/pushover/TRANSMISSION/$item_unregistered; fi
-            torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$h"| sed -n '1p' | awk '{print $NF}'` 
+            torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$h" | sed -e "s/.*[[:space:]]Finished[[:space:]]//" -e "s/.*[[:space:]]Downloading[[:space:]]//" -e "s/.*[[:space:]]Queued[[:space:]]//" -e "s/[[:space:]]Stopped[[:space:]]//" | sed "s/^[[:space:]]*//"`
             myunregistered_message=`echo -e "[ <b>TRANSMISSION</b> ] <b>$torrent_name</b> $mui_transmission_deleted"`
             push-message "0" "Conky" "$myunregistered_message" "$transmission_push_token"
           fi
@@ -570,7 +570,7 @@ if [[ "$net_adapter" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $item_finished -r >/dev/null
           if [[ "$transmission_push_activated" == "yes" ]]; then
             if [[ -f ~/.conky/pushover/TRANSMISSION/$item_finished ]]; then rm ~/.conky/pushover/TRANSMISSION/$item_finished; fi
-            torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$item_finished" | grep "Finished" | sed -n '1p' | sed "s/.*Finished//" | sed 's///'`
+            torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$item_finished" | grep "[[:space:]]Finished[[:space:]]" | sed -n '1p' | sed "s/[[:space:]]Finished//" | sed 's/^[[:space:]]*//'`
             myfinished_message=`echo -e "[ <b>TRANSMISSION</b> ] <b>$torrent_name</b> $mui_transmission_deleted"`
             push-message "0" "Conky" "$myfinished_message" "$transmission_push_token"
           fi
