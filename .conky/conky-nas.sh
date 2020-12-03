@@ -538,7 +538,7 @@ if [[ "$net_adapter" != "" ]]; then
       for i in "${finished_list[@]}"; do
         item_finished=`echo $i | sed -r 's/\*//g'`
         if [[ ! -f ~/.conky/pushover/TRANSMISSION/$item_finished ]]; then
-          torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$item_finished" | grep "[[:space:]]Finished[[:space:]]" | sed -n '1p' | sed "s/[[:space:]]Finished//" | sed 's/^[[:space:]]*//'`
+          torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$item_finished" | grep "[[:space:]]Finished[[:space:]]" | sed -n '1p' | sed "s/.*[[:space:]]Finished[[:space:]]//" | sed 's/^[[:space:]]*//'`
           myfinished_message=`echo -e "[ <b>TRANSMISSION</b> ] <b>$torrent_name</b>: $mui_transmission_finished"`
           push-message "0" "Conky" "$myfinished_message" "$transmission_push_token"
           touch ~/.conky/pushover/TRANSMISSION/$item_finished
@@ -570,7 +570,7 @@ if [[ "$net_adapter" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -t $item_finished -r >/dev/null
           if [[ "$transmission_push_activated" == "yes" ]]; then
             if [[ -f ~/.conky/pushover/TRANSMISSION/$item_finished ]]; then rm ~/.conky/pushover/TRANSMISSION/$item_finished; fi
-            torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$item_finished" | grep "[[:space:]]Finished[[:space:]]" | sed -n '1p' | sed "s/[[:space:]]Finished//" | sed 's/^[[:space:]]*//'`
+            torrent_name=`cat ~/.conky/transmission_list.log | grep "^[[:space:]]*$item_finished" | grep "[[:space:]]Finished[[:space:]]" | sed -n '1p' | sed "s/.*[[:space:]]Finished[[:space:]]//" | sed 's/^[[:space:]]*//'`
             myfinished_message=`echo -e "[ <b>TRANSMISSION</b> ] <b>$torrent_name</b> $mui_transmission_deleted"`
             push-message "0" "Conky" "$myfinished_message" "$transmission_push_token"
           fi
