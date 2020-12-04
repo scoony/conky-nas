@@ -42,7 +42,7 @@ plex_token=""
 #######################
 
 ## Cleaning for smart-status
-if [[ $(date +"%H:%M:%S") == "00:00:00" ]]; then
+if [[ $(date +"%H:%M") == "00:00" ]]; then
   rm ~/.conky/transmission-done
 fi
 
