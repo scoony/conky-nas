@@ -232,8 +232,19 @@ echo -e "\${font ${font_awesome_font}}$font_awesome_cpu\${font}\${goto 35} ${fon
 echo -e "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
 if [[ "$cpu_temp" == "" ]]; then
-  echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
-  echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6 cpu$cpu_num}"
+  cpu_temp=`sensors 2>/dev/null | grep "temp[0-9]:" | awk '{print $2}' | sed "s/+//" | sed "s/\..*//"`
+  if [[ "$cpu_temp" != "" ]]; then
+    if [[ "$cpu_temp" -ge "85" ]]; then
+      cpu_color="red"
+    else
+      cpu_color="lightgray"
+    fi
+    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
+    echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$cpu_temp°\$color"
+  else
+    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
+    echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6 cpu}"
+  fi
 else
   cpu_num="1"
   for cpu_number in $cpu_temp ; do
