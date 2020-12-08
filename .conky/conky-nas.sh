@@ -234,7 +234,8 @@ cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /
 if [[ "$cpu_temp" == "" ]]; then
   cpu_temp=`sensors 2>/dev/null | grep "temp[0-9]:" | awk '{print $2}' | sed "s/+//" | sed "s/\..*//"`
   if [[ "$cpu_temp" != "" ]]; then
-    if [[ "$cpu_temp" -ge "85" ]]; then
+    cpu_crit_temp=`sensors 2>/dev/null | grep "(crit" | grep "°C" | awk '{print $3}' | sed "s/+//" | sed "s/\..*//"`
+    if [[ "$cpu_temp" -ge "$cpu_crit_temp" ]]; then
       cpu_color="red"
     else
       cpu_color="lightgray"
