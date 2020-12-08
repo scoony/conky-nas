@@ -232,9 +232,9 @@ echo -e "\${font ${font_awesome_font}}$font_awesome_cpu\${font}\${goto 35} ${fon
 echo -e "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
 if [[ "$cpu_temp" == "" ]]; then
-  cpu_temp=`sensors 2>/dev/null | grep "temp[0-9]:" | awk '{print $2}' | sed "s/+//" | sed "s/\..*//"`
+  cpu_temp=`sensors -u -A 2>/dev/null | grep "temp[0-9]_input:" | awk '{print $2}' | sed "s/\..*//"`
   if [[ "$cpu_temp" != "" ]]; then
-    cpu_crit_temp=`sensors 2>/dev/null | grep "(crit" | grep "°C" | awk '{print $3}' | sed "s/+//" | sed "s/\..*//"`
+    cpu_crit_temp=`sensors -u -A 2>/dev/null | grep "temp[0-9]_crit:" | awk '{print $2}' | sed "s/\..*//"`
     if [[ "$cpu_temp" -ge "$cpu_crit_temp" ]]; then
       cpu_color="red"
     else
