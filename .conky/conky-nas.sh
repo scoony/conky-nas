@@ -18,7 +18,7 @@ font_awesome_network_wifi="\${font FontAwesome:regular:size=8}\uf1eb$font_standa
 font_awesome_transmission="\uf019"
 font_awesome_plex="\uf008"
 bar="\${voffset -2}\${font Ubuntu Mono Regular:regular:size=6}\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588$font_standard"
-plex_check="yes"
+plex_check="no"
 plex_stream_state_play="\${font FontAwesome:regular:size=8}\uF04B$font_standard"
 plex_stream_state_pause="\${font FontAwesome:regular:size=8}\uF04C$font_standard"
 plex_stream_state_buffer="\${font FontAwesome:regular:size=8}\uF252$font_standard"
@@ -27,12 +27,11 @@ font_awesome_pushover="\uf3cd"
 font_awesome_updater="\uf021"
 user_pass=""
 user_avatar=""
-transmission_check="yes"
+transmission_check="no"
 transmission_login=""
 transmission_password=""
 transmission_ip=""
 transmission_port=""
-plex_folder="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"
 plex_ip=""
 plex_port=""
 plex_token=""
@@ -606,7 +605,13 @@ if [[ "$net_adapter" != "" ]]; then
 #        echo -e "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
 #      fi
       if [[ "$plex_token" == "" ]]; then
-        plex_token=`cat "$plex_folder/Preferences.xml" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'` 
+        plex_token=`cat "$(locate Preferences.xml | grep "plexmediaserver" | sed -n '1p')" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'`
+        plex_token_line=$(sed -n '/^plex_token=/=' ~/.conky/conky-nas.conf)
+        if [[ "$plex_token_line" != "" ]]; then
+          eval 'sed -i -e "s|^plex_token.*|plex_token=$plex_token|" ~/.conky/conky-nas.conf'
+        else
+          echo -e "\n## Added by script\nplex_token=$plex_token" >> ~/.conky/conky-nas.conf
+        fi
       fi
       if [[ "$plex_ip" == "" ]]; then
         plex_ip="localhost"
