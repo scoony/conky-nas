@@ -429,7 +429,17 @@ if [[ "$net_adapter" != "" ]]; then
   if [[ "$vpn_detected" != "" ]]; then
 #    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
     net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
-    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
+    if [[ "$net_ip_log" == "" ]]; then
+      net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
+      echo -e "\n## IP Country check\nnet_ip_log=\"$net_ip_public\"\nnet_ip_country=\"$net_ip_country\"" >> ~/.conky/conky-nas.conf
+    else
+      if [[ "$net_ip_log" != "$net_ip_public" ]]; then
+        net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
+        sed -i 's|net_ip_log="'$net_ip_log'"|net_ip_log="'$net_ip_public'"|' ~/.conky/conky-nas.conf
+        sed -i 's|net_ip_country=.*|net_ip_country="'$net_ip_country'"|' ~/.conky/conky-nas.conf  
+      fi
+    fi
+    echo -e "${font_standard}$mui_network_ip_public $txt_align_right($net_ip_country) $net_ip_public"
     echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
     if [[ "$net_ip_box" == "$net_ip_public" ]]; then
       if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
@@ -605,12 +615,15 @@ if [[ "$net_adapter" != "" ]]; then
 #        echo -e "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
 #      fi
       if [[ "$plex_token" == "" ]]; then
-        plex_token=`cat "$(locate Preferences.xml | grep "plexmediaserver" | sed -n '1p')" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'`
-        plex_token_line=$(sed -n '/^plex_token=/=' ~/.conky/conky-nas.conf)
-        if [[ "$plex_token_line" != "" ]]; then
-          eval 'sed -i -e "s|^plex_token.*|plex_token=$plex_token|" ~/.conky/conky-nas.conf'
-        else
-          echo -e "\n## Added by script\nplex_token=$plex_token" >> ~/.conky/conky-nas.conf
+        if [[ "$user_pass" != "" ]]; then
+          echo $user_pass | sudo -kS updatedb
+          plex_token=`cat "$(locate Preferences.xml | grep "plexmediaserver" | sed -n '1p')" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'`
+          plex_token_line=$(sed -n '/^plex_token=/=' ~/.conky/conky-nas.conf)
+          if [[ "$plex_token_line" != "" ]]; then
+            sed -i 's|plex_token=.*|plex_token="'$plex_token'"|' ~/.conky/conky-nas.conf
+          else
+            echo -e "\nplex_token=$plex_token" >> ~/.conky/conky-nas.conf
+          fi
         fi
       fi
       if [[ "$plex_ip" == "" ]]; then
