@@ -16,6 +16,9 @@ font_awesome_network_secured="\uf21b"
 font_awesome_network="\uf6ff"
 font_awesome_network_wifi="\${font FontAwesome:regular:size=8}\uf1eb$font_standard"
 font_awesome_transmission="\uf019"
+font_awesome_scripts="\uf085"
+font_awesome_scripts_ok="\${font FontAwesome:regular:size=8}\uf00c$font_standard"
+font_awesome_scripts_ko="\${font FontAwesome:regular:size=8}\uf00d$font_standard"
 font_awesome_plex="\uf008"
 bar="\${voffset -2}\${font Ubuntu Mono Regular:regular:size=6}\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588$font_standard"
 plex_check="no"
@@ -313,6 +316,47 @@ echo -e "${font_standard}\$membar"
 echo -e "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
 echo -e "${font_standard}\${swapbar}"
 echo "\${font}\${voffset -4}"
+
+
+#### Scripts Block
+
+if [[ "$scripts_list" != "" ]]; then
+  scripts_view="0"
+  scripts_list_sorted=$(echo $scripts_list | xargs -n1 | sort -u | xargs)
+  for myscript in $scripts_list_sorted ; do
+    myscript_process=`pgrep -x $myscript`
+    myscript_human=`echo $myscript | sed 's/\.sh$//'`
+    if [[ "$myscript_process" != "" ]]; then
+      if [[ "$scripts_view" == "0" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_scripts\${font}\${goto 35} ${font_title}$mui_scripts_title \${hr 2}"; fi
+      echo -e "${font_standard}$myscript_human:$txt_align_right$myscript_process $font_awesome_scripts_ok"
+      scripts_view=$((scripts_view+1))
+    else
+      if [[ "$user_pass" != "" ]]; then
+        myscript_lock=`echo $user_pass | sudo -kS ls /root/.config/$myscript_human/lock-$myscript_human 2>/dev/null`
+        if [[ "$myscript_lock" != "" ]]; then
+          if [[ "$scripts_view" == "0" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_scripts\${font}\${goto 35} ${font_title}$mui_scripts_title \${hr 2}"; fi
+          echo -e "${font_standard}$myscript_human:$txt_align_right\${offset -2}LOCK $font_awesome_scripts_ko"
+          scripts_view=$((scripts_view+1))
+        else
+          if [[ "$scripts_view_ko" == "yes" ]]; then
+            if [[ "$scripts_view" == "0" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_scripts\${font}\${goto 35} ${font_title}$mui_scripts_title \${hr 2}"; fi
+            echo -e "${font_standard}$myscript_human:$txt_align_right\${offset -2}$font_awesome_scripts_ko"
+            scripts_view=$((scripts_view+1))
+          fi
+        fi
+      else
+        if [[ "$scripts_view_ko" == "yes" ]]; then
+          if [[ "$scripts_view" == "0" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_scripts\${font}\${goto 35} ${font_title}$mui_scripts_title \${hr 2}"; fi
+          echo -e "${font_standard}$myscript_human:$txt_align_right\${offset -2}$font_awesome_scripts_ko"
+          scripts_view=$((scripts_view+1))
+        fi
+      fi
+    fi
+  done
+  if [[ "$scripts_view" != "0" ]]; then
+    echo "\${font}\${voffset -4}"
+  fi
+fi
 
 
 #### DiskUsage Block
