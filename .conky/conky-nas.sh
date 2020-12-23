@@ -476,10 +476,18 @@ if [[ "$net_adapter" != "" ]]; then
     if [[ "$net_ip_public" != "" ]]; then
       if [[ "$net_ip_log" == "" ]]; then
         net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
-        echo -e "\n## IP Country check\nnet_ip_log=\"$net_ip_public\"\nnet_ip_country=\"$net_ip_country\"\n" >> ~/.conky/conky-nas.conf
+        while [ "$net_ip_country" == "" ] || [ "$net_ip_country" == "null" ]; do
+          net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
+        done
+        sed -i '/net_ip_log=.*/d' ~/.conky/conky-nas.conf
+        sed -i '/net_ip_country=.*/d' ~/.conky/conky-nas.conf  
+        echo -e "net_ip_log=\"$net_ip_public\"\nnet_ip_country=\"$net_ip_country\"\n" >> ~/.conky/conky-nas.conf
       else
         if [[ "$net_ip_log" != "$net_ip_public" ]]; then
+        net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
+        while [ "$net_ip_country" == "" ] || [ "$net_ip_country" == "null" ]; do
           net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
+        done
           sed -i 's|net_ip_log="'$net_ip_log'"|net_ip_log="'$net_ip_public'"|' ~/.conky/conky-nas.conf
           sed -i 's|net_ip_country=.*|net_ip_country="'$net_ip_country'"|' ~/.conky/conky-nas.conf  
         fi
