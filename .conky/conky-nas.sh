@@ -473,27 +473,7 @@ if [[ "$net_adapter" != "" ]]; then
   if [[ "$vpn_detected" != "" ]]; then
 #    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
     net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
-    if [[ "$net_ip_public" != "" ]]; then
-      if [[ "$net_ip_log" == "" ]]; then
-        net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
-        while [ "$net_ip_country" == "" ] || [ "$net_ip_country" == "null" ]; do
-          net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
-        done
-        sed -i '/net_ip_log=.*/d' ~/.conky/conky-nas.conf
-        sed -i '/net_ip_country=.*/d' ~/.conky/conky-nas.conf  
-        echo -e "net_ip_log=\"$net_ip_public\"\nnet_ip_country=\"$net_ip_country\"\n" >> ~/.conky/conky-nas.conf
-      else
-        if [[ "$net_ip_log" != "$net_ip_public" ]]; then
-          net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
-          while [ "$net_ip_country" == "" ] || [ "$net_ip_country" == "null" ]; do
-            net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
-          done
-          sed -i 's|net_ip_log="'$net_ip_log'"|net_ip_log="'$net_ip_public'"|' ~/.conky/conky-nas.conf
-          sed -i 's|net_ip_country=.*|net_ip_country="'$net_ip_country'"|' ~/.conky/conky-nas.conf  
-        fi
-      fi
-      echo -e "${font_standard}$mui_network_ip_public $txt_align_right($net_ip_country) $net_ip_public"
-    fi
+    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
     echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
     if [[ "$net_ip_box" == "$net_ip_public" ]]; then
       if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
@@ -742,5 +722,6 @@ if [[ "$net_adapter" != "" ]]; then
       echo ""
       echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
     fi
+    echo "\${font}\${voffset -4}"
   fi
 fi
