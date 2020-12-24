@@ -54,8 +54,8 @@ if [[ -f ~/.conky/MUI/$os_language.lang ]]; then
   script_language="~/.conky/MUI/$os_language.lang"
   source ~/.conky/MUI/$os_language.lang
 else
-  script_language="~/.conky/MUI/default.lang"
-  source ~/.conky/MUI/default.lang
+  script_language="~/.conky/MUI/en.lang"
+  source ~/.conky/MUI/en.lang
 fi
 
 
@@ -484,10 +484,10 @@ if [[ "$net_adapter" != "" ]]; then
         echo -e "net_ip_log=\"$net_ip_public\"\nnet_ip_country=\"$net_ip_country\"\n" >> ~/.conky/conky-nas.conf
       else
         if [[ "$net_ip_log" != "$net_ip_public" ]]; then
-        net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
-        while [ "$net_ip_country" == "" ] || [ "$net_ip_country" == "null" ]; do
           net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
-        done
+          while [ "$net_ip_country" == "" ] || [ "$net_ip_country" == "null" ]; do
+            net_ip_country=`curl -s ipinfo.io/$net_ip_public | jq ".country" | sed 's/\"//g'`
+          done
           sed -i 's|net_ip_log="'$net_ip_log'"|net_ip_log="'$net_ip_public'"|' ~/.conky/conky-nas.conf
           sed -i 's|net_ip_country=.*|net_ip_country="'$net_ip_country'"|' ~/.conky/conky-nas.conf  
         fi

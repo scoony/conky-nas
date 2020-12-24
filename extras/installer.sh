@@ -11,7 +11,7 @@ my_printf="\r                                                                   
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
 check_language=`curl -s "https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/MUI/$os_language.lang"`
 if [[ "$check_language" == "404: Not Found" ]]; then
-  os_language="default"
+  os_language="en"
 fi
 source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/MUI/$os_language.lang)
 
