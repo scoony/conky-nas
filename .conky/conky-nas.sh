@@ -328,12 +328,30 @@ if [[ "$scripts_list" != "" ]]; then
     myscript_human=`echo $myscript | sed 's/\.sh$//'`
     if [[ "$myscript_process" != "" ]]; then
       if [[ "$scripts_view" == "0" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_scripts\${font}\${goto 35} ${font_title}$mui_scripts_title \${hr 2}"; fi
-      echo -e "${font_standard}$myscript_human:$txt_align_right$myscript_process $font_awesome_scripts_ok"
+      myscript_process_time=`ps -o etime= -p $myscript_process | sed 's/ *//g' | sed 's/-/ days /' | sed 's/\(.*\):/\1 mins /' | sed 's/\(.*\):/\1 hours /' | sed 's/^0//'`
+      myscript_process_time+=" sec"
+      myscript_process_time_human=`echo $myscript_process_time`
+      myscript_process_time_check=`echo "$myscript_process_time" | grep "^0 mins"`
+      if [[ "$myscript_process_time_check" != "" ]]; then
+        myscript_process_time_human=`echo "$myscript_process_time" | sed 's/0 mins //'`
+      fi
+      myscript_process_time_check=`echo "$myscript_process_time" | grep "hours"`
+      if [[ "$myscript_process_time_check" != "" ]]; then
+        myscript_process_time_human=`echo "$myscript_process_time" | sed 's/mins.*/mins/'`
+      fi
+      myscript_process_time_check=`echo "$myscript_process_time" | grep "days"`
+      if [[ "$myscript_process_time_check" != "" ]]; then
+        myscript_process_time_human=`echo "$myscript_process_time" | sed 's/hours.*/hours/'`
+      fi
+      echo -e "${font_standard}$myscript_human: $txt_align_center$txt_align_right$myscript_process_time_human $myscript_process $font_awesome_scripts_ok"
       scripts_view=$((scripts_view+1))
     else
       if [[ "$user_pass" != "" ]]; then
         myscript_lock=`echo $user_pass | sudo -kS ls /root/.config/$myscript_human/lock-$myscript_human 2>/dev/null`
         if [[ "$myscript_lock" != "" ]]; then
+          if [[ "$scripts_remove_lock" == "yes" ]]; then
+            echo $user_pass | sudo -kS rm /root/.config/$myscript_human/lock-$myscript_human
+          fi
           if [[ "$scripts_view" == "0" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_scripts\${font}\${goto 35} ${font_title}$mui_scripts_title \${hr 2}"; fi
           echo -e "${font_standard}$myscript_human:$txt_align_right\${offset -2}LOCK $font_awesome_scripts_ko"
           scripts_view=$((scripts_view+1))
