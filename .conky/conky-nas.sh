@@ -328,20 +328,20 @@ if [[ "$scripts_list" != "" ]]; then
     myscript_human=`echo $myscript | sed 's/\.sh$//'`
     if [[ "$myscript_process" != "" ]]; then
       if [[ "$scripts_view" == "0" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_scripts\${font}\${goto 35} ${font_title}$mui_scripts_title \${hr 2}"; fi
-      myscript_process_time=`ps -o etime= -p $myscript_process | sed 's/ *//g' | sed 's/-/ days /' | sed 's/\(.*\):/\1 mins /' | sed 's/\(.*\):/\1 hours /' | sed 's/^0//'`
-      myscript_process_time+=" sec"
+      myscript_process_time=`ps -o etime= -p $myscript_process | sed 's/ *//g' | sed 's/-/d /' | sed 's/\(.*\):/\1m /' | sed 's/\(.*\):/\1h /' | sed 's/^0//'`
+      myscript_process_time+="s"
       myscript_process_time_human=`echo $myscript_process_time`
-      myscript_process_time_check=`echo "$myscript_process_time" | grep "^0 mins"`
+      myscript_process_time_check=`echo "$myscript_process_time" | grep "^0m"`
       if [[ "$myscript_process_time_check" != "" ]]; then
-        myscript_process_time_human=`echo "$myscript_process_time" | sed 's/0 mins //'`
+        myscript_process_time_human=`echo "$myscript_process_time" | sed 's/0m //'`
       fi
-      myscript_process_time_check=`echo "$myscript_process_time" | grep "hours"`
+      myscript_process_time_check=`echo "$myscript_process_time" | grep "h"`
       if [[ "$myscript_process_time_check" != "" ]]; then
-        myscript_process_time_human=`echo "$myscript_process_time" | sed 's/mins.*/mins/'`
+        myscript_process_time_human=`echo "$myscript_process_time" | sed 's/m.*/m/'`
       fi
-      myscript_process_time_check=`echo "$myscript_process_time" | grep "days"`
+      myscript_process_time_check=`echo "$myscript_process_time" | grep "d"`
       if [[ "$myscript_process_time_check" != "" ]]; then
-        myscript_process_time_human=`echo "$myscript_process_time" | sed 's/hours.*/hours/'`
+        myscript_process_time_human=`echo "$myscript_process_time" | sed 's/h.*/h/'`
       fi
       echo -e "${font_standard}$myscript_human: $txt_align_center$txt_align_right$myscript_process_time_human $myscript_process $font_awesome_scripts_ok"
       scripts_view=$((scripts_view+1))
