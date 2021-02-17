@@ -234,10 +234,9 @@ echo -e "\${font ${font_awesome_font}}$font_awesome_cpu\${font}\${goto 35} ${fon
 echo -e "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
 if [[ "$cpu_temp" == "" ]]; then
-  cpu_temp=`sensors -u -A 2>/dev/null | grep "temp[0-9]_input:" | awk '{print $2}' | sed "s/\..*//"`
+  cpu_temp=`sensors | grep Tctl | awk '{print $2}' | sed 's/+//' | sed 's/\..*//'`
   if [[ "$cpu_temp" != "" ]]; then
-    cpu_crit_temp=`sensors -u -A 2>/dev/null | grep "temp[0-9]_crit:" | awk '{print $2}' | sed "s/\..*//"`
-    if [[ "$cpu_temp" -ge "$cpu_crit_temp" ]]; then
+    if [[ "$cpu_temp" -ge "85" ]]; then
       cpu_color="red"
     else
       cpu_color="lightgray"
@@ -380,7 +379,7 @@ fi
 #### DiskUsage Block
 
 echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title \${hr 2}"
-drives=`ls /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
+drives=`ls /dev/nvme0n[1-9]p[1-9] /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | cut -d ' ' -f 2`
   if [[ "$mount_point" != "" ]]; then
@@ -680,9 +679,21 @@ if [[ "$net_adapter" != "" ]]; then
       fi
       if [[ "$plex_ip" == "" ]]; then
         plex_ip="localhost"
+        plex_ip_line=$(sed -n '/^plex_ip=/=' ~/.conky/conky-nas.conf)
+        if [[ "$plex_ip_line" != "" ]]; then
+          sed -i 's|plex_ip=.*|plex_ip="'$plex_ip'"|' ~/.conky/conky-nas.conf
+        else
+          echo -e "\nplex_ip=$plex_ip" >> ~/.conky/conky-nas.conf
+        fi
       fi
       if [[ "$plex_port" == "" ]]; then
         plex_port="32400"
+        plex_port_line=$(sed -n '/^plex_port=/=' ~/.conky/conky-nas.conf)
+        if [[ "$plex_port_line" != "" ]]; then
+          sed -i 's|plex_port=.*|plex_port="'$plex_port'"|' ~/.conky/conky-nas.conf
+        else
+          echo -e "\nplex_port=$plex_port" >> ~/.conky/conky-nas.conf
+        fi
       fi
       plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
       plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
