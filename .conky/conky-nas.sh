@@ -15,6 +15,8 @@ font_awesome_diskusage="\uf0a0"
 font_awesome_network_secured="\uf21b"
 font_awesome_network="\uf6ff"
 font_awesome_network_wifi="\${font FontAwesome:regular:size=8}\uf1eb$font_standard"
+font_awesome_connexion="\uf0ec"
+mui_connexion_title="CONNEXION"
 font_awesome_transmission="\uf019"
 font_awesome_scripts="\uf085"
 font_awesome_scripts_ok="\${font FontAwesome:regular:size=8}\uf00c$font_standard"
@@ -534,6 +536,27 @@ fi
 echo "\${font}\${voffset -4}"
 
 
+#### Connexion Block
+
+#if [[ "$net_adapter" != "" ]]; then
+#  if [[ "$user_pass" != "" ]]; then
+#    connexion_list=`echo $user_pass | sudo -kS netstat -natp | grep ESTABLISHED | grep 'sshd\|vino-server'`
+#    if [[ "$connexion_list" != "" ]]; then
+#      echo -e "\${font ${font_awesome_font}}$font_awesome_connexion\${font}\${goto 35} ${font_title}$mui_connexion_title \${hr 2}"
+#      connexion_list_ssh=`echo $connexion_list | grep 'sshd' | awk '{print $5}'`
+#      if [[ "$connexion_list_ssh" != "" ]]; then
+#        echo -e "${font_standard}SSH :" $connexion_list_ssh
+#      fi
+#      connexion_list_vino=`echo $connexion_list | grep 'vino-server' | awk '{print $5}'`
+#      if [[ "$connexion_list_vino" != "" ]]; then
+#        echo -e "${font_standard}VNC :" $connexion_list_vino
+#      fi
+#      echo "\${font}\${voffset -4}"
+#    fi
+#  fi
+#fi
+
+
 #### Transmission Block
 
 if [[ "$net_adapter" != "" ]]; then
@@ -719,9 +742,16 @@ if [[ "$net_adapter" != "" ]]; then
         fi
         plex_checkmusic=`echo $plex_stream | grep ' type="track"'`
         if [[ "$plex_checkmusic" != "" ]]; then
-          plex_artiste=`echo $plex_stream | sed 's/.* originalTitle="//' | sed 's/".*//'`
+          #plex_artiste=`echo $plex_stream | sed 's/.* originalTitle="//' | sed 's/".*//'`
+          plex_artiste=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
+          plex_album=""
+          if [[ "$plex_artiste" == "Various Artists" ]]; then
+            plex_artiste=""
+            plex_album=`echo $plex_stream | sed 's/.* parentTitle="//' | sed 's/".*//'`
+          fi
           plex_song=`echo $plex_stream | sed 's/<Media .*//' | sed 's/.* title="//' | sed 's/".*//'`
-          echo -e "$font_extra\u25CF $font_standard$plex_artiste - $plex_song $txt_align_right${plex_user:0:15}"
+          plex_music=`echo $plex_artiste$plex_album - $plex_song`
+          echo -e "$font_extra\u25CF $font_standar${plex_music:0:30} $txt_align_right${plex_user:0:15}"
         else
           plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
           if [[ "$plex_checkepisode" != "" ]]; then
