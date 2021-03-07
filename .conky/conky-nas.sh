@@ -481,7 +481,7 @@ if [[ "$net_adapter" != "" ]]; then
   fi
   net_adapter_number=`echo $net_adapter | wc -w`
   if [[ "$net_adapter_number" == "1" ]]; then
-    if [[ "$net_adapter" == "wlan0" ]]; then
+    if [[ "$net_adapter" =~ "wl" ]]; then
       echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($font_awesome_network_wifi \${wireless_essid $net_adapter})"
     else
       net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
@@ -491,35 +491,59 @@ if [[ "$net_adapter" != "" ]]; then
   net_ip_public=`dig -4 +short myip.opendns.com @resolver1.opendns.com`
   if [[ "$vpn_detected" != "" ]]; then
 #    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
-    net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
     echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
-    echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
-    if [[ "$net_ip_box" == "$net_ip_public" ]]; then
-      if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
-        touch ~/.conky/pushover/vpn_error
-        if [[ "$user_pass" != "" ]]; then
-          mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_restart"`
-          echo $user_pass | sudo -kS service $vpn_service restart
-        else
-          mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
+    if [[ "$net_adapter_number" == "1" ]]; then
+      net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
+      echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
+      if [[ "$net_ip_box" == "$net_ip_public" ]]; then
+        if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
+          touch ~/.conky/pushover/vpn_error
+          if [[ "$user_pass" != "" ]]; then
+            mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_restart"`
+            echo $user_pass | sudo -kS service $vpn_service restart
+          else
+            mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
+          fi
+          push-message "0" "Conky" "$mynetwork_message" "$push_token_app"
         fi
-        push-message "0" "Conky" "$mynetwork_message" "$push_token_app"
-      fi
-    else
-      if [[ -f ~/.conky/pushover/vpn_error ]]; then
-        rm ~/.conky/pushover/vpn_error
+      else
+        if [[ -f ~/.conky/pushover/vpn_error ]]; then
+          rm ~/.conky/pushover/vpn_error
+        fi
       fi
     fi
   else
     echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
   fi
   if [[ "$net_adapter_number" != "1" ]]; then
+    net_adapter_default=`route -n | grep '^0.0.0.0' | sed '/tun0/d' | sed -n '1p' | awk '{print $NF}'`
     for net_adapter_device in $net_adapter ; do
-      if [[ "$net_adapter_device" == "wlan0" ]]; then
+      if [[ "$net_adapter_device" =~ "wl" ]]; then
         echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device ($font_awesome_network_wifi \${wireless_essid $net_adapter_device})"
       else
         net_adapter_speed=`cat /sys/class/net/$net_adapter_device/speed`
         echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter_device ($net_adapter_speed Mbps)"
+      fi
+      if [[ "$net_adapter_device"  == "$net_adapter_default" ]]; then
+        net_adapter_device_ip=`ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
+        net_adapter_device_ip_box=`dig -b $net_adapter_device_ip +short myip.opendns.com @resolver1.opendns.com`
+        echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_adapter_device_ip_box"
+        if [[ "$net_adapter_device_ip_box" == "$net_ip_public" ]]; then
+          if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
+            touch ~/.conky/pushover/vpn_error
+            if [[ "$user_pass" != "" ]]; then
+              mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_restart"`
+              echo $user_pass | sudo -kS service $vpn_service restart
+            else
+              mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
+            fi
+            push-message "0" "Conky" "$mynetwork_message" "$push_token_app"
+          fi
+        else
+          if [[ -f ~/.conky/pushover/vpn_error ]]; then
+            rm ~/.conky/pushover/vpn_error
+          fi
+        fi
       fi
       echo -e "${font_standard}$mui_network_down \${downspeed $net_adapter_device}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter_device}"
       echo -e "\${color lightgray}\${downspeedgraph $net_adapter_device 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter_device 25,150 }\$color"
