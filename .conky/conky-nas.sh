@@ -562,23 +562,23 @@ echo "\${font}\${voffset -4}"
 
 #### Connexion Block
 
-#if [[ "$net_adapter" != "" ]]; then
-#  if [[ "$user_pass" != "" ]]; then
-#    connexion_list=`echo $user_pass | sudo -kS netstat -natp | grep ESTABLISHED | grep 'sshd\|vino-server'`
-#    if [[ "$connexion_list" != "" ]]; then
-#      echo -e "\${font ${font_awesome_font}}$font_awesome_connexion\${font}\${goto 35} ${font_title}$mui_connexion_title \${hr 2}"
-#      connexion_list_ssh=`echo $connexion_list | grep 'sshd' | awk '{print $5}'`
-#      if [[ "$connexion_list_ssh" != "" ]]; then
-#        echo -e "${font_standard}SSH :" $connexion_list_ssh
-#      fi
-#      connexion_list_vino=`echo $connexion_list | grep 'vino-server' | awk '{print $5}'`
-#      if [[ "$connexion_list_vino" != "" ]]; then
-#        echo -e "${font_standard}VNC :" $connexion_list_vino
-#      fi
-#      echo "\${font}\${voffset -4}"
-#    fi
-#  fi
-#fi
+if [[ "$net_adapter" != "" ]]; then
+  connexion_ssh_list=`w | sed '1,2d' | sed '/session/d' | tr -s ' ' | cut -d ' ' -f 1,3 | sed 's/^\(.*'$look'.*\)$/SSH: \1/'`
+  if [[ "$connexion_ssh_list" != "" ]]; then
+    echo -e "\${font ${font_awesome_font}}$font_awesome_connexion\${font}\${goto 35} ${font_title}$mui_connexion_title \${hr 2}"
+    echo -e "${font_standard}$connexion_ssh_list"
+  fi
+  if [[ "$user_pass" != "" ]]; then
+    connexion_vino_list=`echo $user_pass | sudo -kS netstat -natp | grep ESTABLISHED | grep 'vino-server' | tr -s ' ' | cut -d ' ' -f 5 | sed 's/:.*//g' | sed 's/^\(.*\)/VNC: \1/'`
+    if [[ "$connexion_vino_list" != "" ]]; then
+      if [[ "$connexion_ssh_list" = "" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_connexion\${font}\${goto 35} ${font_title}$mui_connexion_title \${hr 2}"; fi
+      echo -e "${font_standard}$connexion_vino_list"
+    fi
+  fi
+  if [[ "$connexion_ssh_list" != "" ]] || [[ "$connexion_vino_list" != "" ]]; then
+          echo "\${font}\${voffset -4}"
+  fi
+fi
 
 
 #### Transmission Block
