@@ -273,8 +273,9 @@ if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
 ##  echo -e "${font_standard}\${nvidia modelname}:\${goto 130}\${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}\${nvidia temp}°\$color"
 ## Wayland fix (nvidia plugin not working)
   gpu_usage=`nvidia-smi | grep % | cut -c 62-63`
+  gpu_usage2=`echo $gpu_usage | sed "s/ //g"`
   gpu_name=`nvidia-smi --query-gpu=gpu_name --format=csv | sed '$!d' | sed "s/NVIDIA //"`
-  echo -e "${font_standard}$gpu_name:\${goto 130}$gpu_usage% \${goto 154}\${voffset 1}\${execbar 6,140 echo $gpu_usage}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$gpu_temp°\$color"
+  echo -e "${font_standard}$gpu_name:\${goto 130}$gpu_usage% \${goto 154}\${voffset 1}\${execbar 6,140 echo ${gpu_usage2}}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$gpu_temp°\$color"
 fi
 #if [[ "$gpu_brand" =~ "Intel" ]]; then
 #  gpu_name=$(lspci | grep VGA | cut -d ':' -f3 | sed 's/^.//' | sed 's/ (.*//' | sed 's/Intel //' | sed 's/Corporation //')
