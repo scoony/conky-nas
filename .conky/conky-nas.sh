@@ -274,8 +274,9 @@ if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
 ## Wayland fix (nvidia plugin not working)
   gpu_usage=`nvidia-smi | grep % | cut -c 62-63`
   gpu_usage2=`echo $gpu_usage | sed "s/ //g"`
+  gpu_usage3=`expr $gpu_usage`
   gpu_name=`nvidia-smi --query-gpu=gpu_name --format=csv | sed '$!d' | sed "s/NVIDIA //"`
-  echo -e "${font_standard}$gpu_name:\${goto 130}$gpu_usage% \${goto 154}\${voffset 1}\${execbar 6,140 echo ${gpu_usage2}}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$gpu_temp°\$color"
+  echo -e "${font_standard}$gpu_name:\${goto 130}$gpu_usage% \${goto 154}\${voffset 1}\${execbar 6,140 echo ${gpu_usage}}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$gpu_temp°\$color"
 fi
 #if [[ "$gpu_brand" =~ "Intel" ]]; then
 #  gpu_name=$(lspci | grep VGA | cut -d ':' -f3 | sed 's/^.//' | sed 's/ (.*//' | sed 's/Intel //' | sed 's/Corporation //')
@@ -353,10 +354,10 @@ if [[ "$scripts_list" != "" ]]; then
       scripts_view=$((scripts_view+1))
     else
       if [[ "$user_pass" != "" ]]; then
-        myscript_lock=`echo $user_pass | sudo -kS ls /root/.config/$myscript_human/lock-$myscript_human 2>/dev/null`
+        myscript_lock=`echo $user_pass | sudo -kS ls /root/.config/$myscript_human/lock-$myscript_human &>/dev/null`
         if [[ "$myscript_lock" != "" ]]; then
           if [[ "$scripts_remove_lock" == "yes" ]]; then
-            echo $user_pass | sudo -kS rm /root/.config/$myscript_human/lock-$myscript_human
+            echo $user_pass | sudo -kS rm /root/.config/$myscript_human/lock-$myscript_human &>/dev/null
           fi
           if [[ "$scripts_view" == "0" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_scripts\${font}\${goto 35} ${font_title}$mui_scripts_title \${hr 2}"; fi
           echo -e "${font_standard}$myscript_human:$txt_align_right\${offset -2}LOCK $font_awesome_scripts_ko"
@@ -455,8 +456,10 @@ for drive in $drives ; do
         echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
       else
         if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
+        test=1
           echo -e "\${voffset 1}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
         else
+        test=1
           echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
         fi
       fi
@@ -505,7 +508,7 @@ if [[ "$net_adapter" != "" ]]; then
           touch ~/.conky/pushover/vpn_error
           if [[ "$user_pass" != "" ]]; then
             mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_restart"`
-            echo $user_pass | sudo -kS service $vpn_service restart
+            echo $user_pass | sudo -kS service $vpn_service restart &>/dev/null
           else
             mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
           fi
@@ -538,7 +541,7 @@ if [[ "$net_adapter" != "" ]]; then
             touch ~/.conky/pushover/vpn_error
             if [[ "$user_pass" != "" ]]; then
               mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_restart"`
-              echo $user_pass | sudo -kS service $vpn_service restart
+              echo $user_pass | sudo -kS service $vpn_service restart &>/dev/null
             else
               mynetwork_message=`echo -e "[ <b>VPN</b> ] $mui_network_vpn_ko"`
             fi
@@ -574,7 +577,7 @@ if [[ "$net_adapter" != "" ]]; then
     echo -e "${font_standard}$connexion_ssh_list"
   fi
   if [[ "$user_pass" != "" ]]; then
-    connexion_vino_list=`echo $user_pass | sudo -kS netstat -natp | grep ESTABLISHED | grep 'vino-server' | tr -s ' ' | cut -d ' ' -f 5 | sed 's/:.*//g' | sed 's/^\(.*\)/VNC: \1/'`
+    connexion_vino_list=`echo $user_pass | sudo -kS netstat -natp &>/dev/null | grep ESTABLISHED | grep 'vino-server' | tr -s ' ' | cut -d ' ' -f 5 | sed 's/:.*//g' | sed 's/^\(.*\)/VNC: \1/'`
     if [[ "$connexion_vino_list" != "" ]]; then
       if [[ "$connexion_ssh_list" = "" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_connexion\${font}\${goto 35} ${font_title}$mui_connexion_title \${hr 2}"; fi
       echo -e "${font_standard}$connexion_vino_list"
@@ -613,12 +616,12 @@ if [[ "$net_adapter" != "" ]]; then
       else
         ## was set to settings2 instead of settings to disable
         if [[ -f "/etc/transmission-deamon/settings2.json" ]]; then
-          transmission_port=`echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-port"'`
+          transmission_port=`echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json &>/dev/null | jq -r '."rpc-port"'`
           transmission_ip="localhost"
-          echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-username"' | sed 's/./\\&/g' >temp_tr.log
+          echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json &>/dev/null | jq -r '."rpc-username"' | sed 's/./\\&/g' >temp_tr.log
           transmission_login=`cat temp_tr.log`
           rm temp_tr.log
-          echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json 2>/dev/null | jq -r '."rpc-password"' | sed 's/./\\&/g' >temp_tr.log
+          echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json &>/dev/null | jq -r '."rpc-password"' | sed 's/./\\&/g' >temp_tr.log
           transmission_password=`cat temp_tr.log`
           rm temp_tr.log
           echo -e "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
@@ -719,7 +722,7 @@ if [[ "$net_adapter" != "" ]]; then
 #      fi
       if [[ "$plex_token" == "" ]]; then
         if [[ "$user_pass" != "" ]]; then
-          echo $user_pass | sudo -kS updatedb
+          echo $user_pass | sudo -kS updatedb &>/dev/null
           plex_token=`cat "$(locate Preferences.xml | grep "plexmediaserver" | sed -n '1p')" | sed -n 's/.*PlexOnlineToken="\([[:alnum:]_-]*\).*".*/\1/p'`
           plex_token_line=$(sed -n '/^plex_token=/=' ~/.conky/conky-nas.conf)
           if [[ "$plex_token_line" != "" ]]; then
