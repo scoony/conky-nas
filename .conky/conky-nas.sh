@@ -16,7 +16,6 @@ font_awesome_network_secured="\uf21b"
 font_awesome_network="\uf6ff"
 font_awesome_network_wifi="\${font FontAwesome:regular:size=8}\uf1eb$font_standard"
 font_awesome_connexion="\uf0ec"
-mui_connexion_title="CONNEXION"
 font_awesome_transmission="\uf019"
 font_awesome_scripts="\uf085"
 font_awesome_scripts_ok="\${font FontAwesome:regular:size=8}\uf00c$font_standard"
@@ -577,7 +576,7 @@ if [[ "$net_adapter" != "" ]]; then
     echo -e "${font_standard}$connexion_ssh_list"
   fi
   if [[ "$user_pass" != "" ]]; then
-    connexion_vino_list=`echo $user_pass | sudo -kS netstat -natp &>/dev/null | grep ESTABLISHED | grep 'vino-server' | tr -s ' ' | cut -d ' ' -f 5 | sed 's/:.*//g' | sed 's/^\(.*\)/VNC: \1/'`
+    connexion_vino_list=`echo $user_pass | sudo -kS netstat -natp 2>/dev/null | grep ESTABLISHED | grep 'vino-server' | tr -s ' ' | cut -d ' ' -f 5 | sed 's/:.*//g' | sed 's/^\(.*\)/VNC: \1/'`
     if [[ "$connexion_vino_list" != "" ]]; then
       if [[ "$connexion_ssh_list" = "" ]]; then echo -e "\${font ${font_awesome_font}}$font_awesome_connexion\${font}\${goto 35} ${font_title}$mui_connexion_title \${hr 2}"; fi
       echo -e "${font_standard}$connexion_vino_list"
