@@ -6,27 +6,32 @@ while true ; do
   remote_folder="https://raw.githubusercontent.com/scoony/conky-nas/main/.conky/"
   local_folder="~/.conky/"
 
-  source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/extras/update-files)
-
-  user_home=`echo ~`
-  user_path=${local_folder//\~/$user_home}
-  if [[ ! -d "${user_path}MUI" ]]; then
-    mkdir -p "${user_path}MUI"
-  fi
-  for current_file in $file{001..999}; do
-    remote_md5=`curl -s ${remote_folder}$current_file | md5sum | cut -f1 -d" "`
-    local_md5=`md5sum ${user_path}$current_file 2>/dev/null | cut -f1 -d" "`
-    if [[ $remote_md5 == $local_md5 ]]; then
-      echo "$current_file : No upgrade required"
-    else
-      echo "$current_file : Upgrade required"
-      wget --quiet "${remote_folder}${current_file}" -O "${user_path}${current_file}"
-      if [[ "$current_file" =~ ".sh" ]]; then
-        chmod +x "${user_path}${current_file}"
-      fi
-      echo "Update Done"
+#### Vérification de la présence du Net
+  md5_404_not_found=`curl -s "https://raw.githubusercontent.com/scoony/conky-nas/main/404" | md5sum  | cut -f1 -d" "`
+  remote_md5=`curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/extras/update-files | md5sum | cut -f1 -d" "`
+  if [[ "$md5_404_not_found" != "$remote_md5" ]]; then
+#### Internet OK
+    source <(curl -s https://raw.githubusercontent.com/scoony/conky-nas/main/extras/update-files)
+    user_home=`echo ~`
+    user_path=${local_folder//\~/$user_home}
+    if [[ ! -d "${user_path}MUI" ]]; then
+      mkdir -p "${user_path}MUI"
     fi
-  done
-
+    for current_file in $file{001..999}; do
+      remote_md5=`curl -s ${remote_folder}$current_file | md5sum | cut -f1 -d" "`
+      local_md5=`md5sum ${user_path}$current_file 2>/dev/null | cut -f1 -d" "`
+      if [[ $remote_md5 == $local_md5 ]]; then
+        echo "$current_file : No upgrade required"
+      else
+        echo "$current_file : Upgrade required"
+        wget --quiet "${remote_folder}${current_file}" -O "${user_path}${current_file}"
+        chmod +x "${user_path}${current_file}"
+        echo "Update Done"
+      fi
+    done
+  else
+#### Internet NOK
+    echo "No internet connection..."
+  fi
   sleep 3600
 done
