@@ -400,7 +400,7 @@ for drive in $drives ; do
     if [[ "$user_pass" != "" ]]; then
       disk_interface=`udevadm info --query=all --name=$drive | grep ID_BUS`
       disk_support=`udevadm info --query=all --name=$drive | grep ID_DRIVE_FLASH_SD`
-      if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
+      if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_interface" =~ "scsi" ]] || [[ "$disk_support" != "" ]]; then
         disk_temp=""
         disk_color="lightblue"
       else
