@@ -751,6 +751,10 @@ if [[ "$net_adapter" != "" ]]; then
           echo -e "\nplex_port=$plex_port" >> ~/.conky/conky-nas.conf
         fi
       fi
+      ## Plex.tv IP used
+      plexip_used=`curl --silent https://plex.tv/pms/:/ip`
+      echo $font_standard"$mui_plexip_used"$txt_align_right$plexip_used" "
+      ## end but if plexip_used == vpn then notifcould be great
       plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
       plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
       echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
