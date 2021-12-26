@@ -608,7 +608,7 @@ if [[ "$net_adapter" != "" ]]; then
           transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
           transmission_up=`cat ~/.conky/transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
           transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-          echo -e "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+          echo -e "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human "
           rm ~/.conky/transm.log
         else
           echo ""
@@ -630,7 +630,7 @@ if [[ "$net_adapter" != "" ]]; then
           transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
           transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
           transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
+          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human "
         else
           echo ""
           echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
@@ -752,13 +752,19 @@ if [[ "$net_adapter" != "" ]]; then
         fi
       fi
       ## Plex.tv IP used
-      plexip_used=`curl --silent https://plex.tv/pms/:/ip`
-      echo $font_standard"$mui_plexip_used"$txt_align_right$plexip_used" "
-      ## end but if plexip_used == vpn then notifcould be great
-      plex_pid=`service plexmediaserver status | grep "Main PID" | awk '{print $3}'`
-      plex_prlimit=`echo $user_pass | sudo -kS prlimit --pid $plex_pid --as --output HARD | tail -n 1`
-      echo $font_standard"$mui_plex_pid"$txt_align_right$plex_pid" "
-      echo $font_standard"$mui_plex_prlimit"$txt_align_right$plex_prlimit" "
+      if [[ "$plex_extras" == "yes" ]]; then
+        plexip_used=`curl --silent https://plex.tv/pms/:/ip`
+        echo $font_standard"$mui_plexip_used"$txt_align_right$plexip_used" "
+        ## end but if plexip_used == vpn then notifcould be great
+        plex_pid=`service plexmediaserver status | grep "Main PID" | awk '{print $3}'`
+        plex_prlimit=`echo $user_pass | sudo -kS prlimit --pid $plex_pid --as --output HARD | tail -n 1`
+        if [[ "$plex_prlimit" != "sans limite" ]]; then
+          plex_prlimit=`echo $plex_prlimit | numfmt --to=si`
+        fi
+        #echo $font_standard"$mui_plex_pid"$txt_align_right$plex_pid" "
+        #echo $font_standard"$mui_plex_prlimit"$txt_align_right$plex_prlimit" "
+        echo $font_standard"$mui_plex_pid $plex_pid"$txt_align_right"$mui_plex_prlimit $plex_prlimit " 
+      fi
       plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
       plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
       echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
