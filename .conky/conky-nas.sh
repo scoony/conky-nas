@@ -756,7 +756,7 @@ if [[ "$net_adapter" != "" ]]; then
       echo $font_standard"$mui_plexip_used"$txt_align_right$plexip_used" "
       ## end but if plexip_used == vpn then notifcould be great
       plex_pid=`service plexmediaserver status | grep "Main PID" | awk '{print $3}'`
-      plex_prlimit=`prlimit --pid $plex_pid --as --output HARD | tail -n 1`
+      plex_prlimit=`echo $user_pass | sudo -kS prlimit --pid $plex_pid --as --output HARD | tail -n 1`
       echo $font_standard"$mui_plex_pid"$txt_align_right$plex_pid" "
       echo $font_standard"$mui_plex_prlimit"$txt_align_right$plex_prlimit" "
       plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
