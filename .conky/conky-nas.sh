@@ -758,12 +758,17 @@ if [[ "$net_adapter" != "" ]]; then
         ## end but if plexip_used == vpn then notifcould be great
         plex_pid=`service plexmediaserver status | grep "Main PID" | awk '{print $3}'`
         plex_prlimit=`echo $user_pass | sudo -kS prlimit --pid $plex_pid --as --output HARD | tail -n 1`
+        plex_ram_used=`echo $user_pass | sudo -kS ps_mem.py -p 1135566 -t | numfmt --to=si`
         if [[ "$plex_prlimit" != "sans limite" ]]; then
           plex_prlimit=`echo $plex_prlimit | numfmt --to=si`
         fi
         #echo $font_standard"$mui_plex_pid"$txt_align_right$plex_pid" "
         #echo $font_standard"$mui_plex_prlimit"$txt_align_right$plex_prlimit" "
-        echo $font_standard"$mui_plex_pid $plex_pid"$txt_align_right"$mui_plex_prlimit $plex_prlimit " 
+        if [[ "$plex_ram_used" != "" ]]; then
+          echo $font_standard"$mui_plex_pid $plex_pid ($plex_ram_used)"$txt_align_right"$mui_plex_prlimit $plex_prlimit "
+        else
+          echo $font_standard"$mui_plex_pid $plex_pid"$txt_align_right"$mui_plex_prlimit $plex_prlimit "
+        fi
       fi
       plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
       plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
