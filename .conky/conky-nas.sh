@@ -759,8 +759,11 @@ if [[ "$net_adapter" != "" ]]; then
         plex_pid=`service plexmediaserver status | grep "Main PID" | awk '{print $3}'`
         plex_prlimit=`echo $user_pass | sudo -kS prlimit --pid $plex_pid --as --output HARD | tail -n 1`
         plex_ram_used=`echo $user_pass | sudo -kS ps_mem.py -p 1135566 -t | numfmt --to=si`
-        if [[ "$plex_prlimit" != "sans limite" ]]; then
+        re='^[0-9]+$'
+        if [[ "$plex_prlimit" =~ $re ]]; then
           plex_prlimit=`echo $plex_prlimit | numfmt --to=si`
+        else
+          plex_prlimit="Aucune"
         fi
         #echo $font_standard"$mui_plex_pid"$txt_align_right$plex_pid" "
         #echo $font_standard"$mui_plex_prlimit"$txt_align_right$plex_prlimit" "
