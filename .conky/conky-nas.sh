@@ -761,6 +761,8 @@ if [[ "$net_adapter" != "" ]]; then
         plex_ram_used=`echo $user_pass | sudo -kS ps_mem.py -p 1135566 -t | numfmt --to=si`
         re='^[0-9]+$'
         if [[ "$plex_prlimit" =~ $re ]]; then
+          plex_ram_used=`echo $user_pass | sudo -kS ps_mem.py -p $plex_pid -t | numfmt --to=si`
+        if [[ "$plex_prlimit" != "sans limite" ]]; then
           plex_prlimit=`echo $plex_prlimit | numfmt --to=si`
         else
           plex_prlimit="Aucune"
