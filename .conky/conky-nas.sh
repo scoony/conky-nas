@@ -242,10 +242,12 @@ if [[ "$cpu_temp" == "" ]]; then
     else
       cpu_color="lightgray"
     fi
-    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
+## Issue with graphs
+##    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
     echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$cpu_temp°\$color"
   else
-    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
+## Issue with graphs
+##   echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
     echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6 cpu}"
   fi
 else
@@ -256,7 +258,8 @@ else
     else
       cpu_color="lightgray"
     fi
-    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
+## Issue with graphs
+##    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
     echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
     cpu_num=$((cpu_num+1))
   done
@@ -411,7 +414,11 @@ for drive in $drives ; do
           disk_color="lightgray"
         fi
         drive_short=`basename $drive`
-        drive_smart=`echo $drive | sed 's/[1-9]//'`
+        if [[ "$drive" =~ "nvme" ]]; then
+          drive_smart=`echo $drive`
+        else
+          drive_smart=`echo $drive | sed 's/[1-9]//'`
+        fi       
         if [[ ! -d ~/.conky/SMART ]]; then
           mkdir ~/.conky/SMART
         fi
@@ -420,9 +427,17 @@ for drive in $drives ; do
         ## smartctl -l devstat /dev/sdd | grep -i uncorrectable | awk '{ print $4 }'
         smart_enabled=`cat ~/.conky/SMART/$drive_short.log | grep "SMART support is:" | awk '{print $NF}' | tail -1`
         smart_status=`cat ~/.conky/SMART/$drive_short.log | grep "SMART overall-health" | awk '{print $NF}'`
+        if [[ "$drive" =~ "nvme" ]]; then
+          if [[ "$smart_status" == "PASSED" ]]; then
+            smart_enabled="Enabled"
+          fi
+        fi
         smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
+        if [[ "$drive" =~ "nvme" ]]; then
+          smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
+        fi
         if [[ "$smart_offline_uncorrectable" == "" ]]; then
-          smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Reallocated_Sector_Ct" | awk '{print $NF}'`
+          smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Media and Data Integrity Errors:" | awk '{print $NF}'`
         fi
         if [[ "$smart_enabled" == "Enabled" ]]; then
           if [[ "$smart_status" == "PASSED" ]]; then
@@ -452,14 +467,20 @@ for drive in $drives ; do
         fi
       fi
       if [[ "$disk_temp" != "" ]]; then
-        echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
+        if [[ ! "$mount_point" =~ "boot" ]]; then
+          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
+        fi
+##        echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
       else
         if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
         test=1
           echo -e "\${voffset 1}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
         else
         test=1
-          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
+          if [[ ! "$mount_point" =~ "boot" ]]; then
+            echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
+          fi
+##          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
         fi
       fi
     else
@@ -470,7 +491,10 @@ for drive in $drives ; do
       else
         disk_color="lightgray"
       fi
-      echo -e "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
+      if [[ ! "$mount_point" =~ "boot" ]]; then
+        echo -e "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
+      fi
+##      echo -e "${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,110 echo $disk_usage}"
     fi
   fi
 done
@@ -555,11 +579,13 @@ if [[ "$net_adapter" != "" ]]; then
         fi
       fi
       echo -e "${font_standard}$mui_network_down \${downspeed $net_adapter_device}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter_device}"
-      echo -e "\${color lightgray}\${downspeedgraph $net_adapter_device 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter_device 25,150 }\$color"
+## Issue with graphs            
+##      echo -e "\${color lightgray}\${downspeedgraph $net_adapter_device 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter_device 25,150 }\$color"
     done
   else
     echo -e "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
-    echo -e "\${color lightgray}\${downspeedgraph $net_adapter 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter 25,150 }\$color"
+## Issue with graphs
+##    echo -e "\${color lightgray}\${downspeedgraph $net_adapter 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter 25,150 }\$color"
   fi
 else
   echo -e "\${font ${font_awesome_font}}$font_awesome_network\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
