@@ -598,7 +598,7 @@ echo "\${font}\${voffset -4}"
 #### Connexion Block
 
 if [[ "$net_adapter" != "" ]]; then
-  connexion_ssh_list=`w | sed '1,2d' | sed '/session/d' | sed '/tmux/d' | tr -s ' ' | cut -d ' ' -f 1,3 | sed 's/^\(.*'$look'.*\)$/SSH: \1/'`
+  connexion_ssh_list=`w | sed '1,2d' | sed '/session/d' | sed '/ - /d' | sed '/tmux/d' | tr -s ' ' | cut -d ' ' -f 1,3 | sed 's/^\(.*'$look'.*\)$/SSH: \1/'`
   if [[ "$connexion_ssh_list" != "" ]]; then
     echo -e "\${font ${font_awesome_font}}$font_awesome_connexion\${font}\${goto 35} ${font_title}$mui_connexion_title \${hr 2}"
     echo -e "${font_standard}$connexion_ssh_list"
