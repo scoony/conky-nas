@@ -434,10 +434,10 @@ for drive in $drives ; do
         fi
         smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
         if [[ "$drive" =~ "nvme" ]]; then
-          smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Offline_Uncorrectable" | awk '{print $NF}'`
+          smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Media and Data Integrity Errors:" | awk '{print $NF}'`
         fi
         if [[ "$smart_offline_uncorrectable" == "" ]]; then
-          smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Media and Data Integrity Errors:" | awk '{print $NF}'`
+          smart_offline_uncorrectable=`cat ~/.conky/SMART/$drive_short.log | grep -i "Reallocated_Sector_Ct" | awk '{print $NF}'`
         fi
         if [[ "$smart_enabled" == "Enabled" ]]; then
           if [[ "$smart_status" == "PASSED" ]]; then
