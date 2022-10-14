@@ -503,6 +503,10 @@ for drive in $drives ; do
   fi
 done
 cat ~/drives.log | grep "/media" > ~/media.log
+cat ~/drives.log | grep "orange" > ~/alert.log
+cat ~/drives.log | grep "red" >> ~/alert.log
+sed -i '/orange/d' ~/drives.log
+sed -i '/red/d' ~/drives.log
 sed -i '/\/media\//d' ~/drives.log
 sort ~/drives.log
 cat ~/media.log
@@ -510,6 +514,12 @@ cat ~/usb.log
 rm ~/drives.log
 rm ~/usb.log
 rm ~/media.log
+if [ -s ~/alert.log ]; then
+echo ""
+##echo "Alert"
+cat ~/alert.log
+rm ~/alert.log
+fi
 echo "\${font}\${voffset -4}"
 
 #### Network Block
