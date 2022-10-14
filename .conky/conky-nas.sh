@@ -408,6 +408,9 @@ for drive in $drives ; do
         disk_color="lightblue"
       else
         disk_temp=`echo $user_pass | sudo -kS hddtemp $drive 2>/dev/null | awk '{ print $NF }' | sed 's/°C//'`
+        if [[ "$drive" =~ "nvme" ]]; then
+          disk_temp=`echo $user_pass | sudo -kS nvme smart-log $drive 2>/dev/null | grep "temperature" | awk '{ print $3 }'`
+        fi
         if [[ "$disk_temp" -ge "45" ]]; then
           disk_color="red"
         else
