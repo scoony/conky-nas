@@ -502,10 +502,14 @@ for drive in $drives ; do
     fi
   fi
 done
+cat ~/drives.log | grep "/media" > ~/media.log
+sed -i '/\/media\//d' ~/drives.log
 sort ~/drives.log
+cat ~/media.log
 cat ~/usb.log
 rm ~/drives.log
 rm ~/usb.log
+rm ~/media.log
 echo "\${font}\${voffset -4}"
 
 #### Network Block
