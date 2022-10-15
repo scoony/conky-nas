@@ -521,6 +521,7 @@ cat ~/.conky/Temp/drives.log | grep "red" >> ~/.conky/Temp/alert.log
 sed -i '/orange/d' ~/.conky/Temp/drives.log
 sed -i '/red/d' ~/.conky/Temp/drives.log
 sed -i '/\/media\//d' ~/.conky/Temp/drives.log
+sed -i '/\/snap\//d' ~/.conky/Temp/drives.log
 sort ~/.conky/Temp/drives.log
 cat ~/.conky/Temp/media.log
 cat ~/.conky/Temp/usb.log
