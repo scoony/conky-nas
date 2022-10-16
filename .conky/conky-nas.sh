@@ -391,7 +391,7 @@ fi
 echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title \${hr 2}"
 drives=`ls /dev/nvme0n[1-9]p[1-9] /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
 for drive in $drives ; do
-  mount_point=`grep "^$drive " /proc/mounts | cut -d ' ' -f 2`
+  mount_point=`grep "^$drive " /proc/mounts | grep -v "/snap/" | cut -d ' ' -f 2`
   if [[ "$mount_point" != "" ]]; then
     disk_free=`df $drive | sed 1d | awk '{print $4}'`
     disk_free_human=`echo $disk_free | numfmt --from-unit=1024 --to=si`
@@ -834,6 +834,10 @@ if [[ "$net_adapter" != "" ]]; then
           echo $font_standard"$mui_plex_pid $plex_pid"$txt_align_right"$mui_plex_prlimit $plex_prlimit "
         fi
       fi
+      if [[ ! -d ~/.conky/Temp ]]; then
+        mkdir ~/.conky/Temp
+      fi
+      touch ~/.conky/Temp/plex.log
       plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
       plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
       echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
@@ -867,7 +871,7 @@ if [[ "$net_adapter" != "" ]]; then
           fi
           plex_song=`echo $plex_stream | sed 's/<Media .*//' | sed 's/.* title="//' | sed 's/".*//'`
           plex_music=`echo $plex_artiste$plex_album - $plex_song`
-          echo -e "$font_extra\u25CF $font_standar${plex_music:0:30} $txt_align_right${plex_user:0:15}"
+          echo -e "$font_extra\u25CF $font_standar${plex_music:0:30} $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex.log
         else
           plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
           if [[ "$plex_checkepisode" != "" ]]; then
@@ -875,23 +879,25 @@ if [[ "$net_adapter" != "" ]]; then
             plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
             plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
             if [[ "$plex_transcode" == "transcode" ]]; then
-              echo -e "$font_extra\u25CF $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}"
+              echo -e "$font_extra\u25CF $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex.log
             else
-              echo -e "$font_extra\u25C9 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}"
+              echo -e "$font_extra\u25C9 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex.log
             fi
           else
             plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
             if [[ "$plex_transcode" == "transcode" ]]; then
-              echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}"
+              echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex.log
             else
-              echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}"
+              echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex.log
             fi
           fi
         fi
         plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
-        echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress}
+        echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex.log
         let num=$num+1
       done
+      cat ~/.conky/Temp/plex.log
+      rm ~/.conky/Temp/plex.log
     else
       echo -e "\${font ${font_awesome_font}}$font_awesome_plex\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
       echo ""
