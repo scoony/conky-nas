@@ -557,9 +557,15 @@ if [[ "$net_adapter" != "" ]]; then
   net_ip_public=`dig -4 +short myip.opendns.com @resolver1.opendns.com`
   if [[ "$vpn_detected" != "" ]]; then
 #    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
-    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
+##    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
     if [[ "$net_adapter_number" == "1" ]]; then
       net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
+      if [[ "$net_ip_box" =~ "$net_ip_public" ]] && id -u "vpn" >/dev/null 2>&1; then
+        net_ip_public=`echo $user_pass | sudo -kSu vpn -i -- wget -q -O - ipinfo.io/ip`
+        echo -e "${font_standard}$mui_network_ip_tunnel $txt_align_right$net_ip_public"
+      else
+        echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
+      fi
       echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
       if [[ "$net_ip_box" == "$net_ip_public" ]]; then
         if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
@@ -594,6 +600,12 @@ if [[ "$net_adapter" != "" ]]; then
         if [[ "$net_adapter_device"  == "$net_adapter_default" ]]; then
           net_adapter_device_ip=`ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
           net_adapter_device_ip_box=`dig -b $net_adapter_device_ip +short myip.opendns.com @resolver1.opendns.com`
+          if [[ "$net_adapter_device_ip" =~ "$net_adapter_device_ip_box" ]] && id -u "vpn" >/dev/null 2>&1; then
+            net_adapter_device_ip=`echo $user_pass | sudo -kS -u vpn -i -- ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
+            vpn_title="Tunnel IP:"
+          else
+            vpn_title="Current IP:"
+          fi
           echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_adapter_device_ip_box"
           if [[ "$net_adapter_device_ip_box" == "$net_ip_public" ]]; then
             if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
