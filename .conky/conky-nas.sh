@@ -919,7 +919,10 @@ if [[ "$net_adapter" != "" ]]; then
   fi
 fi
 
-kernlog_error=`cat /var/log/kern.log | grep "stuck"`
-if [[ "$kernlog_error" != "" ]]; then
-  push-message "0" "Conky" "kern.log error" "$push_token_app"
+if [[ ! -f ~/.conky/Temp/.kern.log ]]; then
+  kernlog_error=`cat /var/log/kern.log | grep "stuck"`
+  if [[ "$kernlog_error" != "" ]]; then
+    push-message "0" "Conky" "kern.log error" "$push_token_app"
+    touch ~/.conky/Temp/.kern.log
+  fi
 fi
