@@ -918,3 +918,8 @@ if [[ "$net_adapter" != "" ]]; then
     echo "\${font}\${voffset -4}"
   fi
 fi
+
+kernlog_error=`cat /var/log/kern.log | grep "stuck"`
+if [[ "$kernlog_error" != "" ]]; then
+  push-message "0" "Conky" "kern.log error" "$push_token_app"
+fi
