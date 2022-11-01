@@ -676,12 +676,12 @@ if [[ "$net_adapter" != "" ]]; then
         if [[ "$test_transmission" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >~/.conky/transm.log
           transmission_queue=`cat ~/.conky/transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
-          echo "${font_standard}$mui_transmission_queue ${txt_align_right}$transmission_queue "
+          echo "${font_standard}$mui_transmission_queue ${txt_align_right} $transmission_queue"
           transmission_down=`cat ~/.conky/transm.log | grep Sum: | awk '{ print $NF }' | sed "s/\..*//"`
           transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
           transmission_up=`cat ~/.conky/transm.log | grep Sum: | awk '{ print $(NF-1) }' | sed "s/\..*//"`
           transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-          echo -e "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human "
+          echo -e "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
           rm ~/.conky/transm.log
         else
           echo ""
@@ -698,12 +698,12 @@ if [[ "$net_adapter" != "" ]]; then
           echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json &>/dev/null | jq -r '."rpc-password"' | sed 's/./\\&/g' >temp_tr.log
           transmission_password=`cat temp_tr.log`
           rm temp_tr.log
-          echo -e "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l} "
+          echo -e "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l}"
           transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
           transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
           transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
           transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human "
+          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
         else
           echo ""
           echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
@@ -827,7 +827,7 @@ if [[ "$net_adapter" != "" ]]; then
       ## Plex.tv IP used
       if [[ "$plex_extras" == "yes" ]]; then
         plexip_used=`curl --silent https://plex.tv/pms/:/ip`
-        echo $font_standard"$mui_plexip_used"$txt_align_right$plexip_used" "
+        echo $font_standard"$mui_plexip_used"$txt_align_right$plexip_used""
         ## end but if plexip_used == vpn then notifcould be great
         plex_pid=`service plexmediaserver status | grep "Main PID" | awk '{print $3}'`
         plex_prlimit=`echo $user_pass | sudo -kS prlimit --pid $plex_pid --as --output HARD | tail -n 1`
@@ -841,18 +841,20 @@ if [[ "$net_adapter" != "" ]]; then
         #echo $font_standard"$mui_plex_pid"$txt_align_right$plex_pid" "
         #echo $font_standard"$mui_plex_prlimit"$txt_align_right$plex_prlimit" "
         if [[ "$plex_ram_used" != "" ]]; then
-          echo $font_standard"$mui_plex_pid $plex_pid ($plex_ram_used)"$txt_align_right"$mui_plex_prlimit $plex_prlimit "
+          echo $font_standard"$mui_plex_pid $plex_pid ($plex_ram_used)"$txt_align_right"$mui_plex_prlimit $plex_prlimit"
         else
-          echo $font_standard"$mui_plex_pid $plex_pid"$txt_align_right"$mui_plex_prlimit $plex_prlimit "
+          echo $font_standard"$mui_plex_pid $plex_pid"$txt_align_right"$mui_plex_prlimit $plex_prlimit"
         fi
       fi
       if [[ ! -d ~/.conky/Temp ]]; then
         mkdir ~/.conky/Temp
       fi
-      touch ~/.conky/Temp/plex.log
+      touch ~/.conky/Temp/plex_transcode.log
+      touch ~/.conky/Temp/plex_direct.log
+      touch ~/.conky/Temp/plex_music.log
       plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
       plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
-      echo $font_standard"$mui_plex_streams"$txt_align_right$plex_users" "
+      echo $font_standard$mui_plex_streams$txt_align_right $plex_users
       let num=1
       while [ $num -le $plex_users ]; do
         plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | sed "s/<\/Track> /|/g" | cut -d'|' -f$num`
@@ -873,6 +875,7 @@ if [[ "$net_adapter" != "" ]]; then
           fi
         fi
         plex_checkmusic=`echo $plex_stream | grep ' type="track"'`
+        plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
         if [[ "$plex_checkmusic" != "" ]]; then
           #plex_artiste=`echo $plex_stream | sed 's/.* originalTitle="//' | sed 's/".*//'`
           plex_artiste=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
@@ -883,7 +886,8 @@ if [[ "$net_adapter" != "" ]]; then
           fi
           plex_song=`echo $plex_stream | sed 's/<Media .*//' | sed 's/.* title="//' | sed 's/".*//'`
           plex_music=`echo $plex_artiste$plex_album - $plex_song`
-          echo -e "$font_extra\u25CF $font_standar${plex_music:0:30} $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex.log
+          echo -e "$font_extra\u25CF $font_standar${plex_music:0:30} $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_music.log
+          echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_music.log
         else
           plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
           if [[ "$plex_checkepisode" != "" ]]; then
@@ -891,25 +895,33 @@ if [[ "$net_adapter" != "" ]]; then
             plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
             plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
             if [[ "$plex_transcode" == "transcode" ]]; then
-              echo -e "$font_extra\u25CF $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex.log
+              echo -e "$font_extra\u25CF $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_transcode.log
+              echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_transcode.log
             else
-              echo -e "$font_extra\u25C9 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex.log
+              echo -e "$font_extra\u25C9 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_direct.log
+              echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_direct.log
             fi
           else
             plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
             if [[ "$plex_transcode" == "transcode" ]]; then
-              echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex.log
+              echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex_transcode.log
+              echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_transcode.log
             else
-              echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex.log
+              echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex_direct.log
+              echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_direct.log
             fi
           fi
         fi
-        plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
-        echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex.log
+#        plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
+#        echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex.log
         let num=$num+1
       done
-      cat ~/.conky/Temp/plex.log
-      rm ~/.conky/Temp/plex.log
+      cat ~/.conky/Temp/plex_transcode.log
+      cat ~/.conky/Temp/plex_direct.log
+      cat ~/.conky/Temp/plex_music.log
+      rm ~/.conky/Temp/plex_transcode.log
+      rm ~/.conky/Temp/plex_direct.log
+      rm ~/.conky/Temp/plex_music.log
     else
       echo -e "\${font ${font_awesome_font}}$font_awesome_plex\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
       echo ""
