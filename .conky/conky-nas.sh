@@ -280,25 +280,28 @@ else
     cpu_num=$((cpu_num+1))
   done
 fi
-gpu_brand=`lspci | grep ' VGA '`
-if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
-  gpu_check_command=`nvidia-smi --help 2>/dev/null`
-  if [[ "$gpu_check_command" != "" ]]; then
-    gpu_temp=`nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader`
-    if [[ "$gpu_temp" -ge "85" ]]; then
-      gpu_color="red"
-    else
-      gpu_color="lightgray"
+gpu_detect=`lspci | grep " VGA " | awk '{print $1}'`
+for gpu_id in $gpu_detect ; do
+  gpu_isolation=`lspci -nnv -s $gpu_id | grep vfio-pci`
+  if [[ "$gpu_isolation" == "" ]]; then
+    gpu_brand=`lspci -s $gpu_id | grep ' VGA '`
+    if [[ "$gpu_brand" =~ "NVIDIA" ]]; then
+      gpu_temp=`nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader`
+      if [[ "$gpu_temp" -ge "85" ]]; then
+        gpu_color="red"
+      else
+        gpu_color="lightgray"
+      fi
+    ##  echo -e "${font_standard}\${nvidia modelname}:\${goto 130}\${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}\${nvidia temp}°\$color"
+    ## Wayland fix (nvidia plugin not working)
+      gpu_usage=`nvidia-smi | grep % | cut -c 62-63`
+      gpu_usage2=`echo $gpu_usage | sed "s/ //g"`
+      gpu_usage3=`expr $gpu_usage`
+      gpu_name=`nvidia-smi --query-gpu=gpu_name --format=csv | sed '$!d' | sed "s/NVIDIA //"`
+      echo -e "${font_standard}$gpu_name:\${goto 130}$gpu_usage% \${goto 154}\${voffset 1}\${execbar 6,140 echo ${gpu_usage}}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$gpu_temp°\$color"
     fi
-  ##  echo -e "${font_standard}\${nvidia modelname}:\${goto 130}\${nvidia gpuutil}% \${goto 154}\${voffset 1}\${nvidiabar 6,140 gpuutil}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}\${nvidia temp}°\$color"
-  ## Wayland fix (nvidia plugin not working)
-    gpu_usage=`nvidia-smi | grep % | cut -c 62-63`
-    gpu_usage2=`echo $gpu_usage | sed "s/ //g"`
-    gpu_usage3=`expr $gpu_usage`
-    gpu_name=`nvidia-smi --query-gpu=gpu_name --format=csv | sed '$!d' | sed "s/NVIDIA //"`
-    echo -e "${font_standard}$gpu_name:\${goto 130}$gpu_usage% \${goto 154}\${voffset 1}\${execbar 6,140 echo ${gpu_usage}}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$gpu_temp°\$color"
   fi
-fi
+done
 #if [[ "$gpu_brand" =~ "Intel" ]]; then
 #  gpu_name=$(lspci | grep VGA | cut -d ':' -f3 | sed 's/^.//' | sed 's/ (.*//' | sed 's/Intel //' | sed 's/Corporation //')
 #  echo -e "${font_standard}$gpu_name"
