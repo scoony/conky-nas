@@ -185,6 +185,19 @@ fi
 echo "\${font}\${voffset -4}"
 
 
+#### VM(s) Block
+
+vm_running=`echo $user_pass | sudo -kS virsh list | grep running | awk '{print $2}'`
+if [[ "$vm_running" != "" ]]; then
+  vm_core=`echo $user_pass | sudo -kS virsh vcpuinfo $vm_running | grep -m 1 "^CPU" | awk '{print $2}'`
+  vm_ram=`echo $user_pass | sudo -kS virsh dominfo $vm_running | grep "Max memory" | cut -f 7 -d " "`
+  vm_ram_gb=$(($vm_ram / 1048576 ))
+  echo -e "\${font ${font_awesome_font}}$font_awesome_vpn\${font}\${goto 35} ${font_title}$mui_vm_title \${hr 2}"
+  echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running / $vm_core cores / $vm_ram_gb gb"
+  echo "\${font}\${voffset -4}"
+fi
+
+
 #### Services Block
 
 if [[ "$services_list" != "" ]]; then
