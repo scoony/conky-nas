@@ -185,8 +185,12 @@ if [ -f /var/run/reboot-required ]; then
 fi
 time2=`date +%s`
 duration_block=$(($time2-$time1))
-if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+if [[ "$debug" == "yes" ]]; then
+  if [[ $duration_block -lt 60 ]]; then
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+  else
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+  fi
 fi
 echo "\${font}\${voffset -4}"
 
@@ -205,8 +209,12 @@ if [[ "$vm_running" != "" ]]; then
   done
   time2=`date +%s`
   duration_block=$(($time2-$time1))
-  if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+  if [[ "$debug" == "yes" ]]; then
+    if [[ $duration_block -lt 60 ]]; then
+      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+    else
+      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+    fi
   fi
   echo "\${font}\${voffset -4}"
 fi
@@ -250,8 +258,12 @@ if [[ "$services_list" != "" ]]; then
   if [[ "$service_alert" != "0" ]]; then
     time2=`date +%s`
     duration_block=$(($time2-$time1))
-    if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+    if [[ "$debug" == "yes" ]]; then
+      if [[ $duration_block -lt 60 ]]; then
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+      else
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+      fi
     fi
     echo "\${font}\${voffset -4}"
   fi
@@ -260,8 +272,12 @@ if [[ "$services_list" != "" ]]; then
     echo -e "${font_standard}$mui_services_ok"
     time2=`date +%s`
     duration_block=$(($time2-$time1))
-    if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+    if [[ "$debug" == "yes" ]]; then
+      if [[ $duration_block -lt 60 ]]; then
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+      else
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+      fi
     fi
     echo "\${font}\${voffset -4}"
   fi
@@ -376,8 +392,12 @@ if [[ "$HandBrake_process" != "" ]]; then
 fi
 time2=`date +%s`
 duration_block=$(($time2-$time1))
-if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+if [[ "$debug" == "yes" ]]; then
+  if [[ $duration_block -lt 60 ]]; then
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+  else
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+  fi
 fi
 echo "\${font}\${voffset -4}"
 
@@ -392,8 +412,12 @@ echo -e "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapma
 echo -e "${font_standard}\${swapbar}"
 time2=`date +%s`
 duration_block=$(($time2-$time1))
-if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+if [[ "$debug" == "yes" ]]; then
+  if [[ $duration_block -lt 60 ]]; then
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+  else
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+  fi
 fi
 echo "\${font}\${voffset -4}"
 
@@ -608,8 +632,12 @@ if [ -s ~/.conky/Temp/alert.log ]; then
 fi
 time2=`date +%s`
 duration_block=$(($time2-$time1))
-if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+if [[ "$debug" == "yes" ]]; then
+  if [[ $duration_block -lt 60 ]]; then
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+  else
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+  fi
 fi
 echo "\${font}\${voffset -4}"
 
@@ -719,8 +747,12 @@ else
 fi
 time2=`date +%s`
 duration_block=$(($time2-$time1))
-if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+if [[ "$debug" == "yes" ]]; then
+  if [[ $duration_block -lt 60 ]]; then
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+  else
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+  fi
 fi
 echo "\${font}\${voffset -4}"
 
@@ -744,8 +776,12 @@ if [[ "$net_adapter" != "" ]]; then
   if [[ "$connexion_ssh_list" != "" ]] || [[ "$connexion_vino_list" != "" ]]; then
     time2=`date +%s`
     duration_block=$(($time2-$time1))
-    if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+    if [[ "$debug" == "yes" ]]; then
+      if [[ $duration_block -lt 60 ]]; then
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+      else
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+      fi
     fi
     echo "\${font}\${voffset -4}"
   fi
@@ -1019,8 +1055,12 @@ if [[ "$net_adapter" != "" ]]; then
     fi
     time2=`date +%s`
     duration_block=$(($time2-$time1))
-    if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
-      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+    if [[ "$debug" == "yes" ]]; then
+      if [[ $duration_block -lt 60 ]]; then
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+      else
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+      fi
     fi
     echo "\${font}\${voffset -4}"
   fi
