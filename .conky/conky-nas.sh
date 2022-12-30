@@ -140,6 +140,7 @@ fi
 
 #### System Block
 
+time1=`date +%s`
 echo -e "\${font ${font_awesome_font}}$font_awesome_system\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
 hdd_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 #hdd_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$2)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
@@ -182,6 +183,11 @@ fi
 if [ -f /var/run/reboot-required ]; then
   echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_system_reboot\$color"
 fi
+time2=`date +%s`
+duration_block=$(($time2-$time1))
+if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+fi
 echo "\${font}\${voffset -4}"
 
 
@@ -189,6 +195,7 @@ echo "\${font}\${voffset -4}"
 
 vm_running=`echo $user_pass | sudo -kS virsh list | grep running | awk '{print $2}'`
 if [[ "$vm_running" != "" ]]; then
+  time1=`date +%s`
   echo -e "\${font ${font_awesome_font}}$font_awesome_vpn\${font}\${goto 35} ${font_title}$mui_vm_title \${hr 2}"
   for vm_running_name in $vm_running ; do
     vm_core=`echo $user_pass | sudo -kS virsh dominfo $vm_running_name | grep "CPU(s)" | awk '{print $2}'`
@@ -196,6 +203,11 @@ if [[ "$vm_running" != "" ]]; then
     vm_ram_gb=$(($vm_ram / 1048576 ))
     echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running / $vm_core threads / $vm_ram_gb gb"
   done
+  time2=`date +%s`
+  duration_block=$(($time2-$time1))
+  if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+  fi
   echo "\${font}\${voffset -4}"
 fi
 
@@ -204,6 +216,7 @@ fi
 #### Services Block
 
 if [[ "$services_list" != "" ]]; then
+  time1=`date +%s`
   services_list_sorted=$(echo $services_list | xargs -n1 | sort -u | xargs)
   service_alert="0"
   for myservice in $services_list_sorted ; do
@@ -235,11 +248,21 @@ if [[ "$services_list" != "" ]]; then
     fi
   done
   if [[ "$service_alert" != "0" ]]; then
+    time2=`date +%s`
+    duration_block=$(($time2-$time1))
+    if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+    fi
     echo "\${font}\${voffset -4}"
   fi
   if [[ "$service_alert" == "0" ]] && [[ "$service_alert_view" == "yes" ]]; then
     echo -e "\${font ${font_awesome_font}}$font_awesome_service\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
     echo -e "${font_standard}$mui_services_ok"
+    time2=`date +%s`
+    duration_block=$(($time2-$time1))
+    if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+    fi
     echo "\${font}\${voffset -4}"
   fi
 fi
@@ -247,6 +270,7 @@ fi
 
 #### CPU Block
 
+time1=`date +%s`
 echo -e "\${font ${font_awesome_font}}$font_awesome_cpu\${font}\${goto 35} ${font_title}$mui_cpu_title \${hr 2}"
 echo -e "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
@@ -308,44 +332,69 @@ done
 #fi
 HandBrake_process=`ps aux | grep HandBrakeCLI | sed '/grep/d'`
 if [[ "$HandBrake_process" != "" ]]; then
-  HandBrake_line=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p'`
-  if [[ "$HandBrake_line" != "Encodage terminé" ]] && [[ "$HandBrake_line" != "..." ]] && [[ "$HandBrake_line" != "" ]] && [[ "$HandBrake_line" != "Encodage en cours" ]]; then
-    HandBrake_progress=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p' | cut -d' ' -f2 | sed "s/(//" | sed "s/\..*//"`
-    while [ "$HandBrake_progress" == "" ]; do
+  if [[ -f "/opt/scripts/.convert2hdlight" ]]; then 
+    HandBrake_line=`cat "/opt/scripts/.convert2hdlight" 2>/dev/null | sed -n '1p'`
+    if [[ "$HandBrake_line" != "Encodage terminé" ]] && [[ "$HandBrake_line" != "..." ]] && [[ "$HandBrake_line" != "" ]] && [[ "$HandBrake_line" != "Encodage en cours" ]]; then
       HandBrake_progress=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p' | cut -d' ' -f2 | sed "s/(//" | sed "s/\..*//"`
-    done
-    HandBrake_progress_human=`printf '%d' $HandBrake_progress`
-    HandBrake_ETA=`cat "/opt/scripts/.convert2hdlight" | sed -n '7p'`
-    while [ "$HandBrake_ETA" == "" ]; do
+      while [ "$HandBrake_progress" == "" ]; do
+        HandBrake_progress=`cat "/opt/scripts/.convert2hdlight" | sed -n '1p' | cut -d' ' -f2 | sed "s/(//" | sed "s/\..*//"`
+      done
+      HandBrake_progress_human=`printf '%d' $HandBrake_progress`
       HandBrake_ETA=`cat "/opt/scripts/.convert2hdlight" | sed -n '7p'`
-    done
-    HandBrake_categorie=`cat "/opt/scripts/.convert2hdlight" | sed -n '5p'`
-    while [ "$HandBrake_categorie" == "" ]; do
+      while [ "$HandBrake_ETA" == "" ]; do
+        HandBrake_ETA=`cat "/opt/scripts/.convert2hdlight" | sed -n '7p'`
+      done
       HandBrake_categorie=`cat "/opt/scripts/.convert2hdlight" | sed -n '5p'`
-    done
-    HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
-    while [ "$HandBrake_file" == "" ]; do
+      while [ "$HandBrake_categorie" == "" ]; do
+        HandBrake_categorie=`cat "/opt/scripts/.convert2hdlight" | sed -n '5p'`
+      done
       HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
-    done
-    echo -e "${font_standard}$mui_cpu_handbrake\${goto 124}$(printf "%3d" $HandBrake_progress_human)%\${goto 154}\${voffset 1}\${execbar 6 echo $HandBrake_progress_human}"
+      while [ "$HandBrake_file" == "" ]; do
+        HandBrake_file=`cat "/opt/scripts/.convert2hdlight" | sed -n '6p'`
+      done
+    fi
+    HandBrake_status=""
+  elif [[ -f "$HOME/.config/plex_convert/conky-nas.handbrake" ]]; then
+    source "$HOME/.config/plex_convert/conky-nas.handbrake"
+    HandBrake_status=$plex_convert_status
+    HandBrake_file=$plex_convert_title
+    HandBrake_categorie=$plex_convert_type
+    HandBrake_progress_human=`echo $plex_convert_percent | sed "s/\..*//"`
+    HandBrake_ETA=$plex_convert_time_left
+  else
+    HandBrake_progress_human=""
+  fi
+  if [[ "$HandBrake_progress_human" != "" ]]; then
+    echo -e "${font_standard}$mui_cpu_handbrake $HandBrake_status\${goto 124}$(printf "%3d" $HandBrake_progress_human)%\${goto 154}\${voffset 1}\${execbar 6 echo $HandBrake_progress_human}"
     echo -e "${font_standard}$mui_cpu_handbrake_ETA$txt_align_right$HandBrake_ETA"
-    if [[ "$HandBrake_categorie" == "Film" ]]; then
+    if [[ "$HandBrake_categorie" == "Film" ]] || [[ "$HandBrake_categorie" == "movie" ]]; then
       echo -e "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:40}"
     else
       echo -e "${font_standard}$mui_cpu_handbrake_serie$txt_align_right${HandBrake_file:0:40}"
     fi
   fi
 fi
+time2=`date +%s`
+duration_block=$(($time2-$time1))
+if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+fi
 echo "\${font}\${voffset -4}"
 
 
 #### Memory Block
 
+time1=`date +%s`
 echo -e "\${font ${font_awesome_font}}$font_awesome_memory\${font}\${goto 35} ${font_title}$mui_memory_title \${hr 2}"
 echo -e "${font_standard}$mui_memory_ram $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
 echo -e "${font_standard}\$membar"
 echo -e "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
 echo -e "${font_standard}\${swapbar}"
+time2=`date +%s`
+duration_block=$(($time2-$time1))
+if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+fi
 echo "\${font}\${voffset -4}"
 
 
@@ -410,6 +459,7 @@ fi
 
 #### DiskUsage Block
 
+time1=`date +%s`
 echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title \${hr 2}"
 drives=`ls /dev/nvme0n[1-9]p[1-9] /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
 for drive in $drives ; do
@@ -551,15 +601,21 @@ rm ~/.conky/Temp/drives.log
 rm ~/.conky/Temp/usb.log
 rm ~/.conky/Temp/media.log
 if [ -s ~/.conky/Temp/alert.log ]; then
-echo ""
-##echo "Alert"
-cat ~/.conky/Temp/alert.log
-rm ~/.conky/Temp/alert.log
+  echo ""
+  ##echo "Alert"
+  cat ~/.conky/Temp/alert.log
+  rm ~/.conky/Temp/alert.log
+fi
+time2=`date +%s`
+duration_block=$(($time2-$time1))
+if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
 fi
 echo "\${font}\${voffset -4}"
 
 #### Network Block
 
+time1=`date +%s`
 if [[ "$net_adapter" != "" ]]; then
   vpn_detected=`ifconfig | grep "tun[0-9]"`
   if [[ "$vpn_detected" != "" ]]; then
@@ -661,12 +717,18 @@ else
   echo ""
   echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_network_error\$color"
 fi
+time2=`date +%s`
+duration_block=$(($time2-$time1))
+if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+  echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+fi
 echo "\${font}\${voffset -4}"
 
 
 #### Connexion Block
 
 if [[ "$net_adapter" != "" ]]; then
+  time1=`date +%s`
   connexion_ssh_list=`w | sed '1,2d' | sed '/session/d' | sed '/ - /d' | sed '/tmux/d' | tr -s ' ' | cut -d ' ' -f 1,3 | sed 's/^\(.*'$look'.*\)$/SSH: \1/'`
   if [[ "$connexion_ssh_list" != "" ]]; then
     echo -e "\${font ${font_awesome_font}}$font_awesome_connexion\${font}\${goto 35} ${font_title}$mui_connexion_title \${hr 2}"
@@ -680,7 +742,12 @@ if [[ "$net_adapter" != "" ]]; then
     fi
   fi
   if [[ "$connexion_ssh_list" != "" ]] || [[ "$connexion_vino_list" != "" ]]; then
-          echo "\${font}\${voffset -4}"
+    time2=`date +%s`
+    duration_block=$(($time2-$time1))
+    if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+    fi
+    echo "\${font}\${voffset -4}"
   fi
 fi
 
@@ -810,6 +877,7 @@ fi
 
 if [[ "$net_adapter" != "" ]]; then
   if [[ "$plex_check" == "yes" ]]; then
+    time1=`date +%s`
     plex_state=`systemctl show -p SubState --value plexmediaserver`
     if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
       echo -e "\${font ${font_awesome_font}}$font_awesome_plex\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
@@ -889,7 +957,7 @@ if [[ "$net_adapter" != "" ]]; then
         plex_state=`echo $plex_stream | sed 's/.* state="//' | sed 's/".*//'`
         if [[ "$plex_state" == "playing" ]]; then
           plex_state_human="$plex_stream_state_play "
-        else
+        elser
           if [[ "$plex_state" == "paused" ]]; then
             plex_state_human="$plex_stream_state_pause "
           else
@@ -949,14 +1017,11 @@ if [[ "$net_adapter" != "" ]]; then
       echo ""
       echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
     fi
+    time2=`date +%s`
+    duration_block=$(($time2-$time1))
+    if [[ $duration_block > 0 ]] && [[ "$debug" == "yes" ]]; then
+      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%M:%S)"
+    fi
     echo "\${font}\${voffset -4}"
-  fi
-fi
-
-if [[ ! -f ~/.conky/Temp/.kern.log ]]; then
-  kernlog_error=`cat /var/log/kern.log | grep "stuck"`
-  if [[ "$kernlog_error" != "" ]]; then
-    push-message "0" "Conky" "kern.log error" "$push_token_app"
-    touch ~/.conky/Temp/.kern.log
   fi
 fi
