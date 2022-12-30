@@ -993,7 +993,7 @@ if [[ "$net_adapter" != "" ]]; then
         plex_state=`echo $plex_stream | sed 's/.* state="//' | sed 's/".*//'`
         if [[ "$plex_state" == "playing" ]]; then
           plex_state_human="$plex_stream_state_play "
-        elser
+        else
           if [[ "$plex_state" == "paused" ]]; then
             plex_state_human="$plex_stream_state_pause "
           else
