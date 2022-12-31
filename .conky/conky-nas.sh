@@ -372,7 +372,7 @@ if [[ "$HandBrake_process" != "" ]]; then
     HandBrake_status=""
   elif [[ -f "$HOME/.config/plex_convert/conky-nas.handbrake" ]]; then
     source "$HOME/.config/plex_convert/conky-nas.handbrake"
-    HandBrake_status=$plex_convert_status
+    HandBrake_status=`echo " | $plex_convert_status"`
     HandBrake_file=$plex_convert_title
     HandBrake_categorie=$plex_convert_type
     HandBrake_progress_human=`echo $plex_convert_percent | sed "s/\..*//"`
@@ -381,7 +381,7 @@ if [[ "$HandBrake_process" != "" ]]; then
     HandBrake_progress_human=""
   fi
   if [[ "$HandBrake_progress_human" != "" ]]; then
-    echo -e "${font_standard}$mui_cpu_handbrake $HandBrake_status\${goto 124}$(printf "%3d" $HandBrake_progress_human)%\${goto 154}\${voffset 1}\${execbar 6 echo $HandBrake_progress_human}"
+    echo -e "${font_standard}$mui_cpu_handbrake$HandBrake_status:\${goto 124}$(printf "%3d" $HandBrake_progress_human)%\${goto 154}\${voffset 1}\${execbar 6 echo $HandBrake_progress_human}"
     echo -e "${font_standard}$mui_cpu_handbrake_ETA$txt_align_right$HandBrake_ETA"
     if [[ "$HandBrake_categorie" == "Film" ]] || [[ "$HandBrake_categorie" == "movie" ]]; then
       echo -e "${font_standard}$mui_cpu_handbrake_film$txt_align_right${HandBrake_file:0:40}"
