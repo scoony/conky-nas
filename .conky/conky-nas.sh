@@ -834,7 +834,6 @@ if [[ "$net_adapter" != "" ]]; then
           echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
         fi
       fi
-      echo "\${font}\${voffset -4}"
     else
       if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
         echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font} ${font_title}$mui_transmission_title \${hr 2}"
@@ -853,7 +852,6 @@ if [[ "$net_adapter" != "" ]]; then
           echo ""
           echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
         fi
-        echo "\${font}\${voffset -4}"
       fi
     fi
     if [[ "$transmission_push_finished" == "yes" ]] && [[ "$transmission_push_activated" == "yes" ]]; then
@@ -905,6 +903,16 @@ if [[ "$net_adapter" != "" ]]; then
       rm ~/.conky/transmission_list.log
       touch ~/.conky/transmission-done
     fi
+    time2=`date +%s`
+    duration_block=$(($time2-$time1))
+    if [[ "$debug" == "yes" ]]; then
+      if [[ $duration_block -lt 60 ]]; then
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+      else
+        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+      fi
+    fi
+    echo "\${font}\${voffset -4}"
   fi
 fi
 
