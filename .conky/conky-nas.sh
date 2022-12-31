@@ -187,9 +187,9 @@ time2=`date +%s`
 duration_block=$(($time2-$time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
   else
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
   fi
 fi
 echo "\${font}\${voffset -4}"
@@ -211,9 +211,9 @@ if [[ "$vm_running" != "" ]]; then
   duration_block=$(($time2-$time1))
   if [[ "$debug" == "yes" ]]; then
     if [[ $duration_block -lt 60 ]]; then
-      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+      echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
     else
-      echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+      echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
     fi
   fi
   echo "\${font}\${voffset -4}"
@@ -260,9 +260,9 @@ if [[ "$services_list" != "" ]]; then
     duration_block=$(($time2-$time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
       else
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
       fi
     fi
     echo "\${font}\${voffset -4}"
@@ -274,9 +274,9 @@ if [[ "$services_list" != "" ]]; then
     duration_block=$(($time2-$time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
       else
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
       fi
     fi
     echo "\${font}\${voffset -4}"
@@ -394,9 +394,9 @@ time2=`date +%s`
 duration_block=$(($time2-$time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
   else
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
   fi
 fi
 echo "\${font}\${voffset -4}"
@@ -414,9 +414,9 @@ time2=`date +%s`
 duration_block=$(($time2-$time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
   else
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
   fi
 fi
 echo "\${font}\${voffset -4}"
@@ -634,9 +634,9 @@ time2=`date +%s`
 duration_block=$(($time2-$time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
   else
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
   fi
 fi
 echo "\${font}\${voffset -4}"
@@ -749,9 +749,9 @@ time2=`date +%s`
 duration_block=$(($time2-$time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
   else
-    echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+    echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
   fi
 fi
 echo "\${font}\${voffset -4}"
@@ -778,9 +778,9 @@ if [[ "$net_adapter" != "" ]]; then
     duration_block=$(($time2-$time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
       else
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
       fi
     fi
     echo "\${font}\${voffset -4}"
@@ -908,9 +908,9 @@ if [[ "$net_adapter" != "" ]]; then
     duration_block=$(($time2-$time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
       else
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
       fi
     fi
     echo "\${font}\${voffset -4}"
@@ -1066,9 +1066,9 @@ if [[ "$net_adapter" != "" ]]; then
     duration_block=$(($time2-$time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
       else
-        echo -e "${font_standard}Traitement en $(date -d@$duration_block -u +%Mm:%Ss)"
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
       fi
     fi
     echo "\${font}\${voffset -4}"
