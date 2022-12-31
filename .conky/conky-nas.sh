@@ -792,6 +792,7 @@ fi
 
 if [[ "$net_adapter" != "" ]]; then
   if [[ "$transmission_check" == "yes" ]]; then
+    time1=`date +%s`
     transmission_state=`systemctl show -p SubState --value transmission-daemon`
     if [[ "$transmission_state" != "dead" ]]; then
       echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
