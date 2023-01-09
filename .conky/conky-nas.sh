@@ -205,7 +205,7 @@ if [[ "$vm_running" != "" ]]; then
     vm_core=`echo $user_pass | sudo -kS virsh dominfo $vm_running_name | grep "CPU(s)" | awk '{print $2}'`
     vm_ram=`echo $user_pass | sudo -kS virsh dominfo $vm_running_name | grep "Max memory" | cut -f 7 -d " "`
     vm_ram_gb=$(($vm_ram / 1048576 ))
-    echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running / $vm_core threads / $vm_ram_gb gb"
+    echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running_name / $vm_core threads / $vm_ram_gb gb"
   done
   time2=`date +%s`
   duration_block=$(($time2-$time1))
