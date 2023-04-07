@@ -9,6 +9,11 @@ txt_align_right="\${alignr}"
 txt_align_center="\${alignc}"
 font_awesome_font="FontAwesome:regular:size=16"
 font_awesome_system="\uf17c"
+font_awesome_ups_full="\uf240"
+font_awesome_ups_three_quarter="\uf241"
+font_awesome_ups_half="\uf242"
+font_awesome_ups_quarter="\uf243"
+font_awesome_ups_empty="\uf244"
 font_awesome_cpu="\uf06d"
 font_awesome_memory="\uf2db"
 font_awesome_diskusage="\uf0a0"
@@ -44,12 +49,18 @@ plex_token=""
 ## DONT EDIT AFTER THIS
 #######################
 
+if [[ ! -d ~/.conky/Temp ]]; then
+  mkdir ~/.conky/Temp
+fi
+
 ## Cleaning for smart-status
+
 if [[ $(date +"%H:%M") == "00:00" ]]; then
   rm ~/.conky/transmission-done
 fi
 
 ## Check local language and apply MUI
+
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
 if [[ -f ~/.conky/MUI/$os_language.lang ]]; then
   script_language="~/.conky/MUI/$os_language.lang"
@@ -61,6 +72,7 @@ fi
 
 
 ## Load config (if exist)
+
 if [[ -f ~/.conky/conky-nas.conf ]]; then
   source ~/.conky/conky-nas.conf
 fi
@@ -193,6 +205,40 @@ if [[ "$debug" == "yes" ]]; then
   fi
 fi
 echo "\${font}\${voffset -4}"
+
+
+#### UPS(s) Block
+
+if [[ "$ups_check" == "yes" ]]; then
+  upsc $ups_user@$ups_ip 2>/dev/null > ~/.conky/Temp/ups.log
+  ups_brand=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.mfr: | sed 's/.*: //g'`
+  ups_model=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.model: | sed 's/.*: //g'`
+  ups_charge=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep battery.charge: | awk '{print $NF}'`
+  ups_load=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.load: | awk '{print $NF}'`
+  ups_status=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.status: | awk '{print $NF}'`
+  if [[ $ups_charge -gt 75 ]]; then
+    echo -e "\${font ${font_awesome_font}}$font_awesome_ups_full\${font}\${goto 35} ${font_title}$mui_ups_title \${hr 2}"
+  else
+    if [[ $ups_charge -gt 50 ]]; then
+      echo -e "\${font ${font_awesome_font}}$font_awesome_ups_three_quarter\${font}\${goto 35} ${font_title}$mui_ups_title \${hr 2}"
+    else
+      if [[ $ups_charge -gt 25 ]]; then
+        echo -e "\${font ${font_awesome_font}}$font_awesome_ups_half\${font}\${goto 35} ${font_title}$mui_ups_title \${hr 2}"
+      else
+        echo -e "\${font ${font_awesome_font}}\${color red}$font_awesome_ups_quarter\$color\${font}\${goto 35} ${font_title}$mui_ups_title \${hr 2}"
+      fi
+    fi
+  fi
+  echo -e "${font_standard}$ups_brand $ups_model"
+  if [[ "$ups_status" != "OL" ]]; then
+    ups_runtime=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep battery.runtime: | awk '{print $NF}'`
+    echo -e "${font_standard}$mui_ups_charge: ($(date -d@$ups_runtime -u +%M:%S))\${goto 124}$(printf "%3d" $ups_charge)%\${goto 154}\${voffset 1}\${execbar 6 echo $ups_charge}"
+  else
+    echo -e "${font_standard}$mui_ups_charge:\${goto 124}$(printf "%3d" $ups_charge)%\${goto 154}\${voffset 1}\${execbar 6 echo $ups_charge}"
+  fi
+  echo -e "${font_standard}$mui_ups_load:\${goto 124}$(printf "%3d" $ups_load)%\${goto 154}\${voffset 1}\${execbar 6 echo $ups_load}"
+  echo "\${font}\${voffset -4}"
+fi
 
 
 #### VM(s) Block
