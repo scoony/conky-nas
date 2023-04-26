@@ -337,7 +337,7 @@ echo -e "\${font ${font_awesome_font}}$font_awesome_cpu\${font}\${goto 35} ${fon
 echo -e "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
 if [[ "$cpu_temp" == "" ]]; then
-  cpu_temp=`sensors | grep Tctl | awk '{print $2}' | sed 's/+//' | sed 's/\..*//'`
+  cpu_temp=`sensors | grep CPUTIN | awk '{print $2}' | sed 's/+//' | sed 's/\..*//'`
   if [[ "$cpu_temp" != "" ]]; then
     if [[ "$cpu_temp" -ge "85" ]]; then
       cpu_color="red"
