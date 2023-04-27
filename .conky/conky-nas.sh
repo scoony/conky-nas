@@ -210,9 +210,10 @@ echo "\${font}\${voffset -4}"
 #### UPS(s) Block
 
 if [[ "$ups_check" == "yes" ]]; then
-  upsc $ups_user@$ups_ip 2>/dev/null > ~/.conky/Temp/ups.log
-  ups_brand=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.mfr: | sed 's/.*: //g'`
-  ups_model=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.model: | sed 's/.*: //g'`
+  printf "\${execi 15 upsc $ups_user@$ups_ip 2>/dev/null > ~/.conky/Temp/ups.log }"
+#  upsc $ups_user@$ups_ip 2>/dev/null > ~/.conky/Temp/ups.log
+#  ups_brand=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.mfr: | sed 's/.*: //g'`
+#  ups_model=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.model: | sed 's/.*: //g'`
   ups_charge=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep battery.charge: | awk '{print $NF}'`
   ups_load=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.load: | awk '{print $NF}'`
   ups_status=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.status: | awk '{print $NF}'`
@@ -229,7 +230,7 @@ if [[ "$ups_check" == "yes" ]]; then
       fi
     fi
   fi
-  echo -e "${font_standard}$ups_brand $ups_model"
+#  echo -e "${font_standard}$ups_brand $ups_model"
   if [[ "$ups_status" != "OL" ]]; then
     ups_runtime=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep battery.runtime: | awk '{print $NF}'`
     echo -e "${font_standard}$mui_ups_charge: ($(date -d@$ups_runtime -u +%M:%S))\${goto 124}$(printf "%3d" $ups_charge)%\${goto 154}\${voffset 1}\${execbar 6 echo $ups_charge}"
