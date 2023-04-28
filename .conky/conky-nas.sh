@@ -160,8 +160,9 @@ hdd_free_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | 
 #hdd_free_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$4)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
 echo -e "${font_standard}$mui_system_host$txt_align_right\$nodename"
 echo -e "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
-echo -e "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
-echo -e "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
+#echo -e "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
+#echo -e "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
+echo -e "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_free_total / $hdd_total"
 power_supply=`acpi -b 2>/dev/null | sed '/rate information unavailable/d'`
 if [[ "$power_supply" != "" ]]; then
   battery_state=`acpi -b | awk "{print $1}" | sed '/rate information unavailable/d' | sed 's/\([^:]*\): \([^,]*\), \([0-9]*\)%.*/\2/' | sed -n '1p'`
@@ -252,7 +253,7 @@ if [[ "$vm_running" != "" ]]; then
     vm_core=`echo $user_pass | sudo -kS virsh dominfo $vm_running_name | grep "CPU(s)" | awk '{print $2}'`
     vm_ram=`echo $user_pass | sudo -kS virsh dominfo $vm_running_name | grep "Max memory" | cut -f 7 -d " "`
     vm_ram_gb=$(($vm_ram / 1048576 ))
-    echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running_name / $vm_core threads / $vm_ram_gb gb"
+    echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running_name / $vm_core Threads / $vm_ram_gb GiB"
   done
   time2=`date +%s`
   duration_block=$(($time2-$time1))
