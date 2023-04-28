@@ -217,6 +217,8 @@ if [[ "$ups_check" == "yes" ]]; then
 #  ups_model=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.model: | sed 's/.*: //g'`
   ups_charge=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep battery.charge: | awk '{print $NF}'`
   ups_load=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.load: | awk '{print $NF}'`
+  ups_power=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.power: | awk '{print $NF}'`
+  ups_power_nominal=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.power.nominal: | awk '{print $NF}'`
   ups_status=`cat ~/.conky/Temp/ups.log 2>/dev/null | grep ups.status: | awk '{print $NF}'`
   if [[ $ups_charge -gt 75 ]]; then
     echo -e "\${font ${font_awesome_font}}$font_awesome_ups_full\${font}\${goto 35} ${font_title}$mui_ups_title \${hr 2}"
@@ -238,7 +240,7 @@ if [[ "$ups_check" == "yes" ]]; then
   else
     echo -e "${font_standard}$mui_ups_charge:\${goto 124}$(printf "%3d" $ups_charge)%\${goto 154}\${voffset 1}\${execbar 6 echo $ups_charge}"
   fi
-  echo -e "${font_standard}$mui_ups_load:\${goto 124}$(printf "%3d" $ups_load)%\${goto 154}\${voffset 1}\${execbar 6 echo $ups_load}"
+  echo -e "${font_standard}$mui_ups_load | $ups_power/$ups_power_nominal :\${goto 124}$(printf "%3d" $ups_load)%\${goto 154}\${voffset 1}\${execbar 6 echo $ups_load}"
   echo "\${font}\${voffset -4}"
 fi
 
