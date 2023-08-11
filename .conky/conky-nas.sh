@@ -559,7 +559,7 @@ for drive in $drives ; do
         fi
         if [[ "$disk_temp" -ge "45" ]]; then
           if [[ "$drive" =~ "nvme" ]]; then
-            if [[ "$disk_temp" -ge "65" ]]; then
+            if [[ "$disk_temp" -ge "70" ]]; then
               disk_color="red"
             else
               disk_color="lightgray"
