@@ -33,5 +33,11 @@ while true ; do
 #### Internet NOK
     echo "No internet connection..."
   fi
+
+#### Check Conky process launched
+  process_conky=`ps aux | grep "conky" | sed '/grep/d' | sed '/conky-update/d'`
+  if [[ "$process_conky" == "" ]];then
+    conky -q &
+  fi
   sleep 3600
 done
