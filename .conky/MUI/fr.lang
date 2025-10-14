@@ -8,6 +8,7 @@ mui_pushover_service_restarted="ce service a été redémarré et est fonctionne
 mui_debug="Traitement en "
 mui_system_title="SYSTÈME"
 mui_system_host="Hôte:"
+mui_system_kernel="Kernel:"
 mui_system_uptime="Dernier redémarrage:"
 mui_system_hdd_total="Capacité HDD totale:"
 mui_system_hdd_free_total="Espace libre total:"
