@@ -159,6 +159,7 @@ hdd_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfm
 hdd_free_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 #hdd_free_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$4)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
 echo -e "${font_standard}$mui_system_host$txt_align_right\$nodename"
+echo -e "${font_standard}$mui_system_kernel$txt_align_right\$kernel"
 echo -e "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
 #echo -e "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
 #echo -e "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
@@ -251,11 +252,17 @@ vm_running=`echo $user_pass | sudo -kS virsh list | grep running | awk '{print $
 if [[ "$vm_running" != "" ]]; then
   time1=`date +%s`
   echo -e "\${font ${font_awesome_font}}$font_awesome_vpn\${font}\${goto 35} ${font_title}$mui_vm_title \${hr 2}"
+  echo $user_pass | sudo -kS virt-top -b -n 2 --stream > ~/.conky/Temp/virt-top.log 2>/dev/null
   for vm_running_name in $vm_running ; do
     vm_core=`echo $user_pass | sudo -kS virsh dominfo $vm_running_name | grep "CPU(s)" | awk '{print $2}'`
     vm_ram=`echo $user_pass | sudo -kS virsh dominfo $vm_running_name | grep "Max memory" | cut -f 7 -d " "`
+    vm_cpu_usage=`cat ~/.conky/Temp/virt-top.log | grep $vm_running_name | tail -n 1 | awk '{print $7}'`
+    vm_ram_usage=`cat ~/.conky/Temp/virt-top.log | grep $vm_running_name | tail -n 1 | awk '{print $8}'`
     vm_ram_gb=$(($vm_ram / 1048576 ))
-    echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running_name / $vm_core Threads / $vm_ram_gb GiB"
+    #echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running_name / $vm_core Threads / $vm_ram_gb GiB"
+    #echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running_name / $vm_core Threads ($vm_cpu_usage%) / $vm_ram_gb GiB ($vm_ram_usage%)"
+    #echo -e "${font_standard}$txt_align_right $vm_running_name / $vm_core Threads ($vm_cpu_usage%) / $vm_ram_gb GiB ($vm_ram_usage%)"
+    echo -e "${font_standard}$vm_running_name$txt_align_right $vm_core Threads ($vm_cpu_usage%) / $vm_ram_gb GiB"
   done
   time2=`date +%s`
   duration_block=$(($time2-$time1))
@@ -341,7 +348,7 @@ echo -e "\${font ${font_awesome_font}}$font_awesome_cpu\${font}\${goto 35} ${fon
 echo -e "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
 if [[ "$cpu_temp" == "" ]]; then
-  cpu_temp=`sensors | grep CPUTIN | awk '{print $2}' | sed 's/+//' | sed 's/\..*//'`
+  cpu_temp=`sensors | grep Tctl | awk '{print $2}' | sed 's/+//' | sed 's/\..*//'`
   if [[ "$cpu_temp" != "" ]]; then
     if [[ "$cpu_temp" -ge "85" ]]; then
       cpu_color="red"
