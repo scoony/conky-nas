@@ -40,7 +40,7 @@ eval 'echo -e "[\e[42m\u2713 \e[0m] $mui_installer_apt_update_done"' $log_instal
 
 
 ## install applications
-sudo apt install -y conky-all acpi net-tools jq curl mlocate transmission-cli fonts-symbola fonts-noto-mono fonts-font-awesome libxml2-utils smartmontools nvme-cli 2>/dev/null >> $log_install &
+sudo apt install -y conky-all acpi net-tools jq curl plocate transmission-cli fonts-symbola fonts-noto-mono fonts-font-awesome libxml2-utils smartmontools nvme-cli 2>/dev/null >> $log_install &
 pid=`ps aux | grep "apt install" | sed '/grep/d'`
 spin='-\|/'
 i=0
@@ -100,9 +100,10 @@ cat <<EOT >> "$HOME/.config/autostart/Conky.desktop"
 [Desktop Entry]
 Type=Application
 Name=Conky
-Exec="/usr/bin/conky"
+Exec=sh -c "sleep 15 && conky -q"
 Hidden=false
 NoDisplay=false
+Terminal=false
 X-GNOME-Autostart-enabled=true
 EOT
 

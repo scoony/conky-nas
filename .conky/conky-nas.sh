@@ -4,33 +4,34 @@
 #########
 font_title="\${font Ubuntu:bold:size=10}"
 font_standard="\${font Noto Mono:normal:size=8}"
-font_extra="\${font sans-serif:normal:size=8}"
+font_extra="\${font FontAwesome:size=8}"
 txt_align_right="\${alignr}"
 txt_align_center="\${alignc}"
-font_awesome_font="FontAwesome:regular:size=16"
+font_awesome_font="FontAwesome:size=16"
 font_awesome_system="\uf17c"
 font_awesome_ups_full="\uf240"
 font_awesome_ups_three_quarter="\uf241"
 font_awesome_ups_half="\uf242"
 font_awesome_ups_quarter="\uf243"
 font_awesome_ups_empty="\uf244"
+font_awesome_vm="\uf1de"
 font_awesome_cpu="\uf06d"
 font_awesome_memory="\uf2db"
 font_awesome_diskusage="\uf0a0"
 font_awesome_network_secured="\uf21b"
 font_awesome_network="\uf6ff"
-font_awesome_network_wifi="\${font FontAwesome:regular:size=8}\uf1eb$font_standard"
+font_awesome_network_wifi="\${font FontAwesome:size=8}\uf1eb$font_standard"
 font_awesome_connexion="\uf0ec"
 font_awesome_transmission="\uf019"
 font_awesome_scripts="\uf085"
-font_awesome_scripts_ok="\${font FontAwesome:regular:size=8}\uf00c$font_standard"
-font_awesome_scripts_ko="\${font FontAwesome:regular:size=8}\uf00d$font_standard"
+font_awesome_scripts_ok="\${font FontAwesome:size=8}\uf00c$font_standard"
+font_awesome_scripts_ko="\${font FontAwesome:size=8}\uf00d$font_standard"
 font_awesome_plex="\uf008"
-bar="\${voffset -2}\${font Ubuntu Mono Regular:regular:size=6}\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588$font_standard"
+bar="\${voffset -2}\${font Ubuntu Mono:size=6}\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588$font_standard"
 plex_check="no"
-plex_stream_state_play="\${font FontAwesome:regular:size=8}\uF04B$font_standard"
-plex_stream_state_pause="\${font FontAwesome:regular:size=8}\uF04C$font_standard"
-plex_stream_state_buffer="\${font FontAwesome:regular:size=8}\uF252$font_standard"
+plex_stream_state_play="\${font FontAwesome:size=8}\uF04B$font_standard"
+plex_stream_state_pause="\${font FontAwesome:size=8}\uF04C$font_standard"
+plex_stream_state_buffer="\${font FontAwesome:size=8}\uF252$font_standard"
 font_awesome_service="\uf085"
 font_awesome_pushover="\uf3cd"
 font_awesome_updater="\uf021"
@@ -84,7 +85,7 @@ if ! pgrep -x "conky-update" > /dev/null
 then
   nohup ~/.conky/conky-update > /dev/null 2>/dev/null &
 else
-  printf "\${font FontAwesome:regular:size=8}\${alignr}$(echo -e $font_awesome_updater)\${font}"
+  printf "\${font FontAwesome:size=8}\${alignr}$(echo -e $font_awesome_updater)\${font}"
 fi
 
 
@@ -248,34 +249,98 @@ fi
 
 #### VM(s) Block
 
-vm_running=`echo $user_pass | sudo -kS virsh list | grep running | awk '{print $2}'`
-if [[ "$vm_running" != "" ]]; then
-  time1=`date +%s`
-  echo -e "\${font ${font_awesome_font}}$font_awesome_vpn\${font}\${goto 35} ${font_title}$mui_vm_title \${hr 2}"
-  echo $user_pass | sudo -kS virt-top -b -n 2 --stream > ~/.conky/Temp/virt-top.log 2>/dev/null
-  for vm_running_name in $vm_running ; do
-    vm_core=`echo $user_pass | sudo -kS virsh dominfo $vm_running_name | grep "CPU(s)" | awk '{print $2}'`
-    vm_ram=`echo $user_pass | sudo -kS virsh dominfo $vm_running_name | grep "Max memory" | cut -f 7 -d " "`
-    vm_cpu_usage=`cat ~/.conky/Temp/virt-top.log | grep $vm_running_name | tail -n 1 | awk '{print $7}'`
-    vm_ram_usage=`cat ~/.conky/Temp/virt-top.log | grep $vm_running_name | tail -n 1 | awk '{print $8}'`
-    vm_ram_gb=$(($vm_ram / 1048576 ))
-    #echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running_name / $vm_core Threads / $vm_ram_gb GiB"
-    #echo -e "${font_standard}$mui_vm_main $txt_align_right $vm_running_name / $vm_core Threads ($vm_cpu_usage%) / $vm_ram_gb GiB ($vm_ram_usage%)"
-    #echo -e "${font_standard}$txt_align_right $vm_running_name / $vm_core Threads ($vm_cpu_usage%) / $vm_ram_gb GiB ($vm_ram_usage%)"
-    echo -e "${font_standard}$vm_running_name$txt_align_right $vm_core Threads ($vm_cpu_usage%) / $vm_ram_gb GiB"
-  done
-  time2=`date +%s`
-  duration_block=$(($time2-$time1))
-  if [[ "$debug" == "yes" ]]; then
-    if [[ $duration_block -lt 60 ]]; then
-      echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
-    else
-      echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
-    fi
-  fi
-  echo "\${font}\${voffset -4}"
-fi
+format_uptime() {
+  local etime="$1"
+  local days=0 hours=0 mins=0 secs=0 total
 
+  if [[ "$etime" =~ ^([0-9]+)-([0-9]+):([0-9]+):([0-9]+)$ ]]; then
+    days=${BASH_REMATCH[1]}
+    hours=${BASH_REMATCH[2]}
+    mins=${BASH_REMATCH[3]}
+    secs=${BASH_REMATCH[4]}
+  elif [[ "$etime" =~ ^([0-9]+):([0-9]+):([0-9]+)$ ]]; then
+    hours=${BASH_REMATCH[1]}
+    mins=${BASH_REMATCH[2]}
+    secs=${BASH_REMATCH[3]}
+  elif [[ "$etime" =~ ^([0-9]+):([0-9]+)$ ]]; then
+    mins=${BASH_REMATCH[1]}
+    secs=${BASH_REMATCH[2]}
+  fi
+
+  total=$((days*86400 + hours*3600 + mins*60 + secs))
+
+  days=$((total/86400))
+  hours=$(((total%86400)/3600))
+  mins=$(((total%3600)/60))
+
+  if (( days >= 1 )); then
+    printf "%d$mui_vm_day %d$mui_vm_hour" "$days" "$hours"
+  elif (( hours >= 1 )); then
+    printf "%d$mui_vm_hour %d$mui_vm_minute" "$hours" "$mins"
+  else
+    printf "%d$mui_vm_minute" "$mins"
+  fi
+}
+running_vms=$(echo "$user_pass" | sudo -kS virsh list --state-running --name 2>/dev/null)
+vms=$(echo "$user_pass" | sudo -kS virsh list --all --name 2>/dev/null | sed '/^$/d')
+if [[ -n "$vms" ]]; then
+  time1=$(date +%s)
+  vm_cache_dir="$HOME/.conky/Temp/VMs"
+  mkdir -p "$vm_cache_dir"
+
+  if [[ -n "$running_vms" ]] || [[ "$vm_display" == "all" ]]; then
+    echo -e "\${font ${font_awesome_font}}$font_awesome_vm\${font}\${goto 35} ${font_title}$mui_vm_title \${hr 2}"
+    
+    # Récupère les stats des VM actives en une seule fois
+    domstats_all=$(echo "$user_pass" | sudo -kS virsh domstats --list-active --state --balloon --vcpu 2>/dev/null)
+    
+    for vm in $vms; do
+      vm_log="$vm_cache_dir/$vm.log"
+      
+      # Extrait uniquement le bloc de la VM courante depuis le domstats groupé
+      vm_block=$(awk -v vm="$vm" '
+        $0 ~ "^Domain: \047" vm "\047" {in_block=1; next}
+        /^Domain: / && in_block {exit}
+        in_block {print}
+      ' <<< "$domstats_all")
+      
+      vm_state=$(awk -F= '/state.state=/ {print $2; exit}' <<< "$vm_block")
+      
+      if [[ "$vm_state" == "1" ]]; then
+        # Cache dominfo seulement si absent
+        if [[ ! -f "$vm_log" ]]; then
+          echo "$user_pass" | sudo -kS virsh dominfo "$vm" > "$vm_log" 2>/dev/null
+        fi
+        
+        vm_threads=$(awk -F': *' '/^CPU\(s\)/ {print $2; exit}' "$vm_log")
+        vm_ram_kib=$(awk -F': *' '/^Max memory/ {print $2; exit}' "$vm_log" | awk '{print $1}')
+        vm_ram_gb=$((vm_ram_kib / 1048576))
+        vm_pid=$(pgrep -af qemu-system | awk -v vm="$vm" '$0 ~ "-name guest=" vm "(,| |$)" || $0 ~ "-name " vm "( |$)" {print $1; exit}')
+        vm_etime=$(ps -p "$vm_pid" -o etime= | xargs)
+        vm_uptime=$(format_uptime "$vm_etime")
+        echo -e "$font_extra\uf111 ${font_standard}$vm$txt_align_right $vm_uptime / ${vm_threads:-?} Threads / ${vm_ram_gb:-0} GiB"
+      else
+        rm -f "$vm_log"
+        if [[ "$vm_display" == "all" ]]; then
+          echo -e "$font_extra\uf10C ${font_standard}$vm$txt_align_right"
+        fi
+      fi
+    done
+    
+    time2=$(date +%s)
+    duration_block=$((time2 - time1))
+    
+    if [[ "$debug" == "yes" ]]; then
+      if [[ $duration_block -lt 60 ]]; then
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
+      else
+        echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
+      fi
+    fi
+  
+    echo "\${font}\${voffset -4}"
+  fi
+fi
 
 
 #### Services Block
@@ -357,7 +422,7 @@ if [[ "$cpu_temp" == "" ]]; then
     fi
 ## Issue with graphs
 ##    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
-    echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$cpu_temp°\$color"
+    echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:size=6}\${goto 299}\${voffset -1}\${color black}$cpu_temp°\$color"
   else
 ## Issue with graphs
 ##   echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
@@ -373,7 +438,7 @@ else
     fi
 ## Issue with graphs
 ##    echo -e "${font_standard}\${color lightgray}\${cpugraph cpu}\$color"
-    echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
+    echo -e "${font_standard}$mui_cpu_cpu\${goto 130}\${cpu cpu$cpu_num}% \${goto 154}\${voffset 1}\${cpubar 6,140 cpu$cpu_num}${font_standard}\${goto 296}\${color $cpu_color}$bar\${color}\${font Noto Mono:size=6}\${goto 299}\${voffset -1}\${color black}${cpu_number:0:2}°\$color"
     cpu_num=$((cpu_num+1))
   done
 fi
@@ -395,7 +460,7 @@ for gpu_id in $gpu_detect ; do
       gpu_usage2=`echo $gpu_usage | sed "s/ //g"`
       gpu_usage3=`expr $gpu_usage`
       gpu_name=`nvidia-smi --query-gpu=gpu_name --format=csv | sed '$!d' | sed "s/NVIDIA //"`
-      echo -e "${font_standard}$gpu_name:\${goto 130}$gpu_usage% \${goto 154}\${voffset 1}\${execbar 6,140 echo ${gpu_usage}}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}$gpu_temp°\$color"
+      echo -e "${font_standard}$gpu_name:\${goto 130}$gpu_usage% \${goto 154}\${voffset 1}\${execbar 6,140 echo ${gpu_usage}}${font_standard}\${goto 296}\${color $gpu_color}$bar\${color}\${font Noto Mono:size=6}\${goto 299}\${voffset -1}\${color black}$gpu_temp°\$color"
     fi
   fi
 done
@@ -638,17 +703,17 @@ for drive in $drives ; do
       if [[ "$disk_temp" != "" ]]; then
         if [[ ! "$mount_point" =~ "boot" ]]; then
 ##          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
-          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color" >> ~/.conky/Temp/drives.log
+          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color" >> ~/.conky/Temp/drives.log
         fi
 ##        echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
       else
         if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
-          echo -e "\${voffset 1}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/usb.log
+          echo -e "\${voffset 1}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/usb.log
         else
         test=1
           if [[ ! "$mount_point" =~ "boot" ]]; then
 ##            echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
-            echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/drives.log
+            echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/drives.log
           fi
 ##          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
         fi
@@ -724,7 +789,7 @@ if [[ "$net_adapter" != "" ]]; then
     if [[ "$net_adapter_number" == "1" ]]; then
       net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
       if [[ "$net_ip_box" =~ "$net_ip_public" ]] && id -u "vpn" >/dev/null 2>&1; then
-        net_ip_public=`echo $user_pass | sudo -kSu vpn -i -- wget -q -O - ipinfo.io/ip`
+        net_ip_public=`echo $user_pass | sudo -kSu vpn -- wget -q -O - ipinfo.io/ip`
         echo -e "${font_standard}$mui_network_ip_tunnel $txt_align_right$net_ip_public"
       else
         echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
@@ -764,7 +829,7 @@ if [[ "$net_adapter" != "" ]]; then
           net_adapter_device_ip=`ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
           net_adapter_device_ip_box=`dig -b $net_adapter_device_ip +short myip.opendns.com @resolver1.opendns.com`
           if [[ "$net_adapter_device_ip" =~ "$net_adapter_device_ip_box" ]] && id -u "vpn" >/dev/null 2>&1; then
-            net_adapter_device_ip=`echo $user_pass | sudo -kS -u vpn -i -- ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
+            net_adapter_device_ip=`echo $user_pass | sudo -kSu vpn -- ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
             vpn_title="Tunnel IP:"
           else
             vpn_title="Current IP:"
@@ -1087,19 +1152,19 @@ if [[ "$net_adapter" != "" ]]; then
             plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
             plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
             if [[ "$plex_transcode" == "transcode" ]]; then
-              echo -e "$font_extra\u25CF $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_transcode.log
+              echo -e "$font_extra\uf10C $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_transcode.log
               echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_transcode.log
             else
-              echo -e "$font_extra\u25C9 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_direct.log
+              echo -e "$font_extra\uf111 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_direct.log
               echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_direct.log
             fi
           else
             plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
             if [[ "$plex_transcode" == "transcode" ]]; then
-              echo -e "$font_extra\u25CF $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex_transcode.log
+              echo -e "$font_extra\uf10C $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex_transcode.log
               echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_transcode.log
             else
-              echo -e "$font_extra\u25C9 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex_direct.log
+              echo -e "$font_extra\uf111 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex_direct.log
               echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_direct.log
             fi
           fi
