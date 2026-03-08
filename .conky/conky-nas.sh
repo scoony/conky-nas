@@ -37,6 +37,7 @@ font_awesome_pushover="\uf3cd"
 font_awesome_updater="\uf021"
 user_pass=""
 user_avatar=""
+vm_display="running"
 transmission_check="no"
 transmission_login=""
 transmission_password=""
@@ -318,9 +319,13 @@ if [[ -n "$vms" ]]; then
         vm_pid=$(pgrep -af qemu-system | awk -v vm="$vm" '$0 ~ "-name guest=" vm "(,| |$)" || $0 ~ "-name " vm "( |$)" {print $1; exit}')
         vm_etime=$(ps -p "$vm_pid" -o etime= | xargs)
         vm_uptime=$(format_uptime "$vm_etime")
-        echo -e "$font_extra\uf111 ${font_standard}$vm$txt_align_right $vm_uptime / ${vm_threads:-?} Threads / ${vm_ram_gb:-0} GiB"
+        if [[ "$vm_display" == "all" ]]; then
+          echo -e "$font_extra\uf111 ${font_standard}$vm$txt_align_right $vm_uptime / ${vm_threads:-?} Threads / ${vm_ram_gb:-0} GiB"
+        else
+          echo -e "${font_standard}$vm$txt_align_right $vm_uptime / ${vm_threads:-?} Threads / ${vm_ram_gb:-0} GiB"
+        fi
       else
-        rm -f "$vm_log"
+        rm -f "$vm_log" 2>/dev/null
         if [[ "$vm_display" == "all" ]]; then
           echo -e "$font_extra\uf10C ${font_standard}$vm$txt_align_right"
         fi
