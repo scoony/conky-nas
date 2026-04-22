@@ -55,13 +55,13 @@ if [[ ! -d ~/.conky/Temp ]]; then
   mkdir ~/.conky/Temp
 fi
 
-## Cleaning for smart-status
+#### Cleaning for smart-status
 
 if [[ $(date +"%H:%M") == "00:00" ]]; then
   rm ~/.conky/transmission-done
 fi
 
-## Check local language and apply MUI
+#### Check local language and apply MUI
 
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
 if [[ -f ~/.conky/MUI/$os_language.lang ]]; then
@@ -73,12 +73,50 @@ else
 fi
 
 
-## Load config (if exist)
+#### Load config (if exist)
 
 if [[ -f ~/.conky/conky-nas.conf ]]; then
   source ~/.conky/conky-nas.conf
 fi
 
+format_uptime() {
+  local etime="$1"
+  local days=0 hours=0 mins=0 secs=0 total
+
+  # Retour garanti si etime vide ou non reconnu
+  if [[ -z "$etime" ]]; then
+    printf "0%s" "$mui_vm_minute"
+    return
+  fi
+
+  if [[ "$etime" =~ ^([0-9]+)-([0-9]+):([0-9]+):([0-9]+)$ ]]; then
+    days=${BASH_REMATCH[1]}
+    hours=${BASH_REMATCH[2]}
+    mins=${BASH_REMATCH[3]}
+    secs=${BASH_REMATCH[4]}
+  elif [[ "$etime" =~ ^([0-9]+):([0-9]+):([0-9]+)$ ]]; then
+    hours=${BASH_REMATCH[1]}
+    mins=${BASH_REMATCH[2]}
+    secs=${BASH_REMATCH[3]}
+  elif [[ "$etime" =~ ^([0-9]+):([0-9]+)$ ]]; then
+    mins=${BASH_REMATCH[1]}
+    secs=${BASH_REMATCH[2]}
+  fi
+
+  total=$((days*86400 + hours*3600 + mins*60 + secs))
+
+  days=$((total/86400))
+  hours=$(((total%86400)/3600))
+  mins=$(((total%3600)/60))
+
+  if (( days >= 1 )); then
+    printf "%d$mui_vm_day %d$mui_vm_hour" "$days" "$hours"
+  elif (( hours >= 1 )); then
+    printf "%d$mui_vm_hour %d$mui_vm_minute" "$hours" "$mins"
+  else
+    printf "%d$mui_vm_minute" "$mins"
+  fi
+}
 
 #### Autoupdater
 
@@ -154,7 +192,7 @@ fi
 
 #### System Block
 
-time1=`date +%s`
+time1=$(date +%s)
 echo -e "\${font ${font_awesome_font}}$font_awesome_system\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
 hdd_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 #hdd_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$2)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
@@ -162,7 +200,18 @@ hdd_free_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | 
 #hdd_free_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$4)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
 echo -e "${font_standard}$mui_system_host$txt_align_right\$nodename"
 echo -e "${font_standard}$mui_system_kernel$txt_align_right\$kernel"
-echo -e "${font_standard}$mui_system_uptime$txt_align_right\$uptime"
+system_uptime_secs=$(awk '{printf "%d", $1}' /proc/uptime)
+system_uptime_days=$((system_uptime_secs/86400))
+system_uptime_hours=$(((system_uptime_secs%86400)/3600))
+system_uptime_mins=$(((system_uptime_secs%3600)/60))
+if (( system_uptime_days >= 1 )); then
+  system_uptime_fmt="${system_uptime_days}${mui_vm_day} ${system_uptime_hours}${mui_vm_hour}"
+elif (( system_uptime_hours >= 1 )); then
+  system_uptime_fmt="${system_uptime_hours}${mui_vm_hour} ${system_uptime_mins}${mui_vm_minute}"
+else
+  system_uptime_fmt="${system_uptime_mins}${mui_vm_minute}"
+fi
+echo -e "${font_standard}$mui_system_uptime$txt_align_right$system_uptime_fmt"
 #echo -e "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_total"
 #echo -e "${font_standard}$mui_system_hdd_free_total$txt_align_right$hdd_free_total"
 echo -e "${font_standard}$mui_system_hdd_total$txt_align_right$hdd_free_total / $hdd_total"
@@ -193,14 +242,14 @@ if [[ "$power_supply" != "" ]]; then
     else
       echo -e "${font_standard}$mui_system_charge_online\${goto 124}\${color $battery_charge_color}$(printf "%3d" $battery_charge)%\$color\${goto 154}\${voffset 1}\${execbar 6 echo $battery_charge}"
       echo -e "${font_standard}$mui_system_charge_until_charged$txt_align_right$battery_timeleft"
-	  fi
+    fi
   fi
 fi
 if [ -f /var/run/reboot-required ]; then
   echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset 6}${txt_align_center}\${color black}$mui_system_reboot\$color"
 fi
-time2=`date +%s`
-duration_block=$(($time2-$time1))
+time2=$(date +%s)
+duration_block=$((time2 - time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
     echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -250,79 +299,58 @@ fi
 
 #### VM(s) Block
 
-format_uptime() {
-  local etime="$1"
-  local days=0 hours=0 mins=0 secs=0 total
-
-  if [[ "$etime" =~ ^([0-9]+)-([0-9]+):([0-9]+):([0-9]+)$ ]]; then
-    days=${BASH_REMATCH[1]}
-    hours=${BASH_REMATCH[2]}
-    mins=${BASH_REMATCH[3]}
-    secs=${BASH_REMATCH[4]}
-  elif [[ "$etime" =~ ^([0-9]+):([0-9]+):([0-9]+)$ ]]; then
-    hours=${BASH_REMATCH[1]}
-    mins=${BASH_REMATCH[2]}
-    secs=${BASH_REMATCH[3]}
-  elif [[ "$etime" =~ ^([0-9]+):([0-9]+)$ ]]; then
-    mins=${BASH_REMATCH[1]}
-    secs=${BASH_REMATCH[2]}
-  fi
-
-  total=$((days*86400 + hours*3600 + mins*60 + secs))
-
-  days=$((total/86400))
-  hours=$(((total%86400)/3600))
-  mins=$(((total%3600)/60))
-
-  if (( days >= 1 )); then
-    printf "%d$mui_vm_day %d$mui_vm_hour" "$days" "$hours"
-  elif (( hours >= 1 )); then
-    printf "%d$mui_vm_hour %d$mui_vm_minute" "$hours" "$mins"
-  else
-    printf "%d$mui_vm_minute" "$mins"
-  fi
-}
-running_vms=$(echo "$user_pass" | sudo -kS virsh list --state-running --name 2>/dev/null)
+time1=$(date +%s)
 vms=$(echo "$user_pass" | sudo -kS virsh list --all --name 2>/dev/null | sed '/^$/d')
 if [[ -n "$vms" ]]; then
-  time1=$(date +%s)
-  vm_cache_dir="$HOME/.conky/Temp/VMs"
-  mkdir -p "$vm_cache_dir"
-
+  running_vms=$(echo "$user_pass" | sudo -kS virsh list --state-running --name 2>/dev/null)
   if [[ -n "$running_vms" ]] || [[ "$vm_display" == "all" ]]; then
     echo -e "\${font ${font_awesome_font}}$font_awesome_vm\${font}\${goto 35} ${font_title}$mui_vm_title \${hr 2}"
-    
+    vm_cache_dir="$HOME/.conky/Temp/VMs"
+    mkdir -p "$vm_cache_dir"
     # Récupère les stats des VM actives en une seule fois
     domstats_all=$(echo "$user_pass" | sudo -kS virsh domstats --list-active --state --balloon --vcpu 2>/dev/null)
-    
     for vm in $vms; do
+      vm_pid=""
+      vm_etime=""
       vm_log="$vm_cache_dir/$vm.log"
-      
       # Extrait uniquement le bloc de la VM courante depuis le domstats groupé
       vm_block=$(awk -v vm="$vm" '
         $0 ~ "^Domain: \047" vm "\047" {in_block=1; next}
         /^Domain: / && in_block {exit}
         in_block {print}
       ' <<< "$domstats_all")
-      
       vm_state=$(awk -F= '/state.state=/ {print $2; exit}' <<< "$vm_block")
-      
       if [[ "$vm_state" == "1" ]]; then
         # Cache dominfo seulement si absent
         if [[ ! -f "$vm_log" ]]; then
           echo "$user_pass" | sudo -kS virsh dominfo "$vm" > "$vm_log" 2>/dev/null
         fi
-        
         vm_threads=$(awk -F': *' '/^CPU\(s\)/ {print $2; exit}' "$vm_log")
         vm_ram_kib=$(awk -F': *' '/^Max memory/ {print $2; exit}' "$vm_log" | awk '{print $1}')
         vm_ram_gb=$((vm_ram_kib / 1048576))
         vm_pid=$(pgrep -af qemu-system | awk -v vm="$vm" '$0 ~ "-name guest=" vm "(,| |$)" || $0 ~ "-name " vm "( |$)" {print $1; exit}')
-        vm_etime=$(ps -p "$vm_pid" -o etime= | xargs)
+        # Fallback : recherche élargie sans sensibilité à la casse
+        if [[ -z "$vm_pid" ]]; then
+          vm_pid=$(pgrep -af qemu-system | awk -v vm="${vm,,}" 'tolower($0) ~ "-name.*" vm {print $1; exit}')
+        fi
+        if [[ -n "$vm_pid" ]]; then
+          vm_etime=$(ps -p "$vm_pid" -o etime= 2>/dev/null | xargs)
+        fi
+        # Fallback : uptime via /proc si vm_pid introuvable ou etime vide
+        if [[ -z "$vm_etime" ]] && [[ -n "$vm_pid" ]]; then
+          vm_start_ticks=$(awk '{print $22}' /proc/"$vm_pid"/stat 2>/dev/null)
+          if [[ -n "$vm_start_ticks" ]]; then
+            clk=$(getconf CLK_TCK)
+            now=$(awk '{printf "%d", $1}' /proc/uptime)
+            vm_uptime_secs=$((now - vm_start_ticks / clk))
+            vm_etime=$(printf "%d:%02d:%02d" $((vm_uptime_secs/3600)) $(((vm_uptime_secs%3600)/60)) $((vm_uptime_secs%60)))
+          fi
+        fi
         vm_uptime=$(format_uptime "$vm_etime")
         if [[ "$vm_display" == "all" ]]; then
-          echo -e "$font_extra\uf111 ${font_standard}$vm$txt_align_right $vm_uptime / ${vm_threads:-?} Threads / ${vm_ram_gb:-0} GiB"
+          echo -e "$font_extra\uf111 ${font_standard}$vm$txt_align_right $vm_uptime / $(printf "%02s" ${vm_threads:-?}) Threads / ${vm_ram_gb:-0} GiB"
         else
-          echo -e "${font_standard}$vm$txt_align_right $vm_uptime / ${vm_threads:-?} Threads / ${vm_ram_gb:-0} GiB"
+          echo -e "${font_standard}$vm$txt_align_right $vm_uptime / $(printf "%02s" ${vm_threads:-?}) Threads / ${vm_ram_gb:-0} GiB"
         fi
       else
         rm -f "$vm_log" 2>/dev/null
@@ -331,10 +359,8 @@ if [[ -n "$vms" ]]; then
         fi
       fi
     done
-    
     time2=$(date +%s)
     duration_block=$((time2 - time1))
-    
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
         echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -342,7 +368,6 @@ if [[ -n "$vms" ]]; then
         echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Mm:%Ss)"
       fi
     fi
-  
     echo "\${font}\${voffset -4}"
   fi
 fi
@@ -351,7 +376,7 @@ fi
 #### Services Block
 
 if [[ "$services_list" != "" ]]; then
-  time1=`date +%s`
+  time1=$(date +%s)
   services_list_sorted=$(echo $services_list | xargs -n1 | sort -u | xargs)
   service_alert="0"
   for myservice in $services_list_sorted ; do
@@ -382,9 +407,9 @@ if [[ "$services_list" != "" ]]; then
       fi
     fi
   done
+  time2=$(date +%s)
+  duration_block=$((time2 - time1))
   if [[ "$service_alert" != "0" ]]; then
-    time2=`date +%s`
-    duration_block=$(($time2-$time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
         echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -397,8 +422,6 @@ if [[ "$services_list" != "" ]]; then
   if [[ "$service_alert" == "0" ]] && [[ "$service_alert_view" == "yes" ]]; then
     echo -e "\${font ${font_awesome_font}}$font_awesome_service\${font}\${goto 35} ${font_title}$mui_services_title \${hr 2}"
     echo -e "${font_standard}$mui_services_ok"
-    time2=`date +%s`
-    duration_block=$(($time2-$time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
         echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -413,7 +436,7 @@ fi
 
 #### CPU Block
 
-time1=`date +%s`
+time1=$(date +%s)
 echo -e "\${font ${font_awesome_font}}$font_awesome_cpu\${font}\${goto 35} ${font_title}$mui_cpu_title \${hr 2}"
 echo -e "${font_standard}\${execi 1000 grep model /proc/cpuinfo | cut -d : -f2 | tail -1 | sed 's/\s//'}"
 cpu_temp=`paste <(cat /sys/class/thermal/thermal_zone*/type 2>/dev/null) <(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null) | column -s $'\t' -t | sed 's/\(.\)..$/.\1°C/' | grep -e "x86_pkg_temp" -e "soc_dts0" | awk '{ print $NF }' | sed 's/\°C//' | sed 's/\..*//'`
@@ -517,8 +540,8 @@ if [[ "$HandBrake_process" != "" ]]; then
     fi
   fi
 fi
-time2=`date +%s`
-duration_block=$(($time2-$time1))
+time2=$(date +%s)
+duration_block=$((time2 - time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
     echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -531,14 +554,14 @@ echo "\${font}\${voffset -4}"
 
 #### Memory Block
 
-time1=`date +%s`
+time1=$(date +%s)
 echo -e "\${font ${font_awesome_font}}$font_awesome_memory\${font}\${goto 35} ${font_title}$mui_memory_title \${hr 2}"
 echo -e "${font_standard}$mui_memory_ram $txt_align_center \$mem / \$memmax $txt_align_right \$memperc%"
 echo -e "${font_standard}\$membar"
 echo -e "${font_standard}$mui_memory_swap $txt_align_center \${swap} / \${swapmax} $txt_align_right \${swapperc}%"
 echo -e "${font_standard}\${swapbar}"
-time2=`date +%s`
-duration_block=$(($time2-$time1))
+time2=$(date +%s)
+duration_block=$((time2 - time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
     echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -610,7 +633,7 @@ fi
 
 #### DiskUsage Block
 
-time1=`date +%s`
+time1=$(date +%s)
 echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title \${hr 2}"
 drives=`ls /dev/nvme1n[1-9]p[1-9] /dev/nvme0n[1-9]p[1-9] /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
 for drive in $drives ; do
@@ -757,8 +780,8 @@ if [ -s ~/.conky/Temp/alert.log ]; then
   cat ~/.conky/Temp/alert.log
   rm ~/.conky/Temp/alert.log
 fi
-time2=`date +%s`
-duration_block=$(($time2-$time1))
+time2=$(date +%s)
+duration_block=$((time2 - time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
     echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -770,7 +793,7 @@ echo "\${font}\${voffset -4}"
 
 #### Network Block
 
-time1=`date +%s`
+time1=$(date +%s)
 if [[ "$net_adapter" != "" ]]; then
   vpn_detected=`ifconfig | grep "tun[0-9]"`
   if [[ "$vpn_detected" != "" ]]; then
@@ -787,14 +810,44 @@ if [[ "$net_adapter" != "" ]]; then
       echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
     fi
   fi
-  net_ip_public=`dig -4 +short myip.opendns.com @resolver1.opendns.com`
+  net_ip_public=""
+  for _retry in 1 2 3; do
+    net_ip_public=$(curl -4 -s --max-time 4 https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
+    [[ -n "$net_ip_public" ]] && break
+    sleep 1
+  done
+  if [[ -n "$net_ip_public" ]]; then
+    echo "$net_ip_public" > ~/.conky/Temp/net_ip_public.cache
+  else
+    net_ip_public=$(cat ~/.conky/Temp/net_ip_public.cache 2>/dev/null)
+  fi
   if [[ "$vpn_detected" != "" ]]; then
 #    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
 ##    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
     if [[ "$net_adapter_number" == "1" ]]; then
-      net_ip_box=`dig -b $(hostname -I | cut -d' ' -f1) +short myip.opendns.com @resolver1.opendns.com`
+      net_ip_box=""
+      for _retry in 1 2 3; do
+        net_ip_box=$(curl -4 -s --max-time 4 --interface $(hostname -I | cut -d' ' -f1) https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
+        [[ -n "$net_ip_box" ]] && break
+        sleep 1
+      done
+      if [[ -n "$net_ip_box" ]]; then
+        echo "$net_ip_box" > ~/.conky/Temp/net_ip_box.cache
+      else
+        net_ip_box=$(cat ~/.conky/Temp/net_ip_box.cache 2>/dev/null)
+      fi
       if [[ "$net_ip_box" =~ "$net_ip_public" ]] && id -u "vpn" >/dev/null 2>&1; then
-        net_ip_public=`echo $user_pass | sudo -kSu vpn -- wget -q -O - ipinfo.io/ip`
+        net_ip_public=""
+        for _retry in 1 2 3; do
+          net_ip_public=$(echo $user_pass | sudo -kSu vpn -- curl -4 -s --max-time 4 https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
+          [[ -n "$net_ip_public" ]] && break
+          sleep 1
+        done
+        if [[ -n "$net_ip_public" ]]; then
+          echo "$net_ip_public" > ~/.conky/Temp/net_ip_tunnel.cache
+        else
+          net_ip_public=$(cat ~/.conky/Temp/net_ip_tunnel.cache 2>/dev/null)
+        fi
         echo -e "${font_standard}$mui_network_ip_tunnel $txt_align_right$net_ip_public"
       else
         echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
@@ -832,7 +885,17 @@ if [[ "$net_adapter" != "" ]]; then
       if [[ "$vpn_detected" != "" ]]; then
         if [[ "$net_adapter_device"  == "$net_adapter_default" ]]; then
           net_adapter_device_ip=`ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
-          net_adapter_device_ip_box=`dig -b $net_adapter_device_ip +short myip.opendns.com @resolver1.opendns.com`
+          net_adapter_device_ip_box=""
+          for _retry in 1 2 3; do
+            net_adapter_device_ip_box=$(curl -4 -s --max-time 4 --interface $net_adapter_device_ip https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
+            [[ -n "$net_adapter_device_ip_box" ]] && break
+            sleep 1
+          done
+          if [[ -n "$net_adapter_device_ip_box" ]]; then
+            echo "$net_adapter_device_ip_box" > ~/.conky/Temp/net_ip_box.cache
+          else
+            net_adapter_device_ip_box=$(cat ~/.conky/Temp/net_ip_box.cache 2>/dev/null)
+          fi
           if [[ "$net_adapter_device_ip" =~ "$net_adapter_device_ip_box" ]] && id -u "vpn" >/dev/null 2>&1; then
             net_adapter_device_ip=`echo $user_pass | sudo -kSu vpn -- ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
             vpn_title="Tunnel IP:"
@@ -872,8 +935,8 @@ else
   echo ""
   echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_network_error\$color"
 fi
-time2=`date +%s`
-duration_block=$(($time2-$time1))
+time2=$(date +%s)
+duration_block=$((time2 - time1))
 if [[ "$debug" == "yes" ]]; then
   if [[ $duration_block -lt 60 ]]; then
     echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -887,7 +950,7 @@ echo "\${font}\${voffset -4}"
 #### Connexion Block
 
 if [[ "$net_adapter" != "" ]]; then
-  time1=`date +%s`
+  time1=$(date +%s)
   connexion_ssh_list=`w | sed '1,2d' | sed '/session/d' | sed '/ - /d' | sed '/tmux/d' | tr -s ' ' | cut -d ' ' -f 1,3 | sed 's/^\(.*'$look'.*\)$/SSH: \1/'`
   if [[ "$connexion_ssh_list" != "" ]]; then
     echo -e "\${font ${font_awesome_font}}$font_awesome_connexion\${font}\${goto 35} ${font_title}$mui_connexion_title \${hr 2}"
@@ -901,8 +964,8 @@ if [[ "$net_adapter" != "" ]]; then
     fi
   fi
   if [[ "$connexion_ssh_list" != "" ]] || [[ "$connexion_vino_list" != "" ]]; then
-    time2=`date +%s`
-    duration_block=$(($time2-$time1))
+    time2=$(date +%s)
+    duration_block=$((time2 - time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
         echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -919,7 +982,7 @@ fi
 
 if [[ "$net_adapter" != "" ]]; then
   if [[ "$transmission_check" == "yes" ]]; then
-    time1=`date +%s`
+    time1=$(date +%s)
     transmission_state=`systemctl show -p SubState --value transmission-daemon`
     if [[ "$transmission_state" != "dead" ]]; then
       echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
@@ -1031,8 +1094,8 @@ if [[ "$net_adapter" != "" ]]; then
       rm ~/.conky/transmission_list.log
       touch ~/.conky/transmission-done
     fi
-    time2=`date +%s`
-    duration_block=$(($time2-$time1))
+    time2=$(date +%s)
+    duration_block=$((time2 - time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
         echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
@@ -1049,7 +1112,7 @@ fi
 
 if [[ "$net_adapter" != "" ]]; then
   if [[ "$plex_check" == "yes" ]]; then
-    time1=`date +%s`
+    time1=$(date +%s)
     plex_state=`systemctl show -p SubState --value plexmediaserver`
     if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
       echo -e "\${font ${font_awesome_font}}$font_awesome_plex\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}"
@@ -1189,8 +1252,8 @@ if [[ "$net_adapter" != "" ]]; then
       echo ""
       echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_plex_error\$color"
     fi
-    time2=`date +%s`
-    duration_block=$(($time2-$time1))
+    time2=$(date +%s)
+    duration_block=$((time2 - time1))
     if [[ "$debug" == "yes" ]]; then
       if [[ $duration_block -lt 60 ]]; then
         echo -e "${font_standard}$mui_debug$(date -d@$duration_block -u +%Ss)"
