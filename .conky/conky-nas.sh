@@ -817,11 +817,11 @@ if [[ "$net_adapter" != "" ]]; then
     [[ -n "$net_ip_public" ]] && break
     sleep 1
   done
-  if [[ -n "$net_ip_public" ]]; then
-    echo "$net_ip_public" > ~/.conky/Temp/net_ip_public.cache
-  else
-    net_ip_public=$(cat ~/.conky/Temp/net_ip_public.cache 2>/dev/null)
-  fi
+#  if [[ -n "$net_ip_public" ]]; then
+#    echo "$net_ip_public" > ~/.conky/Temp/net_ip_public.cache
+#  else
+#    net_ip_public=$(cat ~/.conky/Temp/net_ip_public.cache 2>/dev/null)
+#  fi
   if [[ "$vpn_detected" != "" ]]; then
 #    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
 ##    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
@@ -832,11 +832,11 @@ if [[ "$net_adapter" != "" ]]; then
         [[ -n "$net_ip_box" ]] && break
         sleep 1
       done
-      if [[ -n "$net_ip_box" ]]; then
-        echo "$net_ip_box" > ~/.conky/Temp/net_ip_box.cache
-      else
-        net_ip_box=$(cat ~/.conky/Temp/net_ip_box.cache 2>/dev/null)
-      fi
+#      if [[ -n "$net_ip_box" ]]; then
+#        echo "$net_ip_box" > ~/.conky/Temp/net_ip_box.cache
+#      else
+#        net_ip_box=$(cat ~/.conky/Temp/net_ip_box.cache 2>/dev/null)
+#      fi
       if [[ "$net_ip_box" =~ "$net_ip_public" ]] && id -u "vpn" >/dev/null 2>&1; then
         net_ip_public=""
         for _retry in 1 2 3; do
@@ -844,11 +844,11 @@ if [[ "$net_adapter" != "" ]]; then
           [[ -n "$net_ip_public" ]] && break
           sleep 1
         done
-        if [[ -n "$net_ip_public" ]]; then
-          echo "$net_ip_public" > ~/.conky/Temp/net_ip_tunnel.cache
-        else
-          net_ip_public=$(cat ~/.conky/Temp/net_ip_tunnel.cache 2>/dev/null)
-        fi
+#        if [[ -n "$net_ip_public" ]]; then
+#          echo "$net_ip_public" > ~/.conky/Temp/net_ip_tunnel.cache
+#        else
+#          net_ip_public=$(cat ~/.conky/Temp/net_ip_tunnel.cache 2>/dev/null)
+#        fi
         echo -e "${font_standard}$mui_network_ip_tunnel $txt_align_right$net_ip_public"
       else
         echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
@@ -1008,7 +1008,6 @@ if [[ "$net_adapter" != "" ]]; then
             | while read -r download_path; do
                 [[ -z "$download_path" ]] && continue
                 [[ "$download_path" == "/var/lib/transmission-daemon"* ]] && continue
-
                 if [[ -d "$download_path" ]]; then
                   df --output=target,avail,pcent "$download_path" 2>/dev/null | tail -n 1
                 fi
