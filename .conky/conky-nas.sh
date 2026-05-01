@@ -43,7 +43,7 @@ transmission_login=""
 transmission_password=""
 transmission_ip=""
 transmission_port=""
-transmission_mount_detail=""
+transmission_folder_detail=""
 plex_ip=""
 plex_port=""
 plex_token=""
@@ -739,7 +739,6 @@ for drive in $drives ; do
         if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
           echo -e "\${voffset 1}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/usb.log
         else
-        test=1
           if [[ ! "$mount_point" =~ "boot" ]]; then
 ##            echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
             echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/drives.log
@@ -994,66 +993,138 @@ if [[ "$net_adapter" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >~/.conky/transm.log
           transmission_queue=`cat ~/.conky/transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
           echo "${font_standard}$mui_transmission_queue ${txt_align_right} $transmission_queue"
-          mount_lines=$(
-            transmission-remote "$transmission_ip:$transmission_port" \
-              -n "$transmission_login:$transmission_password" \
-              -l 2>/dev/null \
-            | awk 'NR>1 && $1 ~ /^[0-9]+$/ {print $1}' \
-            | while read -r torrent_id; do
-                transmission-remote "$transmission_ip:$transmission_port" \
-                  -n "$transmission_login:$transmission_password" \
-                  -t "$torrent_id" -i 2>/dev/null \
-                | awk -F': ' '/^[[:space:]]*Location:/ {print $2}'
-              done \
-            | while read -r download_path; do
-                [[ -z "$download_path" ]] && continue
-                [[ "$download_path" == "/var/lib/transmission-daemon"* ]] && continue
-                if [[ -d "$download_path" ]]; then
-                  df --output=target,avail,pcent "$download_path" 2>/dev/null | tail -n 1
+          if [[ "$transmission_folder" == "" ]]; then
+            echo $user_pass | sudo -kS updatedb &>/dev/null
+            check_root_cron=`echo "$user_pass" | sudo -kS crontab -l 2>/dev/null | grep "plex_sort.sh"`
+            if [[ "$check_root_cron" != "" ]]; then
+              check_root_status=`echo "$user_pass" | sudo -kS crontab -l 2>/dev/null | grep "plex_sort.sh" | grep "^#"`
+              if [[ "$check_root_status" == "" ]]; then
+                plex_sort_config=`echo "$user_pass" | sudo -kS locate "plex_sort.conf" 2>/dev/null | grep "\/root\/"`
+                if [[ "$plex_sort_config" != "" ]]; then
+                  transmission_folder=$(grep -E '^download_folder=' "$plex_sort_config" 2>/dev/null | sed -E 's/^[^=]+= *"?([^"#]+)"?.*/\1/')
+                  if [[ "$transmission_folder" != "" ]]; then
+                    transmission_folder_line=$(sed -n '/^transmission_folder=/=' ~/.conky/conky-nas.conf)
+                    if [[ "$transmission_folder_line" != "" ]]; then
+                        sed -i 's|transmission_folder=.*|transmission_folder="'$transmission_folder'"|' ~/.conky/conky-nas.conf
+                    else
+                        echo -e "\n## Plex_sort\ntransmission_folder=\"$transmission_folder\"" >> ~/.conky/conky-nas.conf
+                    fi
+                  fi
                 fi
-              done \
-            | awk '!seen[$1]++ {print $0}'
-          )
-          mount_count=$(echo "$mount_lines" | sed '/^[[:space:]]*$/d' | wc -l)
-          format_mount_values() {
-            read -r mount_point disk_free_kb disk_usage <<< "$1"
-            disk_usage="${disk_usage%\%}"
-            disk_free_human=$(echo "$disk_free_kb" | numfmt --from-unit=1024 --to=si --suffix=B)
-            if (( disk_free_kb > 104857600 )); then
-                transmission_glyph="\uf0c8"
-                transmission_color="lightgreen"
-            elif (( disk_free_kb >= 52428800 )); then
-                transmission_glyph="\uf0c8"
-                transmission_color="orange"
+              else
+                plex_sort_root="0"
+              fi
             else
-                transmission_glyph="\uf0c8"
-                transmission_color="red"
+              plex_sort_root="0"
+            fi
+            if [[ "$plex_sort_root" = "0" ]]; then
+              check_cron=`crontab -l 2>/dev/null | grep "plex_sort.sh"`
+              if [[ "$check_cron" != "" ]]; then
+                check_status=`crontab -l 2>/dev/null | grep "plex_sort.sh" | grep "^#"`
+                if [[ "$check_status" == "" ]]; then
+                  plex_sort_config=`locate "plex_sort.conf" 2>/dev/null | grep "\/home\/"`
+                  if [[ "$plex_sort_config" != "" ]]; then
+                    transmission_folder=$(grep -E '^download_folder=' "$plex_sort_config" 2>/dev/null | sed -E 's/^[^=]+= *"?([^"#]+)"?.*/\1/')
+                    if [[ "$transmission_folder" != "" ]]; then
+                      transmission_folder_line=$(sed -n '/^transmission_folder=/=' ~/.conky/conky-nas.conf)
+                      if [[ "$transmission_folder_line" != "" ]]; then
+                          sed -i 's|transmission_folder=.*|transmission_folder="'$transmission_folder'"|' ~/.conky/conky-nas.conf
+                      else
+                          echo -e "\n## Plex_sort\ntransmission_folder=\"$transmission_folder\"" >> ~/.conky/conky-nas.conf
+                      fi
+                    fi
+                  fi
+                fi
+              fi
+            fi
+          fi
+          # mount_lines=$(
+          #   transmission-remote "$transmission_ip:$transmission_port" \
+          #     -n "$transmission_login:$transmission_password" \
+          #     -l 2>/dev/null \
+          #   | awk 'NR>1 && $1 ~ /^[0-9]+$/ {print $1}' \
+          #   | while read -r torrent_id; do
+          #       transmission-remote "$transmission_ip:$transmission_port" \
+          #         -n "$transmission_login:$transmission_password" \
+          #         -t "$torrent_id" -i 2>/dev/null \
+          #       | awk -F': ' '/^[[:space:]]*Location:/ {print $2}'
+          #     done \
+          #   | while read -r download_path; do
+          #       [[ -z "$download_path" ]] && continue
+          #       [[ "$download_path" == "/var/lib/transmission-daemon"* ]] && continue
+          #       if [[ -d "$download_path" ]]; then
+          #         df --output=target,avail,pcent "$download_path" 2>/dev/null | tail -n 1
+          #       fi
+          #     done \
+          #   | awk '!seen[$1]++ {print $0}'
+          # )
+          # mount_count=$(echo "$mount_lines" | sed '/^[[:space:]]*$/d' | wc -l)
+          # format_mount_values() {
+          #   read -r mount_point disk_free_kb disk_usage <<< "$1"
+          #   disk_usage="${disk_usage%\%}"
+          #   disk_free_human=$(echo "$disk_free_kb" | numfmt --from-unit=1024 --to=si --suffix=B)
+          #   if (( disk_free_kb > 104857600 )); then
+          #       transmission_glyph="\uf0c8"
+          #       transmission_color="lightgreen"
+          #   elif (( disk_free_kb >= 52428800 )); then
+          #       transmission_glyph="\uf0c8"
+          #       transmission_color="orange"
+          #   else
+          #       transmission_glyph="\uf0c8"
+          #       transmission_color="red"
+          #   fi
+          # }
+          # if (( mount_count == 1 )); then
+          #   format_mount_values "$mount_lines"
+          #   if [[ "$transmission_mount_detail" == "yes" ]];then 
+          #     echo -e "${font_standard}$mui_transmission_mount_point\${goto 128}\${voffset -1}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${goto 143}\${voffset -3}${font_standard}$mount_point${txt_align_right}[$(printf "%04s" "$disk_free_human") / $(printf "%03d" "$disk_usage")%]"
+          #   else
+          #     echo -e "${font_standard}$mui_transmission_mount_point\${goto 128}\${voffset -1}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${goto 143}\${voffset -3}${font_standard}$mount_point"
+          #   fi
+          # elif (( mount_count > 1 )); then
+          #   first_line="yes"
+          #   echo "$mount_lines" | while read -r line; do
+          #     [[ -z "$line" ]] && continue
+          #     format_mount_values "$line"
+          #     if [[ "$first_line" == "yes" ]]; then
+          #       prefix="${font_standard}$mui_transmission_mount_point"
+          #       first_line="no"
+          #     else
+          #       prefix=""
+          #     fi
+          #     if [[ "$transmission_mount_detail" == "yes" ]]; then
+          #       echo -e "${prefix}\${goto 128}\${voffset -1}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${goto 143}\${voffset -3}${font_standard}$mount_point${txt_align_right}[$(printf "%04s" "$disk_free_human") / $(printf "%03d" "$disk_usage")%]"
+          #     else
+          #       echo -e "${prefix}\${goto 128}\${voffset -1}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${goto 143}\${voffset -3}${font_standard}$mount_point"
+          #     fi
+          #   done
+          # fi
+          format_mount_values() {
+            local folder="$1"
+            local df_line
+            df_line=$(df --output=target,avail,pcent "$folder" 2>/dev/null | tail -n 1)
+            read -r mount_point disk_free_kb disk_usage <<< "$df_line"
+            disk_usage="${disk_usage%\%}"
+            disk_free_human=$(numfmt --from-unit=1024 --to=si --suffix=B "$disk_free_kb" 2>/dev/null)
+            if (( disk_free_kb > 104857600 )); then
+              transmission_glyph="\uf0c8"
+              transmission_color="lightgreen"
+            elif (( disk_free_kb >= 52428800 )); then
+              transmission_glyph="\uf0c8"
+              transmission_color="orange"
+            else
+              transmission_glyph="\uf0c8"
+              transmission_color="red"
             fi
           }
-          if (( mount_count == 1 )); then
-            format_mount_values "$mount_lines"
-            if [[ "$transmission_mount_detail" == "yes" ]];then 
-              echo -e "${font_standard}$mui_transmission_mount_point\${goto 128}\${voffset -1}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${goto 143}\${voffset -3}${font_standard}$mount_point${txt_align_right}[$(printf "%04s" "$disk_free_human") / $(printf "%03d" "$disk_usage")%]"
+          if [[ -n "$transmission_folder" && -d "$transmission_folder" ]]; then
+            format_mount_values "$transmission_folder"
+            if [[ "$transmission_folder_detail" == "yes" ]]; then
+              echo -e "${font_standard}$mui_transmission_folder"
+              echo -e "\${voffset -1}\${offset -5}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${voffset -3}\${goto 6}${font_standard}$transmission_folder${txt_align_right}[$(printf "%04s" "$disk_free_human") / $(printf "%03d" "$disk_usage")%]"
             else
-              echo -e "${font_standard}$mui_transmission_mount_point\${goto 128}\${voffset -1}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${goto 143}\${voffset -3}${font_standard}$mount_point"
+              echo -e "\${voffset -1}\${offset -5}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${voffset -3}\${goto 6}${font_standard}$mui_transmission_folder${txt_align_right}${font_standard}$transmission_folder"
             fi
-          elif (( mount_count > 1 )); then
-            first_line="yes"
-            echo "$mount_lines" | while read -r line; do
-              [[ -z "$line" ]] && continue
-              format_mount_values "$line"
-              if [[ "$first_line" == "yes" ]]; then
-                prefix="${font_standard}$mui_transmission_mount_point"
-                first_line="no"
-              else
-                prefix=""
-              fi
-              if [[ "$transmission_mount_detail" == "yes" ]]; then
-                echo -e "${prefix}\${goto 128}\${voffset -1}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${goto 143}\${voffset -3}${font_standard}$mount_point${txt_align_right}[$(printf "%04s" "$disk_free_human") / $(printf "%03d" "$disk_usage")%]"
-              else
-                echo -e "${prefix}\${goto 128}\${voffset -1}\${font FontAwesome:size=5}\${color $transmission_color}$transmission_glyph\${color}\${goto 143}\${voffset -3}${font_standard}$mount_point"
-              fi
-            done
           fi
           transmission_down=`cat ~/.conky/transm.log | grep Sum: | awk '{ print $NF }' | sed "s/\..*//"`
           transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
