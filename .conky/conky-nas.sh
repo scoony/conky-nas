@@ -1344,7 +1344,7 @@ if [[ "$net_adapter" != "" ]]; then
           fi
           plex_song=`echo $plex_stream | sed 's/<Media .*//' | sed 's/.* title="//' | sed 's/".*//'`
           plex_music=`echo $plex_artiste$plex_album - $plex_song`
-          echo -e "$font_extra\u25CF $font_standar${plex_music:0:30} $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_music.log
+          echo -e "$font_extra\uf111 $font_standard${plex_music:0:30} $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_music.log
           echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_music.log
         else
           plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
