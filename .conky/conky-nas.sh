@@ -1252,6 +1252,36 @@ if [[ "$net_adapter" != "" ]]; then
 #      if [[ "$plex_state" != "dead" ]]; then
 #        echo -e "${font_standard}$mui_plex_state ${txt_align_right}\${execi 5 systemctl is-active plexmediaserver}"
 #      fi
+      if [[ "$tautulli_ip" != "" ]] && [[ "$tautulli_port" != "" ]] && [[ "$tautulli_api" != "" ]] && [[ "$tautulli_librairies" != "" ]]; then
+        echo -e "${font_standard}$mui_plex_libraries"
+        tautulli_json=`curl --silent "http://$tautulli_ip:$tautulli_port/api/v2?apikey=$tautulli_api&cmd=get_libraries"`
+        IFS='|' read -ra LIBS <<< "$tautulli_librairies"
+        i=0
+        line=""
+        for lib in "${LIBS[@]}"; do
+          count=$(echo "$tautulli_json" | jq -r '.response.data[] | select(.section_name=="'"$lib"'") | .count')
+          section="$font_standard$lib > $count"
+          case $(( i % 3 )) in
+            0)
+                # Colonne gauche
+                line=" $section"
+                ;;
+            1)
+                # Colonne centre
+                line+="\${goto 120}$section"
+                ;;
+            2)
+                # Colonne droite
+                line+="${txt_align_right}$section"
+                echo -e "$line"
+                line=""
+                ;;
+          esac
+          ((i++))
+        done
+        # Affiche le reste si la dernière ligne n'est pas complète
+        [[ -n "$line" ]] && echo -e "$line"
+      fi
       if [[ "$plex_token" == "" ]]; then
         if [[ "$user_pass" != "" ]]; then
           echo $user_pass | sudo -kS updatedb &>/dev/null
