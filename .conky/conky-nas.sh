@@ -1259,21 +1259,33 @@ if [[ "$net_adapter" != "" ]]; then
         i=0
         line=""
         for lib in "${LIBS[@]}"; do
-          count=$(echo "$tautulli_json" | jq -r '.response.data[] | select(.section_name=="'"$lib"'") | .count')
-          section="$font_standard$lib > $count"
-          case $(( i % 3 )) in
+          section_type=$(echo "$tautulli_json" | jq -r --arg LIB "$lib" '.response.data[] | select(.section_name==$LIB) | .section_type')
+          count=$(echo "$tautulli_json" | jq -r --arg LIB "$lib" '.response.data[] | select(.section_name==$LIB) | .count')
+          child_count=$(echo "$tautulli_json" | jq -r --arg LIB "$lib" '.response.data[] | select(.section_name==$LIB) | .child_count // empty')
+          parent_count=$(echo "$tautulli_json" | jq -r --arg LIB "$lib" '.response.data[] | select(.section_name==$LIB) | .parent_count // empty')
+          case "$section_type" in
+            movie)
+              section="$lib > $count"
+              ;;
+            show)
+              section="$lib > $count ($child_count)"
+              ;;
+            artist)
+              section="$lib > $parent_count"
+              ;;
+            *)
+              section="$lib > $count"
+              ;;
+          esac
+          case $(( i % 2 )) in
             0)
                 # Colonne gauche
                 line=" $section"
                 ;;
             1)
-                # Colonne centre
-                line+="\${goto 120}$section"
-                ;;
-            2)
                 # Colonne droite
                 line+="${txt_align_right}$section"
-                echo -e "$line"
+                echo -e "${font_standard}${line}"
                 line=""
                 ;;
           esac
