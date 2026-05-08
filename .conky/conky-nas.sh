@@ -1279,20 +1279,47 @@ if [[ "$net_adapter" != "" ]]; then
           esac
           case $(( i % 2 )) in
             0)
-                # Colonne gauche
-                line=" $section"
-                ;;
+              # Colonne gauche
+              case "$section_type" in
+                movie)
+                  line=" $lib > $count"
+                  ;;
+                show)
+                  line=" $lib > $count ($child_count)"
+                  ;;
+                artist)
+                  line=" $lib > $parent_count"
+                  ;;
+                *)
+                  line=" $lib > $count"
+                  ;;
+              esac
+            ;;
             1)
-                # Colonne droite
-                line+="${txt_align_right}$section"
-                echo -e "${font_standard}${line}"
-                line=""
-                ;;
+              # Colonne droite
+              line+="${txt_align_right}"
+              case "$section_type" in
+                movie)
+                  line+="$count < $lib"
+                  ;;
+                show)
+                  line+="($child_count) $count < $lib"
+                  ;;
+                artist)
+                  line+="$parent_count < $lib"
+                  ;;
+                *)
+                  line+="$count < $lib"
+                  ;;
+              esac
+              echo -e "${font_standard}${line}"
+              line=""
+              ;;
           esac
           ((i++))
         done
         # Affiche le reste si la dernière ligne n'est pas complète
-        [[ -n "$line" ]] && echo -e "$line"
+        [[ -n "$line" ]] && echo -e "${font_standard}$line"
       fi
       if [[ "$plex_token" == "" ]]; then
         if [[ "$user_pass" != "" ]]; then
