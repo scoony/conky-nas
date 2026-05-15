@@ -1263,35 +1263,21 @@ if [[ "$net_adapter" != "" ]]; then
           count=$(echo "$tautulli_json" | jq -r --arg LIB "$lib" '.response.data[] | select(.section_name==$LIB) | .count')
           child_count=$(echo "$tautulli_json" | jq -r --arg LIB "$lib" '.response.data[] | select(.section_name==$LIB) | .child_count // empty')
           parent_count=$(echo "$tautulli_json" | jq -r --arg LIB "$lib" '.response.data[] | select(.section_name==$LIB) | .parent_count // empty')
-          case "$section_type" in
-            movie)
-              section="$lib > $count"
-              ;;
-            show)
-              section="$lib > $count ($child_count)"
-              ;;
-            artist)
-              section="$lib > $parent_count"
-              ;;
-            *)
-              section="$lib > $count"
-              ;;
-          esac
           case $(( i % 2 )) in
             0)
               # Colonne gauche
               case "$section_type" in
                 movie)
-                  line=" $lib > $count"
+                  line="$lib > $count"
                   ;;
                 show)
-                  line=" $lib > $count ($child_count)"
+                  line="$lib > $count ($child_count)"
                   ;;
                 artist)
-                  line=" $lib > $parent_count"
+                  line="$lib > $parent_count"
                   ;;
                 *)
-                  line=" $lib > $count"
+                  line="$lib > $count"
                   ;;
               esac
             ;;
