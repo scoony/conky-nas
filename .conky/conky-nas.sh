@@ -812,42 +812,30 @@ if [[ "$net_adapter" != "" ]]; then
   fi
   net_ip_public=""
   for _retry in 1 2 3; do
-    net_ip_public=$(curl -4 -s --max-time 4 https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
+    net_ip_public=$(curl -4 -s --max-time 4 https://api.ipify.org 2>/dev/null | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
+    #net_ip_public=$(curl -4 -s --max-time 4 https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
     [[ -n "$net_ip_public" ]] && break
     sleep 1
   done
-#  if [[ -n "$net_ip_public" ]]; then
-#    echo "$net_ip_public" > ~/.conky/Temp/net_ip_public.cache
-#  else
-#    net_ip_public=$(cat ~/.conky/Temp/net_ip_public.cache 2>/dev/null)
-#  fi
   if [[ "$vpn_detected" != "" ]]; then
 #    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
 ##    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
     if [[ "$net_adapter_number" == "1" ]]; then
       net_ip_box=""
       for _retry in 1 2 3; do
-        net_ip_box=$(curl -4 -s --max-time 4 --interface $(hostname -I | cut -d' ' -f1) https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
+        net_ip_box=$(curl -4 -s --max-time 4 --interface $net_adapter https://api.ipify.org 2>/dev/null | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
+        #net_ip_box=$(curl -4 -s --max-time 4 --interface $(hostname -I | cut -d' ' -f1) https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
         [[ -n "$net_ip_box" ]] && break
         sleep 1
       done
-#      if [[ -n "$net_ip_box" ]]; then
-#        echo "$net_ip_box" > ~/.conky/Temp/net_ip_box.cache
-#      else
-#        net_ip_box=$(cat ~/.conky/Temp/net_ip_box.cache 2>/dev/null)
-#      fi
       if [[ "$net_ip_box" =~ "$net_ip_public" ]] && id -u "vpn" >/dev/null 2>&1; then
         net_ip_public=""
         for _retry in 1 2 3; do
-          net_ip_public=$(echo $user_pass | sudo -kSu vpn -- curl -4 -s --max-time 4 https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
+          net_ip_public=$(echo $user_pass | sudo -kSu vpn -- curl -4 -s --max-time 4 https://api.ipify.org 2>/dev/null | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
+          #net_ip_public=$(echo $user_pass | sudo -kSu vpn -- curl -4 -s --max-time 4 https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
           [[ -n "$net_ip_public" ]] && break
           sleep 1
         done
-#        if [[ -n "$net_ip_public" ]]; then
-#          echo "$net_ip_public" > ~/.conky/Temp/net_ip_tunnel.cache
-#        else
-#          net_ip_public=$(cat ~/.conky/Temp/net_ip_tunnel.cache 2>/dev/null)
-#        fi
         echo -e "${font_standard}$mui_network_ip_tunnel $txt_align_right$net_ip_public"
       else
         echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
@@ -1403,6 +1391,7 @@ if [[ "$net_adapter" != "" ]]; then
           echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_music.log
         else
           plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
+#          plex_folder=`echo $plex_stream | grep -Po '(?<=<Part )[^>]*' | grep -Po '(?<=file=")[^"]*' | cut -d'/' -f1-5`
           if [[ "$plex_checkepisode" != "" ]]; then
             plex_serie=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
             plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
@@ -1410,18 +1399,22 @@ if [[ "$net_adapter" != "" ]]; then
             if [[ "$plex_transcode" == "transcode" ]]; then
               echo -e "$font_extra\uf10C $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_transcode.log
               echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_transcode.log
+#              echo -e "$font_standard$plex_folder" >> ~/.conky/Temp/plex_transcode.log
             else
               echo -e "$font_extra\uf111 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> ~/.conky/Temp/plex_direct.log
               echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_direct.log
+#              echo -e "$font_standard$plex_folder" >> ~/.conky/Temp/plex_direct.log
             fi
           else
             plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
             if [[ "$plex_transcode" == "transcode" ]]; then
               echo -e "$font_extra\uf10C $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex_transcode.log
               echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_transcode.log
+#              echo -e "$font_standard$plex_folder" >> ~/.conky/Temp/plex_transcode.log
             else
               echo -e "$font_extra\uf111 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> ~/.conky/Temp/plex_direct.log
               echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> ~/.conky/Temp/plex_direct.log
+#              echo -e "$font_standard$plex_folder" >> ~/.conky/Temp/plex_direct.log
             fi
           fi
         fi
