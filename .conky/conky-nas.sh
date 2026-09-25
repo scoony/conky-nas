@@ -434,7 +434,7 @@ if [[ "$services_list" != "" ]]; then
   fi
 fi
 
-cat ~/.conky/steam_friends_monitor.ext 2>/dev/null
+cat ~/.conky/*.friends.ext 2>/dev/null
 cat ~/.conky/ark_servers_monitor.ext 2>/dev/null
 
 #### CPU Block
