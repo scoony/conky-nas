@@ -14,8 +14,8 @@ script_name=$(basename "$0" | cut -d'.' -f1)
 script_name_cap=${script_name^^}
 script_name_full=$(basename "$0")
 script_bin="$0"
-script_conf="$HOME/.config/$script_name/$script_name.conf"
-script_remote="https://raw.githubusercontent.com/scoony/conky-nas/main/$script_name_full"
+script_conf="$HOME/.conky/conky-nas.conf"
+script_remote="https://raw.githubusercontent.com/scoony/conky-nas/main/addons/$script_name_full"
 script_folder="$HOME/.config/$script_name"
 
 
@@ -43,7 +43,7 @@ needs_long_arg() {
 
 #######################
 ## Script configuration
-settings_variables=( servers push_token_app push_target )
+settings_variables=( ark_servers ark_push_token_app ark_push_target )
 touch "$script_conf"
 chmod 600 "$script_conf"
 
@@ -70,7 +70,7 @@ update_server_list() {
     die "Invalid server name: $requested_server"
   fi
 
-  IFS='|' read -r -a current_servers <<< "${servers:-}"
+  IFS='|' read -r -a current_servers <<< "${ark_servers:-}"
   for server in "${current_servers[@]}"; do
     [[ -n "$server" ]] || continue
     if [[ "${server,,}" == "${requested_server,,}" ]]; then
@@ -82,24 +82,24 @@ update_server_list() {
 
   if [[ "$action" == 'add' ]]; then
     if (( found )); then
-      echo "servers already contains: $requested_server"
+      echo "ark_servers already contains: $requested_server"
       return 0
     fi
     updated_servers+=("$requested_server")
   elif (( ! found )); then
-    echo "servers does not contain: $requested_server"
+    echo "ark_servers does not contain: $requested_server"
     return 0
   elif (( ${#updated_servers[@]} == 0 )); then
-    die 'At least one server must remain in servers'
+    die 'At least one server must remain in ark_servers'
   fi
 
   new_value=$(IFS='|'; echo "${updated_servers[*]}")
   config_tmp=$(mktemp "$script_folder/.${script_name}.conf.XXXXXX") || die 'Unable to create config temporary file'
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ "$line" =~ ^[[:space:]]*servers[[:space:]]*= ]]; then
+    if [[ "$line" =~ ^[[:space:]]*ark_servers[[:space:]]*= ]]; then
       if (( ! written )); then
-        printf 'servers="%s"\n' "$new_value" >> "$config_tmp"
+        printf 'ark_servers="%s"\n' "$new_value" >> "$config_tmp"
         written=1
       fi
     else
@@ -240,8 +240,8 @@ while getopts 'eush-:' OPT; do
 done
 shift $((OPTIND - 1))
 
-if [[ -z "${servers:-}" ]]; then
-  die "servers is empty in $script_conf"
+if [[ -z "${ark_servers:-}" ]]; then
+  die "ark_servers is empty in $script_conf"
 fi
 
 SERVER_LIST_URL="https://cdn2.arkdedicated.com/servers/asa/officialserverlist.json"
@@ -272,7 +272,7 @@ if ! mkdir -p "$OUTPUT_DIR" "$STATE_DIR"; then
 fi
 
 server_list=$(mktemp) || exit 1
-output_tmp=$(mktemp "$OUTPUT_DIR/.ark_servers_monitor.ext.XXXXXX") || exit 1
+output_tmp=$(mktemp "$OUTPUT_DIR/.conky_ark.ext.XXXXXX") || exit 1
 trap 'rm -f "$server_list" "$output_tmp"' EXIT
 
 echo -e "\${font ${font_awesome_font}}${font_awesome_ark}\${font}\${goto 35} ${font_title}${mui_ark_title} \${hr 2}" >> "$output_tmp"
@@ -329,9 +329,9 @@ send_push() {
   local targets recipient
   local -a recipients
 
-  [[ -n "${push_token_app:-}" && -n "${push_target:-}" ]] || return 0
+  [[ -n "${ark_push_token_app:-}" && -n "${ark_push_target:-}" ]] || return 0
 
-  targets=${push_target//,/|}
+  targets=${ark_push_target//,/|}
   targets=${targets//;/|}
   IFS='|' read -r -a recipients <<< "$targets"
 
@@ -341,7 +341,7 @@ send_push() {
     [[ -n "$recipient" ]] || continue
 
     curl --silent --show-error --fail --max-time 20 \
-      --form-string "token=$push_token_app" \
+      --form-string "token=$ark_push_token_app" \
       --form-string "user=$recipient" \
       --form-string "title=$title" \
       --form-string "message=$message" \
