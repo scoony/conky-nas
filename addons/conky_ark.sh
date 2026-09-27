@@ -523,12 +523,12 @@ show_online() {
 if [[ -n "${ark_GameUserSettings:-}" ]]; then
   if curl -fsL -o "$script_folder/GameUserSettings.ini" "https://drive.usercontent.google.com/download?export=download&confirm=t&id=$ark_GameUserSettings"; then
     save_last_joined_session "$script_folder/GameUserSettings.ini"
-    rm -f "$script_folder/GameUserSettings.ini" 2>/dev/null
     mui_ark_joined="\${font FontAwesome:size=8}\uf005"
+  else
+    mui_ark_joined="\${font FontAwesome:size=8}\uf127"
   fi
 else
   mui_ark_joined="\${font FontAwesome:size=8}\uf127"
-  printf 'Avertissement: ark_GameUserSettings est vide dans %s\n' "$script_conf" >&2
 fi
 
 IFS='|' read -r -a server_names <<< "$ark_servers"
@@ -573,7 +573,7 @@ for name in "${server_names[@]}"; do
     show_online "$name" "$players" "$max_players" "$state_file" "$status_file" "$status_prefix"
   else
     show_offline "$name" "$state_file" "$status_file" "$status_prefix"
-    pgrep ping | xargs kill -9
+    pgrep ping | xargs kill -9 >/dev/null 2>&1
   fi
 done
 
