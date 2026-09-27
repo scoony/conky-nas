@@ -30,6 +30,19 @@ script_remote="https://raw.githubusercontent.com/scoony/conky-nas/main/addons/$s
 script_folder="$HOME/.config/$script_name"
 mkdir -p "$script_folder" || exit 1
 
+SERVER_LIST_URL="https://cdn2.arkdedicated.com/servers/asa/officialserverlist.json"
+DYNAMIC_CONFIG_URL="https://cdn2.arkdedicated.com/asa/dynamicconfig.ini"
+OUTPUT_DIR="$HOME/.conky"
+OUTPUT_FILE="$OUTPUT_DIR/$script_name.games.ext"
+STATE_DIR="$script_folder/state"
+QUERY_TIMEOUT=10
+QUERY_ATTEMPTS=2
+
+font_awesome_ark="\uf8bc"
+mui_ark_title="ARK SURVIVAL ASCENDED"
+smart_glyph="\uf0c8"
+
+
 #### Check local language and apply MUI
 os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
 if [[ -f "$HOME/.conky/MUI/$os_language.lang" ]]; then
@@ -312,26 +325,9 @@ done
 shift $((OPTIND - 1))
 
 if [[ -z "${ark_servers:-}" ]]; then
+  rm -f "$OUTPUT_FILE" >/dev/null 2>&1
   die "ark_servers is empty in $script_conf"
 fi
-
-SERVER_LIST_URL="https://cdn2.arkdedicated.com/servers/asa/officialserverlist.json"
-DYNAMIC_CONFIG_URL="https://cdn2.arkdedicated.com/asa/dynamicconfig.ini"
-OUTPUT_DIR="$HOME/.conky"
-OUTPUT_FILE="$OUTPUT_DIR/$script_name.games.ext"
-STATE_DIR="$script_folder/state"
-QUERY_TIMEOUT=10
-QUERY_ATTEMPTS=2
-
-font_standard="\${font Noto Mono:normal:size=8}"
-font_title="\${font Ubuntu:bold:size=10}"
-font_awesome_font="Font Awesome 5 Pro:size=16"
-font_awesome_ark="\uf8bc"
-mui_ark_title="ARK SURVIVAL ASCENDED"
-txt_align_right="\${alignr}"
-smart_glyph="\uf0c8"
-mui_ark_joined_error="\${font FontAwesome:size=8}\uf127"
-mui_ark_joined_success="\${font FontAwesome:size=8}\uf005"
 
 for command in curl jq gamedig timeout; do
   if ! command -v "$command" >/dev/null 2>&1; then
