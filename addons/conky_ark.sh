@@ -11,7 +11,6 @@ export NVM_DIR
 # shellcheck source=/dev/null
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 
-
 #######################
 ## Generating script variables and basics
 script_name=$(basename "$0" | cut -d'.' -f1)
@@ -23,6 +22,13 @@ script_remote="https://raw.githubusercontent.com/scoony/conky-nas/main/addons/$s
 script_folder="$HOME/.config/$script_name"
 mkdir -p "$script_folder" || exit 1
 
+#### Check local language and apply MUI
+os_language=$(locale | grep LANG | sed -n '1p' | cut -d= -f2 | cut -d_ -f1)
+if [[ -f "$HOME/.conky/MUI/$os_language.lang" ]]; then
+  source "$HOME/.conky/MUI/$os_language.lang"
+else
+  source "$HOME/.conky/MUI/en.lang"
+fi
 
 #######################
 ## Check if this script is running
