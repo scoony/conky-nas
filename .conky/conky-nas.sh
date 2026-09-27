@@ -637,10 +637,28 @@ fi
 #### DiskUsage Block
 
 time1=$(date +%s)
-echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title \${hr 2}"
 drives=`ls /dev/nvme1n[1-9]p[1-9] /dev/nvme0n[1-9]p[1-9] /dev/mmcblk[1-9]p[1-9] /dev/sd*[1-9] 2>/dev/null`
+non_usb_drive_count=0
+for drive in $drives; do
+  drive_bus=$(udevadm info --query=property --name="$drive" 2>/dev/null | awk -F= '$1 == "ID_BUS" { print $2; exit }')
+  drive_mount_point=$(grep "^$drive " /proc/mounts | grep -v "/snap/" | cut -d ' ' -f 2)
+  if [[ "$drive_bus" != "usb" ]] &&
+     [[ -n "$drive_mount_point" ]] &&
+     [[ ! "$drive_mount_point" =~ ^/boot ]]; then
+    ((non_usb_drive_count++))
+  fi
+done
+if [[ -f "$HOME/.conky/.mount.log" ]]; then
+  mounted_by_new_mount=$(< "$HOME/.conky/.mount.log")
+  mounted_by_new_mount=$((mounted_by_new_mount + 1))
+  disk_count_display="$non_usb_drive_count/$mounted_by_new_mount"
+else
+  disk_count_display="$non_usb_drive_count"
+fi
+echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title - ${font_standard}$disk_count_display \${hr 2}"
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | grep -v "/snap/" | cut -d ' ' -f 2`
+  mount_label="$mount_point"
   if [[ "$mount_point" != "" ]]; then
     disk_free=`df $drive | sed 1d | awk '{print $4}'`
     disk_free_human=`echo $disk_free | numfmt --from-unit=1024 --to=si`
@@ -715,6 +733,7 @@ for drive in $drives ; do
                 push_content=`echo -e "[ <b>SMART</b> ] $mui_smart_error_title\n\n<b>$mui_smart_error_main</b> $drive\n<b>$mui_smart_error_serial</b> $smart_serial\n<b>$mui_smart_error_size</b> $smart_size\n<b>$mui_smart_error_age</b> $smart_age\n<b>$mui_smart_error_errors</b> $smart_offline_uncorrectable"`
                 push-message "0" "Conky" "$push_content" "$push_token_app"
               fi
+              mount_label="$mount_point ($smart_offline_uncorrectable)"
               echo $smart_offline_uncorrectable > ~/.conky/SMART/$drive_short.error
             fi
           else
@@ -734,16 +753,16 @@ for drive in $drives ; do
       if [[ "$disk_temp" != "" ]]; then
         if [[ ! "$mount_point" =~ "boot" ]]; then
 ##          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
-          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color" >> ~/.conky/Temp/drives.log
+          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_label:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color" >> ~/.conky/Temp/drives.log
         fi
 ##        echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 299}\${voffset -1}\${color black}${disk_temp:0:2}°\$color"
       else
         if [[ "$disk_interface" =~ "usb" ]] || [[ "$disk_support" != "" ]]; then
-          echo -e "\${voffset 1}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/usb.log
+          echo -e "\${voffset 1}${font_standard}${mount_label:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/usb.log
         else
           if [[ ! "$mount_point" =~ "boot" ]]; then
 ##            echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
-            echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/drives.log
+            echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_label:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:size=6}\${goto 298}\${voffset -1}\${color black}\$color" >> ~/.conky/Temp/drives.log
           fi
 ##          echo -e "\${voffset -1}\${offset -5}\${voffset 3}\${font FontAwesome:regular:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${mount_point:0:18}${txt_align_right}\${goto 128}[$(printf "%04s" $disk_free_human) / $(printf "%03d" $disk_usage)%]\${voffset 1}\${execbar 6,88 echo $disk_usage}${font_standard}\${color $disk_color}\${goto 296}$bar\${color}\${font Noto Mono:regular:size=6}\${goto 298}\${voffset -1}\${color black}\$color"
         fi
