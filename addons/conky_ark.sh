@@ -1,6 +1,13 @@
 #!/bin/bash
 
 #######################
+## Scoony Fix because Ubuntu 22.04 doesn't use the proper version of nodejs, nodejs v16+ required
+##nodejs manual install required and "use" the installed version
+##export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+##[-s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+##nvm use 24
+
+#######################
 ## Load NVM when available; GameDig requires Node.js 16.20 or newer.
 if [[ -n "${XDG_CONFIG_HOME:-}" ]]; then
   NVM_DIR="$XDG_CONFIG_HOME/nvm"
@@ -10,6 +17,7 @@ fi
 export NVM_DIR
 # shellcheck source=/dev/null
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+
 
 #######################
 ## Generating script variables and basics
@@ -61,6 +69,9 @@ chmod 600 "$script_conf"
 for script_variable in "${settings_variables[@]}"; do
   if ! grep -qE "^[[:space:]]*${script_variable}[[:space:]]*=" "$script_conf"; then
     case "$script_variable" in
+      ark_GameUserSettings)
+        printf "%s=\"\"  ## mettre l'ID du doc sur Drive\n" "$script_variable" >> "$script_conf"
+        ;;
       ark_last_joined)
         printf '%s=\n' "$script_variable" >> "$script_conf"
         ;;
@@ -319,6 +330,8 @@ font_awesome_ark="\uf8bc"
 mui_ark_title="ARK SURVIVAL ASCENDED"
 txt_align_right="\${alignr}"
 smart_glyph="\uf0c8"
+mui_ark_joined_error="\${font FontAwesome:size=8}\uf127"
+mui_ark_joined_success="\${font FontAwesome:size=8}\uf005"
 
 for command in curl jq gamedig timeout; do
   if ! command -v "$command" >/dev/null 2>&1; then
@@ -443,7 +456,7 @@ show_conky_status() {
   local status_output=''
 
   [[ -n "$status" ]] && status_output="${txt_align_right}${status_prefix}${status}"
-  printf '%b\n' "\${offset -5}\${voffset 2}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${name}${status_output}" >> "$output_tmp"
+  printf '%b\n' "\${offset -5}\${voffset 2}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard} ${name}${status_output}" >> "$output_tmp"
 }
 
 show_offline() {
@@ -512,10 +525,14 @@ show_online() {
 }
 
 if [[ -n "${ark_GameUserSettings:-}" ]]; then
-  if curl -fsL -o "$script_folder/GameUserSettings.ini" "$ark_GameUserSettings"; then
+  if curl -fsL -o "$script_folder/GameUserSettings.ini" "https://drive.usercontent.google.com/download?export=download&confirm=t&id=$ark_GameUserSettings"; then
     save_last_joined_session "$script_folder/GameUserSettings.ini"
     rm -f "$script_folder/GameUserSettings.ini" 2>/dev/null
+    mui_ark_joined="\${font FontAwesome:size=8}\uf005"
   fi
+else
+  mui_ark_joined="\${font FontAwesome:size=8}\uf127"
+  printf 'Avertissement: ark_GameUserSettings est vide dans %s\n' "$script_conf" >&2
 fi
 
 IFS='|' read -r -a server_names <<< "$ark_servers"
@@ -536,7 +553,7 @@ for name in "${server_names[@]}"; do
   [[ -z "$name" ]] && continue
   status_prefix=''
   if [[ -n "${ark_last_joined:-}" && "${name,,}" == "${ark_last_joined,,}" ]]; then
-    status_prefix="\${font FontAwesome:size=8}\uf005${font_standard} "
+    status_prefix="${mui_ark_joined}${font_standard} "
   fi
   state_name=${name//[^[:alnum:]_.-]/_}
   state_file="$STATE_DIR/$state_name.offline"
