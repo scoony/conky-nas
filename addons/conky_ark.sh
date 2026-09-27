@@ -299,6 +299,7 @@ if [[ -z "${ark_servers:-}" ]]; then
 fi
 
 SERVER_LIST_URL="https://cdn2.arkdedicated.com/servers/asa/officialserverlist.json"
+DYNAMIC_CONFIG_URL="https://cdn2.arkdedicated.com/asa/dynamicconfig.ini"
 OUTPUT_DIR="$HOME/.conky"
 OUTPUT_FILE="$OUTPUT_DIR/$script_name.games.ext"
 STATE_DIR="$script_folder/state"
@@ -329,7 +330,30 @@ server_list=$(mktemp) || exit 1
 output_tmp=$(mktemp "$OUTPUT_DIR/.conky_ark.ext.XXXXXX") || exit 1
 trap 'rm -f "$server_list" "$output_tmp"' EXIT
 
-echo -e "\${font ${font_awesome_font}}${font_awesome_ark}\${font}\${goto 35} ${font_title}${mui_ark_title} \${hr 2}" >> "$output_tmp"
+xp_multiplier=''
+if dynamic_config=$(curl -fsSL --retry 2 --connect-timeout 5 --max-time 30 "$DYNAMIC_CONFIG_URL"); then
+  while IFS= read -r line; do
+    line=${line%$'\r'}
+    if [[ "$line" =~ ^[[:space:]]*XPMultiplier[[:space:]]*=[[:space:]]*([0-9]+([.][0-9]+)?)[[:space:]]*$ ]]; then
+      xp_multiplier=${BASH_REMATCH[1]}
+      break
+    fi
+  done <<< "$dynamic_config"
+
+  if [[ -z "$xp_multiplier" ]]; then
+    printf 'Avertissement: taux XPMultiplier absent ou invalide.\n' >&2
+  fi
+else
+  printf 'Avertissement: impossible de récupérer les taux ARK.\n' >&2
+fi
+
+if [[ "$xp_multiplier" =~ ^([0-9]+)\.0+$ ]]; then
+  xp_multiplier=${BASH_REMATCH[1]}
+fi
+
+rate_title=''
+[[ -n "$xp_multiplier" ]] && rate_title=" - ${font_standard}${mui_ark_rate}${xp_multiplier}"
+echo -e "\${font ${font_awesome_font}}${font_awesome_ark}\${font}\${goto 35} ${font_title}${mui_ark_title}${rate_title} \${hr 2}" >> "$output_tmp"
 
 if ! curl -fsSL --retry 2 --connect-timeout 5 --max-time 30 "$SERVER_LIST_URL" -o "$server_list"; then
   printf 'Erreur: impossible de récupérer la liste officielle des serveurs.\n' >&2
