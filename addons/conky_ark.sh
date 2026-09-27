@@ -573,6 +573,7 @@ for name in "${server_names[@]}"; do
     show_online "$name" "$players" "$max_players" "$state_file" "$status_file" "$status_prefix"
   else
     show_offline "$name" "$state_file" "$status_file" "$status_prefix"
+    pgrep ping | xargs kill -9
   fi
 done
 
