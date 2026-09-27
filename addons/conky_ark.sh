@@ -48,13 +48,16 @@ needs_long_arg() {
 
 #######################
 ## Script configuration
-settings_variables=( ark_servers ark_push_token_app ark_push_target )
+settings_variables=( ark_servers ark_push_token_app ark_push_target ark_GameUserSettings ark_last_joined )
 touch "$script_conf"
 chmod 600 "$script_conf"
 
 for script_variable in "${settings_variables[@]}"; do
   if ! grep -qE "^[[:space:]]*${script_variable}[[:space:]]*=" "$script_conf"; then
     case "$script_variable" in
+      ark_last_joined)
+        printf '%s=\n' "$script_variable" >> "$script_conf"
+        ;;
       *)
         printf '%s=""\n' "$script_variable" >> "$script_conf"
         ;;
@@ -64,6 +67,52 @@ done
 
 # shellcheck source=/dev/null
 source "$script_conf"
+
+save_last_joined_session() {
+  local ini_file=$1 line value='' config_tmp written=0
+  local version_suffix_regex='^(.*)[[:space:]]+-[[:space:]]+\(v[^)]*\)[[:space:]]*$'
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line=${line%$'\r'}
+    if [[ "$line" =~ ^[[:space:]]*LastJoinedSessionPerCategory[[:space:]]*=[[:space:]]*(.*)$ ]]; then
+      value=${BASH_REMATCH[1]}
+      break
+    fi
+  done < "$ini_file"
+
+  value=${value#"${value%%[![:space:]]*}"}
+  value=${value%"${value##*[![:space:]]}"}
+  if [[ "$value" == \"*\" ]]; then
+    value=${value#\"}
+    value=${value%\"}
+  fi
+  if [[ "$value" =~ $version_suffix_regex ]]; then
+    value=${BASH_REMATCH[1]}
+  fi
+  value=${value%"${value##*[![:space:]]}"}
+
+  if [[ ! "$value" =~ ^[[:alnum:]_.+-]+$ ]]; then
+    printf 'Erreur: première valeur LastJoinedSessionPerCategory absente ou invalide.\n' >&2
+    return 1
+  fi
+
+  config_tmp=$(mktemp "$script_folder/.${script_name}.conf.XXXXXX") || die 'Unable to create config temporary file'
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" =~ ^[[:space:]]*ark_last_joined[[:space:]]*= ]]; then
+      if (( ! written )); then
+        printf 'ark_last_joined=%s\n' "$value" >> "$config_tmp"
+        written=1
+      fi
+    else
+      printf '%s\n' "$line" >> "$config_tmp"
+    fi
+  done < "$script_conf"
+  (( written )) || printf 'ark_last_joined=%s\n' "$value" >> "$config_tmp"
+
+  chmod 600 "$config_tmp"
+  mv -f "$config_tmp" "$script_conf"
+  ark_last_joined=$value
+}
 
 update_server_list() {
   local action=$1
@@ -360,9 +409,10 @@ show_conky_status() {
   local name=$1
   local status=$2
   local smart_color=$3
+  local status_prefix=${4:-}
   local status_output=''
 
-  [[ -n "$status" ]] && status_output="${txt_align_right}${status}"
+  [[ -n "$status" ]] && status_output="${txt_align_right}${status_prefix}${status}"
   printf '%b\n' "\${offset -5}\${voffset 2}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard}${name}${status_output}" >> "$output_tmp"
 }
 
@@ -370,6 +420,7 @@ show_offline() {
   local name=$1
   local state_file=$2
   local status_file=$3
+  local status_prefix=${4:-}
   local now offline_since duration push_message previous_status=''
 
   if [[ -r "$status_file" ]]; then
@@ -393,7 +444,7 @@ show_offline() {
     send_push "[ARK] Serveur OFFLINE" "$push_message"
   fi
   duration=$(format_duration "$((now - offline_since))")
-  show_conky_status "$name" "$duration" "red"
+  show_conky_status "$name" "$duration" "red" "$status_prefix"
 }
 
 show_online() {
@@ -402,6 +453,7 @@ show_online() {
   local max_players=$3
   local state_file=$4
   local status_file=$5
+  local status_prefix=${6:-}
   local previous_status='' now offline_since push_duration restored_at push_message
 
   if [[ -r "$status_file" ]]; then
@@ -426,18 +478,42 @@ show_online() {
   fi
   rm -f "$state_file"
   printf 'online\n' > "$status_file"
-  show_conky_status "$name" "$players/$max_players" "lightgreen"
+  show_conky_status "$name" "$players/$max_players" "lightgreen" "$status_prefix"
 }
 
+if [[ -n "${ark_GameUserSettings:-}" ]]; then
+  if curl -fsL -o "$script_folder/GameUserSettings.ini" "$ark_GameUserSettings"; then
+    save_last_joined_session "$script_folder/GameUserSettings.ini"
+    rm -f "$script_folder/GameUserSettings.ini" 2>/dev/null
+  fi
+fi
+
 IFS='|' read -r -a server_names <<< "$ark_servers"
+if [[ -n "${ark_last_joined:-}" ]]; then
+  last_joined_found=0
+  for name in "${server_names[@]}"; do
+    if [[ "${name,,}" == "${ark_last_joined,,}" ]]; then
+      last_joined_found=1
+      break
+    fi
+  done
+  if (( ! last_joined_found )); then
+    server_names+=("$ark_last_joined")
+  fi
+fi
+
 for name in "${server_names[@]}"; do
   [[ -z "$name" ]] && continue
+  status_prefix=''
+  if [[ -n "${ark_last_joined:-}" && "${name,,}" == "${ark_last_joined,,}" ]]; then
+    status_prefix="\${font FontAwesome:size=8}\uf005${font_standard} "
+  fi
   state_name=${name//[^[:alnum:]_.-]/_}
   state_file="$STATE_DIR/$state_name.offline"
   status_file="$STATE_DIR/$state_name.status"
   server_data=$(jq -r --arg name "$name" 'first(.[] | select(.Name == $name)) as $server | [$server.IP, ($server.Port | tostring)] | @tsv' "$server_list")
   if [[ -z "$server_data" ]]; then
-    show_offline "$name" "$state_file" "$status_file"
+    show_offline "$name" "$state_file" "$status_file" "$status_prefix"
     continue
   fi
   IFS=$'\t' read -r ip port <<< "$server_data"
@@ -451,9 +527,9 @@ for name in "${server_names[@]}"; do
   if [[ -n "$result" ]]; then
     players=$(jq -r '.numplayers' <<< "$result")
     max_players=$(jq -r '.maxplayers' <<< "$result")
-    show_online "$name" "$players" "$max_players" "$state_file" "$status_file"
+    show_online "$name" "$players" "$max_players" "$state_file" "$status_file" "$status_prefix"
   else
-    show_offline "$name" "$state_file" "$status_file"
+    show_offline "$name" "$state_file" "$status_file" "$status_prefix"
   fi
 done
 
