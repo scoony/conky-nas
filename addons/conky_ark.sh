@@ -1,11 +1,15 @@
 #!/bin/bash
 
 #######################
-## Scoony Fix because Ubuntu 22.04 doesn't use the proper version of nodejs, nodejs v16+ required
-## nodejs manual install required and "use" the installed version
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use 24
+## Load NVM when available; GameDig requires Node.js 16.20 or newer.
+if [[ -n "${XDG_CONFIG_HOME:-}" ]]; then
+  NVM_DIR="$XDG_CONFIG_HOME/nvm"
+else
+  NVM_DIR="$HOME/.nvm"
+fi
+export NVM_DIR
+# shellcheck source=/dev/null
+[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 
 
 #######################
@@ -17,6 +21,7 @@ script_bin="$0"
 script_conf="$HOME/.conky/conky-nas.conf"
 script_remote="https://raw.githubusercontent.com/scoony/conky-nas/main/addons/$script_name_full"
 script_folder="$HOME/.config/$script_name"
+mkdir -p "$script_folder" || exit 1
 
 
 #######################
@@ -424,7 +429,7 @@ show_online() {
   show_conky_status "$name" "$players/$max_players" "lightgreen"
 }
 
-IFS='|' read -r -a server_names <<< "$servers"
+IFS='|' read -r -a server_names <<< "$ark_servers"
 for name in "${server_names[@]}"; do
   [[ -z "$name" ]] && continue
   state_name=${name//[^[:alnum:]_.-]/_}
