@@ -975,14 +975,15 @@ if [[ "$net_adapter" != "" ]]; then
     time1=$(date +%s)
     transmission_state=`systemctl show -p SubState --value transmission-daemon`
     if [[ "$transmission_state" != "dead" ]]; then
-      echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
+##      echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
 #      echo -e "${font_standard}$mui_transmission_state ${txt_align_right}\${execi 5 systemctl is-active transmission-daemon}"
       if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
         test_transmission=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null`
         if [[ "$test_transmission" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >~/.conky/transm.log
           transmission_queue=`cat ~/.conky/transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
-          echo "${font_standard}$mui_transmission_queue ${txt_align_right} $transmission_queue"
+##          echo "${font_standard}$mui_transmission_queue ${txt_align_right} $transmission_queue"
+          echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title - ${font_standard}$mui_transmission_queue $transmission_queue \${hr 2}"
           if [[ "$transmission_folder" == "" ]]; then
             echo $user_pass | sudo -kS updatedb &>/dev/null
             check_root_cron=`echo "$user_pass" | sudo -kS crontab -l 2>/dev/null | grep "plex_sort.sh"`
@@ -1358,7 +1359,7 @@ cat ~/.conky/*.apps.ext 2>/dev/null
 #       touch ~/.conky/Temp/plex_music.log
 #       plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
 #       plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
-#       echo $font_standard$mui_plex_streams$txt_align_right $plex_users
+#       echo $font_standard$mui_plex_stream$txt_align_right $plex_users
 #       let num=1
 #       while [ $num -le $plex_users ]; do
 #         plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | sed "s/<\/Track> /|/g" | cut -d'|' -f$num`

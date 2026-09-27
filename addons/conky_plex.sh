@@ -195,7 +195,7 @@ output_tmp_music=$(mktemp "$script_folder/.conky_plex_music.ext.XXXXXX") || exit
 trap 'rm -f "$output_tmp" "$output_tmp_transcode" "$output_tmp_direct" "$output_tmp_music"' EXIT
 plex_state=`systemctl show -p SubState --value plexmediaserver`
 if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != "" ) && ( "$plex_token" != "" )]]; then
-  echo -e "\${font ${font_awesome_font}}$font_awesome_plex\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}" >> "$output_tmp"
+  #echo -e "\${font ${font_awesome_font}}$font_awesome_plex\${font}\${goto 35} ${font_title}$mui_plex_title \${hr 2}" >> "$output_tmp"
   if [[ "$tautulli_ip" != "" ]] && [[ "$tautulli_port" != "" ]] && [[ "$tautulli_api" != "" ]] && [[ "$tautulli_librairies" != "" ]]; then
     echo -e "${font_standard}$mui_plex_libraries" >> "$output_tmp"
     tautulli_json=`curl --silent "http://$tautulli_ip:$tautulli_port/api/v2?apikey=$tautulli_api&cmd=get_libraries"`
@@ -303,7 +303,11 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
   fi
   plex_xml=`curl --silent http://$plex_ip:$plex_port/status/sessions?X-Plex-Token=$plex_token`
   plex_users=`echo $plex_xml | xmllint --format - | awk '/<MediaContainer size/ { print }' | cut -d \" -f2`
-  echo $font_standard$mui_plex_streams$txt_align_right $plex_users >> "$output_tmp"
+  #echo $font_standard$mui_plex_stream$txt_align_right $plex_users >> "$output_tmp"
+  plex_streams_suffix=""
+  (( plex_users > 1 )) && plex_streams_suffix="s"
+  plex_header=$(printf '%b' "\${font ${font_awesome_font}}${font_awesome_plex}\${font}\${goto 35} ${font_title}${mui_plex_title} - ${font_standard}${mui_plex_stream}${plex_streams_suffix}: ${plex_users} \${hr 2}")
+  sed -i "1i\\$plex_header" "$output_tmp"
   let num=1
   while [ $num -le $plex_users ]; do
     plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | sed "s/<\/Track> /|/g" | cut -d'|' -f$num`
