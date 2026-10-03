@@ -390,29 +390,11 @@ format_duration() {
   minutes=$((seconds % 3600 / 60))
 
   if (( days > 0 )); then
-    printf '%dj %dh' "$days" "$hours"
+    printf '%dj %dh %dm' "$days" "$hours" "$minutes"
   elif (( hours > 0 )); then
-    printf '%dh %02dmin' "$hours" "$minutes"
+    printf '%dh %dm' "$hours" "$minutes"
   else
-    printf '%dmin' "$minutes"
-  fi
-}
-
-format_push_duration() {
-  local seconds=$1
-  local days hours minutes
-
-  (( seconds < 0 )) && seconds=0
-  days=$((seconds / 86400))
-  hours=$((seconds % 86400 / 3600))
-  minutes=$((seconds % 3600 / 60))
-
-  if (( days > 0 )); then
-    printf '%d j %d h %d m' "$days" "$hours" "$minutes"
-  elif (( hours > 0 )); then
-    printf '%d h %d m' "$hours" "$minutes"
-  else
-    printf '%d m' "$minutes"
+    printf '%dm' "$minutes"
   fi
 }
 
@@ -516,7 +498,7 @@ show_online() {
       offline_since=$now
     fi
     [[ "$offline_since" =~ ^[0-9]+$ ]] || offline_since=$now
-    push_duration=$(format_push_duration "$((now - offline_since))")
+    push_duration=$(format_duration "$((now - offline_since))")
     restored_at=$(date '+%d/%m/%Y %H:%M')
     printf -v push_message '<b>%s</b>\n\n<b>Statut</b> : ONLINE\n<b>Indisponibilité</b> : %s\n<b>Rétabli</b> : %s' \
       "$name" "$push_duration" "$restored_at"
