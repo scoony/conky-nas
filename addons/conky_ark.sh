@@ -449,9 +449,10 @@ show_conky_status() {
   local status=$2
   local smart_color=$3
   local status_prefix=${4:-}
+  local status_leading=${5:-}
   local status_output=''
 
-  [[ -n "$status" ]] && status_output="${txt_align_right}${status_prefix}${status}"
+  [[ -n "$status" ]] && status_output="${txt_align_right}${status_prefix}${status_leading}${status}"
   printf '%b\n' "\${offset -5}\${voffset 2}\${font FontAwesome:size=5}\${color $smart_color}$smart_glyph\${color}\${voffset -3}\${goto 6}${font_standard} ${name}${status_output}" >> "$output_tmp"
 }
 
@@ -460,7 +461,9 @@ show_offline() {
   local state_file=$2
   local status_file=$3
   local status_prefix=${4:-}
-  local now offline_since duration push_message previous_status=''
+  local now offline_since duration push_message previous_status='' online_file
+
+  online_file=${state_file%.offline}.online
 
   if [[ -r "$status_file" ]]; then
     read -r previous_status < "$status_file"
@@ -476,6 +479,7 @@ show_offline() {
   fi
 
   [[ "$offline_since" =~ ^[0-9]+$ ]] || offline_since=$now
+  rm -f "$online_file"
   printf '%s\n' "$offline_since" > "$state_file"
   printf 'offline\n' > "$status_file"
   if [[ "$previous_status" == 'online' ]]; then
@@ -493,7 +497,11 @@ show_online() {
   local state_file=$4
   local status_file=$5
   local status_prefix=${6:-}
-  local previous_status='' now offline_since push_duration restored_at push_message
+  local previous_status='' now offline_since online_since online_file duration player_count
+  local push_duration restored_at push_message
+
+  online_file=${state_file%.offline}.online
+  now=$(date +%s)
 
   if [[ -r "$status_file" ]]; then
     read -r previous_status < "$status_file"
@@ -502,7 +510,6 @@ show_online() {
   fi
 
   if [[ "$previous_status" == 'offline' ]]; then
-    now=$(date +%s)
     if [[ -r "$state_file" ]]; then
       read -r offline_since < "$state_file"
     else
@@ -515,9 +522,20 @@ show_online() {
       "$name" "$push_duration" "$restored_at"
     send_push "[ARK] Serveur ONLINE" "$push_message"
   fi
+
+  if [[ -r "$online_file" ]]; then
+    read -r online_since < "$online_file"
+  else
+    online_since=$now
+  fi
+  [[ "$online_since" =~ ^[0-9]+$ ]] || online_since=$now
+  printf '%s\n' "$online_since" > "$online_file"
+  duration=$(format_duration "$((now - online_since))")
+  printf -v player_count '%5s' "$players/$max_players"
+
   rm -f "$state_file"
   printf 'online\n' > "$status_file"
-  show_conky_status "$name" "$players/$max_players" "lightgreen" "$status_prefix"
+  show_conky_status "$name" "$player_count" "lightgreen" "$status_prefix" "$duration "
 }
 
 if [[ -n "${ark_GameUserSettings:-}" ]]; then

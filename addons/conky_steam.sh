@@ -25,50 +25,51 @@ for command in curl jq; do
   fi
 done
 
-steam_id=${steam_id#"${steam_id%%[![:space:]]*}"}
-steam_id=${steam_id%"${steam_id##*[![:space:]]}"}
-if [[ ! "$steam_id" =~ ^[0-9]+$ ]]; then
-  printf 'Erreur: steam_id doit être un SteamID64 numérique valide.\n' >&2
-  exit 1
-fi
-
-friends_cache="$script_folder/friends_${steam_id}.json"
-cache_max_age=43200
-cache_is_valid=false
-
-if [[ -f "$friends_cache" ]]; then
-  cache_mtime=$(stat -c '%Y' "$friends_cache" 2>/dev/null || printf '0')
-  cache_age=$(($(date +%s) - cache_mtime))
-  if ((cache_age >= 0 && cache_age < cache_max_age)) &&
-    jq -e '.friendslist.friends | type == "array"' "$friends_cache" >/dev/null 2>&1; then
-    cache_is_valid=true
-  fi
-fi
-
-if [[ "$cache_is_valid" == true ]]; then
-  friends_response=$(<"$friends_cache")
-else
-  if ! friends_response=$(curl -fsS --max-time 20 --get \
-    --data-urlencode "key=$steam_api_key" \
-    --data-urlencode "steamid=$steam_id" \
-    --data-urlencode 'relationship=friend' \
-    'https://api.steampowered.com/ISteamUser/GetFriendList/v1/'); then
-    printf "Erreur: impossible de récupérer la liste des amis Steam. Vérifiez que le profil et sa liste d'amis sont publics.\n" >&2
-    exit 1
-  fi
-
-  if ! jq -e '.friendslist.friends | type == "array"' <<< "$friends_response" >/dev/null 2>&1; then
-    printf "Erreur: liste d'amis Steam invalide ou privée.\n" >&2
-    exit 1
-  fi
-
-  cache_tmp=$(mktemp "$script_folder/.friends_${steam_id}.XXXXXX") || exit 1
-  printf '%s\n' "$friends_response" > "$cache_tmp"
-  chmod 600 "$cache_tmp"
-  mv -f "$cache_tmp" "$friends_cache"
-fi
-
 if [[ "$steam_friends" == "" ]]; then
+  steam_id=${steam_id#"${steam_id%%[![:space:]]*}"}
+  steam_id=${steam_id%"${steam_id##*[![:space:]]}"}
+  if [[ ! "$steam_id" =~ ^[0-9]+$ ]]; then
+    printf 'Erreur: steam_id doit être un SteamID64 numérique valide.\n' >&2
+    exit 1
+  fi
+
+  friends_cache="$script_folder/friends_${steam_id}.json"
+  cache_max_age=43200
+  cache_is_valid=false
+
+  if [[ -f "$friends_cache" ]]; then
+    cache_mtime=$(stat -c '%Y' "$friends_cache" 2>/dev/null || printf '0')
+    cache_age=$(($(date +%s) - cache_mtime))
+    if ((cache_age >= 0 && cache_age < cache_max_age)) &&
+      jq -e '.friendslist.friends | type == "array"' "$friends_cache" >/dev/null 2>&1; then
+      cache_is_valid=true
+    fi
+  fi
+
+  if [[ "$cache_is_valid" == true ]]; then
+    friends_response=$(<"$friends_cache")
+  else
+    if ! friends_response=$(curl -fsS --max-time 20 --get \
+      --data-urlencode "key=$steam_api_key" \
+      --data-urlencode "steamid=$steam_id" \
+      --data-urlencode 'relationship=friend' \
+      'https://api.steampowered.com/ISteamUser/GetFriendList/v1/'); then
+      printf "Erreur: impossible de récupérer la liste des amis Steam. Vérifiez que le profil et sa liste d'amis sont publics.\n" >&2
+      exit 1
+    fi
+
+    if ! jq -e '.friendslist.friends | type == "array"' <<< "$friends_response" >/dev/null 2>&1; then
+      printf "Erreur: liste d'amis Steam invalide ou privée.\n" >&2
+      exit 1
+    fi
+
+    cache_tmp=$(mktemp "$script_folder/.friends_${steam_id}.XXXXXX") || exit 1
+    printf '%s\n' "$friends_response" > "$cache_tmp"
+    chmod 600 "$cache_tmp"
+   mv -f "$cache_tmp" "$friends_cache"
+  fi 
+
+##if [[ "$steam_friends" == "" ]]; then
   mapfile -t friend_ids < <(jq -r '.friendslist.friends[].steamid' <<< "$friends_response")
   declare -A players_by_id
 else
