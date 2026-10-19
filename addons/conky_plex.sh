@@ -306,8 +306,12 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
   #echo $font_standard$mui_plex_stream$txt_align_right $plex_users >> "$output_tmp"
   plex_streams_suffix=""
   (( plex_users > 1 )) && plex_streams_suffix="s"
-  plex_header=$(printf '%b' "\${font ${font_awesome_font}}${font_awesome_plex}\${font}\${goto 35} ${font_title}${mui_plex_title} - ${font_standard}${mui_plex_stream}${plex_streams_suffix}: ${plex_users} \${hr 2}")
-  sed -i "1i\\$plex_header" "$output_tmp"
+  plex_header=$(printf '%b' "\${font ${font_awesome_font}}${font_awesome_plex}\${font}\${goto 35} ${font_title}${mui_plex_title} \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}${mui_plex_stream}${plex_streams_suffix}: ${plex_users} \${hr 2}")
+  if [[ -s "$output_tmp" ]]; then
+    sed -i "1i\\$plex_header" "$output_tmp"
+  else
+    printf '%s\n' "$plex_header" > "$output_tmp"
+  fi
   let num=1
   while [ $num -le $plex_users ]; do
     plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | sed "s/<\/Track> /|/g" | cut -d'|' -f$num`
@@ -328,7 +332,14 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
       fi
     fi
     plex_checkmusic=`echo $plex_stream | grep ' type="track"'`
-    plex_bar_progress=$(($plex_inprogressms*100/$plex_durationms))
+    if (( plex_durationms > 0 )); then
+      plex_bar_progress=$((plex_inprogressms * 100 / plex_durationms))
+      (( plex_bar_progress < 0 )) && plex_bar_progress=0
+      (( plex_bar_progress > 100 )) && plex_bar_progress=100
+    else
+      plex_bar_progress=0
+    fi
+
     if [[ "$plex_checkmusic" != "" ]]; then
       plex_artiste=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
       plex_album=""
@@ -339,7 +350,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
       plex_song=`echo $plex_stream | sed 's/<Media .*//' | sed 's/.* title="//' | sed 's/".*//'`
       plex_music=`echo $plex_artiste$plex_album - $plex_song`
       echo -e "$font_extra\uf111 $font_standard${plex_music:0:30} $txt_align_right${plex_user:0:15}" >> "$output_tmp_music"
-      echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> "$output_tmp_music"
+      printf '%b\n' "${font_standard}${plex_inprogress} / ${plex_duration}  ${plex_state_human}\${voffset 1}\${execbar /bin/echo ${plex_bar_progress}}" >> "$output_tmp_music"
     else
       plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
       if [[ "$plex_checkepisode" != "" ]]; then
@@ -348,19 +359,19 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
         plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
         if [[ "$plex_transcode" == "transcode" ]]; then
           echo -e "$font_extra\uf10C $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> "$output_tmp_transcode"
-          echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> "$output_tmp_transcode"
+          printf '%b\n' "${font_standard}${plex_inprogress} / ${plex_duration}  ${plex_state_human}\${voffset 1}\${execbar /bin/echo ${plex_bar_progress}}" >> "$output_tmp_transcode"
         else
           echo -e "$font_extra\uf111 $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> "$output_tmp_direct"
-          echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> "$output_tmp_direct"
+          printf '%b\n' "${font_standard}${plex_inprogress} / ${plex_duration}  ${plex_state_human}\${voffset 1}\${execbar /bin/echo ${plex_bar_progress}}" >> "$output_tmp_direct"
         fi
       else
         plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
         if [[ "$plex_transcode" == "transcode" ]]; then
           echo -e "$font_extra\uf10C $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> "$output_tmp_transcode"
-          echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> "$output_tmp_transcode"
+          printf '%b\n' "${font_standard}${plex_inprogress} / ${plex_duration}  ${plex_state_human}\${voffset 1}\${execbar /bin/echo ${plex_bar_progress}}" >> "$output_tmp_transcode"
         else
           echo -e "$font_extra\uf111 $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> "$output_tmp_direct"
-          echo -e $font_standard$plex_inprogress" / "$plex_duration  $plex_state_human\${voffset 1}\${execbar echo $plex_bar_progress} >> "$output_tmp_direct"
+          printf '%b\n' "${font_standard}${plex_inprogress} / ${plex_duration}  ${plex_state_human}\${voffset 1}\${execbar /bin/echo ${plex_bar_progress}}" >> "$output_tmp_direct"
         fi
       fi
     fi

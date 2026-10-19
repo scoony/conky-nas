@@ -104,6 +104,11 @@ format_uptime() {
     secs=${BASH_REMATCH[2]}
   fi
 
+  # ps zero-pads fields; force decimal so 08 and 09 are not parsed as octal.
+  days=$((10#$days))
+  hours=$((10#$hours))
+  mins=$((10#$mins))
+  secs=$((10#$secs))
   total=$((days*86400 + hours*3600 + mins*60 + secs))
 
   days=$((total/86400))
@@ -655,7 +660,7 @@ if [[ -f "$HOME/.conky/.mount.log" ]]; then
 else
   disk_count_display="$non_usb_drive_count"
 fi
-echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title - ${font_standard}$disk_count_display \${hr 2}"
+echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}$disk_count_display \${hr 2}"
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | grep -v "/snap/" | cut -d ' ' -f 2`
   mount_label="$mount_point"
@@ -823,12 +828,14 @@ if [[ "$net_adapter" != "" ]]; then
     echo -e "\${font ${font_awesome_font}}$font_awesome_network\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
   fi
   net_adapter_number=`echo $net_adapter | wc -w`
-  if [[ "$net_adapter_number" == "1" ]]; then
-    if [[ "$net_adapter" =~ "wl" ]]; then
-      echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($font_awesome_network_wifi \${wireless_essid $net_adapter})"
-    else
-      net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
-      echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+  if [[ "$network_detail" == "yes" ]]; then
+    if [[ "$net_adapter_number" == "1" ]]; then
+      if [[ "$net_adapter" =~ "wl" ]]; then
+        echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($font_awesome_network_wifi \${wireless_essid $net_adapter})"
+      else
+        net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
+        echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($net_adapter_speed Mbps)"
+      fi
     fi
   fi
   net_ip_public=""
@@ -839,6 +846,7 @@ if [[ "$net_adapter" != "" ]]; then
     sleep 1
   done
   if [[ "$vpn_detected" != "" ]]; then
+    #echo -e "VPN detected"
 #    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
 ##    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
     if [[ "$net_adapter_number" == "1" ]]; then
@@ -857,6 +865,7 @@ if [[ "$net_adapter" != "" ]]; then
           [[ -n "$net_ip_public" ]] && break
           sleep 1
         done
+        #echo -e "${font_standard}$mui_network_ip_tunnel $net_ip_public $txt_align_right$mui_network_ip_box $net_ip_box"
         echo -e "${font_standard}$mui_network_ip_tunnel $txt_align_right$net_ip_public"
       else
         echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
@@ -1002,7 +1011,7 @@ if [[ "$net_adapter" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >~/.conky/transm.log
           transmission_queue=`cat ~/.conky/transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
 ##          echo "${font_standard}$mui_transmission_queue ${txt_align_right} $transmission_queue"
-          echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title - ${font_standard}$mui_transmission_queue $transmission_queue \${hr 2}"
+          echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}$mui_transmission_queue $transmission_queue \${hr 2}"
           if [[ "$transmission_folder" == "" ]]; then
             echo $user_pass | sudo -kS updatedb &>/dev/null
             check_root_cron=`echo "$user_pass" | sudo -kS crontab -l 2>/dev/null | grep "plex_sort.sh"`
