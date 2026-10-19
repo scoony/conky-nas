@@ -822,12 +822,21 @@ echo "\${font}\${voffset -4}"
 time1=$(date +%s)
 if [[ "$net_adapter" != "" ]]; then
   vpn_detected=`ifconfig | grep "tun[0-9]"`
-  if [[ "$vpn_detected" != "" ]]; then
-    echo -e "\${font ${font_awesome_font}}$font_awesome_network_secured\${font}\${goto 35} ${font_title}$mui_network_title_secured \${hr 2}"
-  else
-    echo -e "\${font ${font_awesome_font}}$font_awesome_network\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"
-  fi
   net_adapter_number=`echo $net_adapter | wc -w`
+  network_title_detail=""
+  if [[ "$network_detail" == "no" ]] && [[ "$net_adapter_number" == "1" ]]; then
+    if [[ "$net_adapter" =~ "wl" ]]; then
+      network_title_detail=" \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}$net_adapter ($font_awesome_network_wifi \${wireless_essid $net_adapter})"
+    else
+      net_adapter_speed=`cat /sys/class/net/$net_adapter/speed`
+      network_title_detail=" \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}$net_adapter ($net_adapter_speed Mbps)"
+    fi
+  fi
+  if [[ "$vpn_detected" != "" ]]; then
+    echo -e "\${font ${font_awesome_font}}$font_awesome_network_secured\${font}\${goto 35} ${font_title}$mui_network_title_secured$network_title_detail \${hr 2}"
+  else
+    echo -e "\${font ${font_awesome_font}}$font_awesome_network\${font}\${goto 35} ${font_title}$mui_network_title$network_title_detail \${hr 2}"
+  fi
   if [[ "$network_detail" == "yes" ]]; then
     if [[ "$net_adapter_number" == "1" ]]; then
       if [[ "$net_adapter" =~ "wl" ]]; then
@@ -865,12 +874,16 @@ if [[ "$net_adapter" != "" ]]; then
           [[ -n "$net_ip_public" ]] && break
           sleep 1
         done
-        #echo -e "${font_standard}$mui_network_ip_tunnel $net_ip_public $txt_align_right$mui_network_ip_box $net_ip_box"
-        echo -e "${font_standard}$mui_network_ip_tunnel $txt_align_right$net_ip_public"
+        network_ip_label="$mui_network_ip_tunnel"
       else
-        echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
+        network_ip_label="$mui_network_ip_public"
       fi
-      echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
+      if [[ "$network_detail" == "no" ]]; then
+        echo -e "${font_standard}$network_ip_label $net_ip_public $txt_align_right$net_ip_box : ${mui_network_ip_box%:}"
+      else
+        echo -e "${font_standard}$network_ip_label $txt_align_right$net_ip_public"
+        echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
+      fi
       if [[ "$net_ip_box" == "$net_ip_public" ]]; then
         if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
           touch ~/.conky/pushover/vpn_error
