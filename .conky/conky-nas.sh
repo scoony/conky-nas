@@ -124,6 +124,103 @@ format_uptime() {
   fi
 }
 
+render_network_history() {
+  local adapter="$1"
+  local state_file="$HOME/.conky/Temp/network-$adapter.state"
+  local history_file="$HOME/.conky/Temp/network-$adapter.history"
+  local now rx tx previous_time previous_rx previous_tx elapsed down up sample value row cell padding
+  local down_max=1 up_max=1 down_graph up_graph
+  local -a samples down_values up_values
+  local -a blocks=(" " $'\u2581' $'\u2582' $'\u2583' $'\u2584' $'\u2585' $'\u2586' $'\u2587' $'\u2588')
+
+  [[ -r "/sys/class/net/$adapter/statistics/rx_bytes" ]] || return
+  now=$(date +%s)
+  rx=$(<"/sys/class/net/$adapter/statistics/rx_bytes")
+  tx=$(<"/sys/class/net/$adapter/statistics/tx_bytes")
+
+  if [[ -r "$state_file" ]]; then
+    read -r previous_time previous_rx previous_tx < "$state_file"
+    elapsed=$((now - previous_time))
+    if (( elapsed > 0 && rx >= previous_rx && tx >= previous_tx )); then
+      down=$(((rx - previous_rx) / elapsed))
+      up=$(((tx - previous_tx) / elapsed))
+      printf '%s %s\n' "$down" "$up" >> "$history_file"
+    fi
+  fi
+  printf '%s %s %s\n' "$now" "$rx" "$tx" > "$state_file"
+
+  [[ -r "$history_file" ]] || return
+  mapfile -t samples < "$history_file"
+  if (( ${#samples[@]} > 28 )); then
+    samples=("${samples[@]: -28}")
+    printf '%s\n' "${samples[@]}" > "$history_file"
+  fi
+
+  for sample in "${samples[@]}"; do
+    read -r down up <<< "$sample"
+    down_values+=("$down")
+    up_values+=("$up")
+    (( down > down_max )) && down_max=$down
+    (( up > up_max )) && up_max=$up
+  done
+
+  for row in 2 1 0; do
+    down_graph=""
+    up_graph=""
+    for ((padding=${#samples[@]}; padding<28; padding++)); do
+      down_graph+=" "
+      up_graph+=" "
+    done
+    for value in "${down_values[@]}"; do
+      cell=$((value * 24 / down_max - row * 8))
+      (( cell < 0 )) && cell=0
+      (( cell > 8 )) && cell=8
+      down_graph+="${blocks[$cell]}"
+    done
+    for value in "${up_values[@]}"; do
+      cell=$((value * 24 / up_max - row * 8))
+      (( cell < 0 )) && cell=0
+      (( cell > 8 )) && cell=8
+      up_graph+="${blocks[$cell]}"
+    done
+    echo -e "\${font DejaVu Sans Mono:size=6}$down_graph${txt_align_right}$up_graph"
+  done
+}
+
+load_cached_public_ip() {
+  local result_name="$1"
+  local cache_file="$2"
+  local interface="$3"
+  local run_as="$4"
+  local refresh_delay="${network_ip_refresh:-300}"
+  local cached="" modified=0 now
+
+  [[ -r "$cache_file" ]] && read -r cached < "$cache_file"
+  [[ -e "$cache_file" ]] && modified=$(stat -c %Y "$cache_file" 2>/dev/null)
+  now=$(date +%s)
+
+  if (( now - modified >= refresh_delay )); then
+    (
+      flock -n 9 || exit
+      touch "$cache_file"
+      local fetched=""
+      if [[ "$run_as" == "vpn" ]]; then
+        fetched=$(echo "$user_pass" | sudo -kSu vpn -- curl -4 -s --connect-timeout 2 --max-time 4 https://api.ipify.org 2>/dev/null)
+      elif [[ -n "$interface" ]]; then
+        fetched=$(curl -4 -s --connect-timeout 2 --max-time 4 --interface "$interface" https://api.ipify.org 2>/dev/null)
+      else
+        fetched=$(curl -4 -s --connect-timeout 2 --max-time 4 https://api.ipify.org 2>/dev/null)
+      fi
+      if [[ "$fetched" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+        printf '%s\n' "$fetched" > "$cache_file.tmp"
+        mv "$cache_file.tmp" "$cache_file"
+      fi
+    ) 9>"$cache_file.lock" >/dev/null 2>&1 &
+  fi
+
+  printf -v "$result_name" '%s' "$cached"
+}
+
 #### Autoupdater
 
 if ! pgrep -x "conky-update" > /dev/null
@@ -824,7 +921,7 @@ if [[ "$net_adapter" != "" ]]; then
   vpn_detected=`ifconfig | grep "tun[0-9]"`
   net_adapter_number=`echo $net_adapter | wc -w`
   network_title_detail=""
-  if [[ "$network_detail" == "no" ]] && [[ "$net_adapter_number" == "1" ]]; then
+  if [[ "$network_compact" == "yes" ]] && [[ "$net_adapter_number" == "1" ]]; then
     if [[ "$net_adapter" =~ "wl" ]]; then
       network_title_detail=" \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}$net_adapter ($font_awesome_network_wifi \${wireless_essid $net_adapter})"
     else
@@ -837,7 +934,7 @@ if [[ "$net_adapter" != "" ]]; then
   else
     echo -e "\${font ${font_awesome_font}}$font_awesome_network\${font}\${goto 35} ${font_title}$mui_network_title$network_title_detail \${hr 2}"
   fi
-  if [[ "$network_detail" == "yes" ]]; then
+  if [[ "$network_compact" == "no" ]]; then
     if [[ "$net_adapter_number" == "1" ]]; then
       if [[ "$net_adapter" =~ "wl" ]]; then
         echo -e "${font_standard}$mui_network_adapter $txt_align_right $net_adapter ($font_awesome_network_wifi \${wireless_essid $net_adapter})"
@@ -847,44 +944,26 @@ if [[ "$net_adapter" != "" ]]; then
       fi
     fi
   fi
-  net_ip_public=""
-  for _retry in 1 2 3; do
-    net_ip_public=$(curl -4 -s --max-time 4 https://api.ipify.org 2>/dev/null | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
-    #net_ip_public=$(curl -4 -s --max-time 4 https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
-    [[ -n "$net_ip_public" ]] && break
-    sleep 1
-  done
+  load_cached_public_ip net_ip_public "$HOME/.conky/Temp/net_ip_public.cache" "" ""
   if [[ "$vpn_detected" != "" ]]; then
     #echo -e "VPN detected"
 #    echo -e "${font_standard}$mui_network_vpn $txt_align_right\${execi 5 systemctl is-active $vpn_service}"
 ##    echo -e "${font_standard}$mui_network_ip_public $txt_align_right$net_ip_public"
     if [[ "$net_adapter_number" == "1" ]]; then
-      net_ip_box=""
-      for _retry in 1 2 3; do
-        net_ip_box=$(curl -4 -s --max-time 4 --interface $net_adapter https://api.ipify.org 2>/dev/null | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
-        #net_ip_box=$(curl -4 -s --max-time 4 --interface $(hostname -I | cut -d' ' -f1) https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
-        [[ -n "$net_ip_box" ]] && break
-        sleep 1
-      done
-      if [[ "$net_ip_box" =~ "$net_ip_public" ]] && id -u "vpn" >/dev/null 2>&1; then
-        net_ip_public=""
-        for _retry in 1 2 3; do
-          net_ip_public=$(echo $user_pass | sudo -kSu vpn -- curl -4 -s --max-time 4 https://api.ipify.org 2>/dev/null | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
-          #net_ip_public=$(echo $user_pass | sudo -kSu vpn -- curl -4 -s --max-time 4 https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
-          [[ -n "$net_ip_public" ]] && break
-          sleep 1
-        done
+      load_cached_public_ip net_ip_box "$HOME/.conky/Temp/net_ip_box.cache" "$net_adapter" ""
+      if [[ -n "$net_ip_box" && -n "$net_ip_public" && "$net_ip_box" == "$net_ip_public" ]] && id -u "vpn" >/dev/null 2>&1; then
+        load_cached_public_ip net_ip_public "$HOME/.conky/Temp/net_ip_vpn_user.cache" "" "vpn"
         network_ip_label="$mui_network_ip_tunnel"
       else
         network_ip_label="$mui_network_ip_public"
       fi
-      if [[ "$network_detail" == "no" ]]; then
+      if [[ "$network_compact" == "yes" ]]; then
         echo -e "${font_standard}$network_ip_label $net_ip_public $txt_align_right$net_ip_box : ${mui_network_ip_box%:}"
       else
         echo -e "${font_standard}$network_ip_label $txt_align_right$net_ip_public"
         echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
       fi
-      if [[ "$net_ip_box" == "$net_ip_public" ]]; then
+      if [[ -n "$net_ip_box" && -n "$net_ip_public" && "$net_ip_box" == "$net_ip_public" ]]; then
         if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
           touch ~/.conky/pushover/vpn_error
           if [[ "$user_pass" != "" ]]; then
@@ -916,25 +995,15 @@ if [[ "$net_adapter" != "" ]]; then
       if [[ "$vpn_detected" != "" ]]; then
         if [[ "$net_adapter_device"  == "$net_adapter_default" ]]; then
           net_adapter_device_ip=`ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
-          net_adapter_device_ip_box=""
-          for _retry in 1 2 3; do
-            net_adapter_device_ip_box=$(curl -4 -s --max-time 4 --interface $net_adapter_device_ip https://ipinfo.io/ip 2>/dev/null | tr -d '[:space:]')
-            [[ -n "$net_adapter_device_ip_box" ]] && break
-            sleep 1
-          done
-          if [[ -n "$net_adapter_device_ip_box" ]]; then
-            echo "$net_adapter_device_ip_box" > ~/.conky/Temp/net_ip_box.cache
-          else
-            net_adapter_device_ip_box=$(cat ~/.conky/Temp/net_ip_box.cache 2>/dev/null)
-          fi
-          if [[ "$net_adapter_device_ip" =~ "$net_adapter_device_ip_box" ]] && id -u "vpn" >/dev/null 2>&1; then
+          load_cached_public_ip net_adapter_device_ip_box "$HOME/.conky/Temp/net_ip_box-$net_adapter_device.cache" "$net_adapter_device_ip" ""
+          if [[ -n "$net_adapter_device_ip" && -n "$net_adapter_device_ip_box" && "$net_adapter_device_ip" == "$net_adapter_device_ip_box" ]] && id -u "vpn" >/dev/null 2>&1; then
             net_adapter_device_ip=`echo $user_pass | sudo -kSu vpn -- ip address show $net_adapter_device | grep 'inet' | sed '/inet6/d' | awk '{print $2}' | sed 's/\/.*//'`
             vpn_title="Tunnel IP:"
           else
             vpn_title="Current IP:"
           fi
           echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_adapter_device_ip_box"
-          if [[ "$net_adapter_device_ip_box" == "$net_ip_public" ]]; then
+          if [[ -n "$net_adapter_device_ip_box" && -n "$net_ip_public" && "$net_adapter_device_ip_box" == "$net_ip_public" ]]; then
             if [[ ! -f ~/.conky/pushover/vpn_error ]]; then
               touch ~/.conky/pushover/vpn_error
               if [[ "$user_pass" != "" ]]; then
@@ -952,14 +1021,20 @@ if [[ "$net_adapter" != "" ]]; then
           fi
         fi
       fi
-      echo -e "${font_standard}$mui_network_down \${downspeed $net_adapter_device}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter_device}"
 ## Issue with graphs            
 ##      echo -e "\${color lightgray}\${downspeedgraph $net_adapter_device 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter_device 25,150 }\$color"
+      if [[ "$network_graph" == "yes" ]]; then
+        render_network_history "$net_adapter_device"
+      fi
+      echo -e "${font_standard}$mui_network_down \${downspeed $net_adapter_device}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter_device}"
     done
   else
-    echo -e "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
+    if [[ "$network_graph" == "yes" ]]; then
+      render_network_history "$net_adapter"
+    fi
 ## Issue with graphs
 ##    echo -e "\${color lightgray}\${downspeedgraph $net_adapter 25,150 } ${txt_align_right}\${upspeedgraph $net_adapter 25,150 }\$color"
+    echo -e "${font_standard}$mui_network_down \${downspeed $net_adapter}  ${txt_align_right}$mui_network_up \${upspeed $net_adapter}"
   fi
 else
   echo -e "\${font ${font_awesome_font}}$font_awesome_network\${font}\${goto 35} ${font_title}$mui_network_title \${hr 2}"

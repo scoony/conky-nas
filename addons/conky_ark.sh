@@ -367,7 +367,7 @@ if [[ "$xp_multiplier" =~ ^([0-9]+)\.0+$ ]]; then
 fi
 
 rate_title=''
-[[ -n "$xp_multiplier" ]] && rate_title=" - ${font_standard}${mui_ark_rate}${xp_multiplier}"
+[[ -n "$xp_multiplier" ]] && rate_title=" \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}${mui_ark_rate}${xp_multiplier}"
 echo -e "\${font ${font_awesome_font}}${font_awesome_ark}\${font}\${goto 35} ${font_title}${mui_ark_title}${rate_title} \${hr 2}" >> "$output_tmp"
 
 if ! curl -fsSL --retry 2 --connect-timeout 5 --max-time 30 "$SERVER_LIST_URL" -o "$server_list"; then
