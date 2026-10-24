@@ -181,12 +181,22 @@ shift $((OPTIND - 1))
 
 #######################
 ## Dependencies
-for command in curl jq; do
+for command in curl jq xmllint; do
   if ! command -v "$command" >/dev/null 2>&1; then
     printf 'Erreur: commande requise introuvable: %s\n' "$command" >&2
     exit 1
   fi
 done
+
+decode_xml_entities() {
+  local decoded
+
+  if decoded=$(printf '<value>%s</value>' "$1" | xmllint --xpath 'string(/value)' - 2>/dev/null); then
+    printf '%s' "$decoded"
+  else
+    printf '%s' "$1"
+  fi
+}
 
 output_tmp=$(mktemp "$script_folder/.conky_plex.ext.XXXXXX") || exit 1
 output_tmp_transcode=$(mktemp "$script_folder/.conky_plex_transcode.ext.XXXXXX") || exit 1
@@ -306,7 +316,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
   #echo $font_standard$mui_plex_stream$txt_align_right $plex_users >> "$output_tmp"
   plex_streams_suffix=""
   (( plex_users > 1 )) && plex_streams_suffix="s"
-  plex_header=$(printf '%b' "\${font ${font_awesome_font}}${font_awesome_plex}\${font}\${goto 35} ${font_title}${mui_plex_title} \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}${mui_plex_stream}${plex_streams_suffix}: ${plex_users} \${hr 2}")
+  plex_header=$(printf '%b' "\${font ${font_awesome_font}}${font_awesome_plex}\${font}\${goto 35} ${font_title}${mui_plex_title} \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}${mui_plex_stream}${plex_streams_suffix}: ${plex_users} ${font_title}\${hr 2}")
   if [[ -s "$output_tmp" ]]; then
     sed -i "1i\\$plex_header" "$output_tmp"
   else
@@ -316,6 +326,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
   while [ $num -le $plex_users ]; do
     plex_stream=`echo $plex_xml | xmllint --format - | sed ':a;N;$!ba;s/\n/ /g' | sed "s/<\/Video> /|/g" | sed "s/<\/Track> /|/g" | cut -d'|' -f$num`
     plex_user=`echo $plex_stream | grep -Po '(?<=<User id)[^>]*' | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//' | cut -d@ -f1`
+    plex_user=$(decode_xml_entities "$plex_user")
     plex_transcode=`echo $plex_stream | sed 's/.* videoDecision="//' | sed 's/".*//'`
     let plex_inprogressms=`echo $plex_stream | sed 's/.* viewOffset="//' | sed 's/".*//'`
     plex_inprogress=`printf '%d:%02d:%02d\n' $(($plex_inprogressms/1000/3600)) $(($plex_inprogressms/1000%3600/60)) $(($plex_inprogressms/1000%60))`
@@ -342,12 +353,15 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
 
     if [[ "$plex_checkmusic" != "" ]]; then
       plex_artiste=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
+      plex_artiste=$(decode_xml_entities "$plex_artiste")
       plex_album=""
       if [[ "$plex_artiste" == "Various Artists" ]]; then
         plex_artiste=""
         plex_album=`echo $plex_stream | sed 's/.* parentTitle="//' | sed 's/".*//'`
+        plex_album=$(decode_xml_entities "$plex_album")
       fi
       plex_song=`echo $plex_stream | sed 's/<Media .*//' | sed 's/.* title="//' | sed 's/".*//'`
+      plex_song=$(decode_xml_entities "$plex_song")
       plex_music=`echo $plex_artiste$plex_album - $plex_song`
       echo -e "$font_extra\uf111 $font_standard${plex_music:0:30} $txt_align_right${plex_user:0:15}" >> "$output_tmp_music"
       printf '%b\n' "${font_standard}${plex_inprogress} / ${plex_duration}  ${plex_state_human}\${voffset 1}\${execbar /bin/echo ${plex_bar_progress}}" >> "$output_tmp_music"
@@ -355,6 +369,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
       plex_checkepisode=`echo $plex_stream | grep 'grandparentTitle='`
       if [[ "$plex_checkepisode" != "" ]]; then
         plex_serie=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
+        plex_serie=$(decode_xml_entities "$plex_serie")
         plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
         plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
         if [[ "$plex_transcode" == "transcode" ]]; then
@@ -366,6 +381,7 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
         fi
       else
         plex_title=`echo $plex_stream | sed 's/ title="/|/g' | cut -d'|' -f2 | sed 's/".*//'`
+        plex_title=$(decode_xml_entities "$plex_title")
         if [[ "$plex_transcode" == "transcode" ]]; then
           echo -e "$font_extra\uf10C $font_standard${plex_title:0:30} $txt_align_right${plex_user:0:16}" >> "$output_tmp_transcode"
           printf '%b\n' "${font_standard}${plex_inprogress} / ${plex_duration}  ${plex_state_human}\${voffset 1}\${execbar /bin/echo ${plex_bar_progress}}" >> "$output_tmp_transcode"

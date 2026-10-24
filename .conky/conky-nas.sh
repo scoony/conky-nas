@@ -296,13 +296,14 @@ fi
 #### System Block
 
 time1=$(date +%s)
-echo -e "\${font ${font_awesome_font}}$font_awesome_system\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
+#echo -e "\${font ${font_awesome_font}}$font_awesome_system\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
+echo -e "\${font ${font_awesome_font}}$font_awesome_system\${font}\${goto 35} ${font_title}$mui_system_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}\$nodename \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} \$kernel${font_title} \${hr 2}"
 hdd_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 #hdd_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$2)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
 hdd_free_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 #hdd_free_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$4)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
-echo -e "${font_standard}$mui_system_host$txt_align_right\$nodename"
-echo -e "${font_standard}$mui_system_kernel$txt_align_right\$kernel"
+#echo -e "${font_standard}$mui_system_host$txt_align_right\$nodename"
+#echo -e "${font_standard}$mui_system_kernel$txt_align_right\$kernel"
 system_uptime_secs=$(awk '{printf "%d", $1}' /proc/uptime)
 system_uptime_days=$((system_uptime_secs/86400))
 system_uptime_hours=$(((system_uptime_secs%86400)/3600))
@@ -757,7 +758,7 @@ if [[ -f "$HOME/.conky/.mount.log" ]]; then
 else
   disk_count_display="$non_usb_drive_count"
 fi
-echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}$disk_count_display \${hr 2}"
+echo -e "\${font ${font_awesome_font}}$font_awesome_diskusage\${font}\${goto 35} ${font_title}$mui_diskusage_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}$disk_count_display ${font_title}\${hr 2}"
 for drive in $drives ; do
   mount_point=`grep "^$drive " /proc/mounts | grep -v "/snap/" | cut -d ' ' -f 2`
   mount_label="$mount_point"
@@ -930,9 +931,9 @@ if [[ "$net_adapter" != "" ]]; then
     fi
   fi
   if [[ "$vpn_detected" != "" ]]; then
-    echo -e "\${font ${font_awesome_font}}$font_awesome_network_secured\${font}\${goto 35} ${font_title}$mui_network_title_secured$network_title_detail \${hr 2}"
+    echo -e "\${font ${font_awesome_font}}$font_awesome_network_secured\${font}\${goto 35} ${font_title}$mui_network_title_secured$network_title_detail ${font_title}\${hr 2}"
   else
-    echo -e "\${font ${font_awesome_font}}$font_awesome_network\${font}\${goto 35} ${font_title}$mui_network_title$network_title_detail \${hr 2}"
+    echo -e "\${font ${font_awesome_font}}$font_awesome_network\${font}\${goto 35} ${font_title}$mui_network_title$network_title_detail ${font_title}\${hr 2}"
   fi
   if [[ "$network_compact" == "no" ]]; then
     if [[ "$net_adapter_number" == "1" ]]; then
@@ -1099,7 +1100,7 @@ if [[ "$net_adapter" != "" ]]; then
           transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l >~/.conky/transm.log
           transmission_queue=`cat ~/.conky/transm.log | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l`
 ##          echo "${font_standard}$mui_transmission_queue ${txt_align_right} $transmission_queue"
-          echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}$mui_transmission_queue $transmission_queue \${hr 2}"
+          echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}$mui_transmission_queue $transmission_queue ${font_title}\${hr 2}"
           if [[ "$transmission_folder" == "" ]]; then
             echo $user_pass | sudo -kS updatedb &>/dev/null
             check_root_cron=`echo "$user_pass" | sudo -kS crontab -l 2>/dev/null | grep "plex_sort.sh"`
