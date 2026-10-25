@@ -297,7 +297,8 @@ fi
 
 time1=$(date +%s)
 #echo -e "\${font ${font_awesome_font}}$font_awesome_system\${font}\${goto 35} ${font_title}$mui_system_title \${hr 2}"
-echo -e "\${font ${font_awesome_font}}$font_awesome_system\${font}\${goto 35} ${font_title}$mui_system_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}\$nodename \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} \$kernel${font_title} \${hr 2}"
+#echo -e "\${font ${font_awesome_font}}$font_awesome_system\${font}\${goto 35} ${font_title}$mui_system_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}\$nodename \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} \$kernel${font_title} \${hr 2}"
+echo -e "\${font ${font_awesome_font}}$font_awesome_system\${font}\${goto 35} ${font_title}$mui_system_title \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} ${font_standard}\$nodename \${voffset 3}\${execbar 1,4 echo 100}\${voffset -3} $(uname -r | cut -d- -f1)${font_title} \${hr 2}"
 hdd_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $2 }' | numfmt --from-unit=1024 --to=si --suffix=B`
 #hdd_total=`df 2>/dev/null | sed '/\/\//d' | sed -e '1d' | awk '{print (total +=$2)}' | numfmt --from-unit=1024 --to=si --suffix=B | sed -e '$!d'`
 hdd_free_total=`df -l --total 2>/dev/null | sed -e '$!d' | awk '{ print $4 }' | numfmt --from-unit=1024 --to=si --suffix=B`
@@ -1241,30 +1242,14 @@ if [[ "$net_adapter" != "" ]]; then
           echo -e "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
           rm ~/.conky/transm.log
         else
+          echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
           echo ""
           echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
         fi
       else
-        ## was set to settings2 instead of settings to disable
-        if [[ -f "/etc/transmission-deamon/settings2.json" ]]; then
-          transmission_port=`echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json &>/dev/null | jq -r '."rpc-port"'`
-          transmission_ip="localhost"
-          echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json &>/dev/null | jq -r '."rpc-username"' | sed 's/./\\&/g' >temp_tr.log
-          transmission_login=`cat temp_tr.log`
-          rm temp_tr.log
-          echo $user_pass | sudo -kS cat /etc/transmission-daemon/settings.json &>/dev/null | jq -r '."rpc-password"' | sed 's/./\\&/g' >temp_tr.log
-          transmission_password=`cat temp_tr.log`
-          rm temp_tr.log
-          echo -e "${font_standard}$mui_transmission_queue ${txt_align_right}\${exec transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | sed '/^ID/d' | sed '/^Sum:/d' | sed '/ Done /d' | wc -l}"
-          transmission_down=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $5 }' | sed "s/\..*//"`
-          transmission_down_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_down`
-          transmission_up=`transmission-remote $transmission_ip:$transmission_port -n $transmission_login:$transmission_password -l 2>/dev/null | grep Sum: | awk '{ print $4 }' | sed "s/\..*//"`
-          transmission_up_human=`numfmt --to=iec-i --from-unit=1024 --suffix=B $transmission_up`
-          echo "${font_standard}$mui_transmission_down $transmission_down_human ${txt_align_right}$mui_transmission_up $transmission_up_human"
-        else
-          echo ""
-          echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
-        fi
+        echo -e "\${font ${font_awesome_font}}$font_awesome_transmission\${font}\${goto 35} ${font_title}$mui_transmission_title \${hr 2}"
+        echo ""
+        echo -e "\${execbar 14 echo 100}${font_standard}\${goto 0}\${voffset -1}${txt_align_center}\${color black}$mui_transmission_error\$color"
       fi
     else
       if [[ "$transmission_ip" != "" ]] && [[ "$transmission_port" != "" ]] && [[ "$transmission_login" != "" ]] && [[ "$transmission_password" != "" ]]; then
