@@ -1334,6 +1334,7 @@ if [[ "$net_adapter" != "" ]]; then
 fi
 
 cat ~/.conky/*.apps.ext 2>/dev/null
+echo ""
 
 # #### Plex Block
 
