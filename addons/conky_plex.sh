@@ -198,6 +198,16 @@ decode_xml_entities() {
   fi
 }
 
+extract_xml_attribute() {
+  local content=$1
+  local attribute=$2
+  local pattern="(^|[[:space:]])${attribute}=\"([^\"]*)\""
+
+  if [[ "$content" =~ $pattern ]]; then
+    decode_xml_entities "${BASH_REMATCH[2]}"
+  fi
+}
+
 output_tmp=$(mktemp "$script_folder/.conky_plex.ext.XXXXXX") || exit 1
 output_tmp_transcode=$(mktemp "$script_folder/.conky_plex_transcode.ext.XXXXXX") || exit 1
 output_tmp_direct=$(mktemp "$script_folder/.conky_plex_direct.ext.XXXXXX") || exit 1
@@ -370,8 +380,10 @@ if [[ "$plex_state" != "dead" ]] || [[( "$plex_ip" != "" ) && ( "$plex_port" != 
       if [[ "$plex_checkepisode" != "" ]]; then
         plex_serie=`echo $plex_stream | sed 's/.* grandparentTitle="//' | sed 's/".*//'`
         plex_serie=$(decode_xml_entities "$plex_serie")
-        plex_episode=`echo $plex_stream | sed 's/summary=.*//' | sed 's/.* index="//' | sed 's/".*//'`
-        plex_season=`echo $plex_stream | sed 's/.* parentTitle="Season //' | sed 's/".*//'`
+        plex_video_tag=${plex_stream#*<Video }
+        plex_video_tag=${plex_video_tag%%>*}
+        plex_episode=$(extract_xml_attribute "$plex_video_tag" index)
+        plex_season=$(extract_xml_attribute "$plex_video_tag" parentIndex)
         if [[ "$plex_transcode" == "transcode" ]]; then
           echo -e "$font_extra\uf10C $font_standard${plex_serie:0:22} ("$plex_season"x$(printf "%02d" $plex_episode)) $txt_align_right${plex_user:0:15}" >> "$output_tmp_transcode"
           printf '%b\n' "${font_standard}${plex_inprogress} / ${plex_duration}  ${plex_state_human}\${voffset 1}\${execbar /bin/echo ${plex_bar_progress}}" >> "$output_tmp_transcode"

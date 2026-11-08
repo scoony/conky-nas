@@ -960,7 +960,7 @@ if [[ "$net_adapter" != "" ]]; then
         network_ip_label="$mui_network_ip_public"
       fi
       if [[ "$network_compact" == "yes" ]]; then
-        echo -e "${font_standard}$network_ip_label $net_ip_public $txt_align_right$net_ip_box : ${mui_network_ip_box%:}"
+        echo -e "${font_standard}$network_ip_label $net_ip_public $txt_align_right$net_ip_box :${mui_network_ip_box%:}"
       else
         echo -e "${font_standard}$network_ip_label $txt_align_right$net_ip_public"
         echo -e "${font_standard}$mui_network_ip_box $txt_align_right$net_ip_box"
